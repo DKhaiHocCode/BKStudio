@@ -121,7 +121,7 @@ flowchart LR
 ### M0 — Setup
 
 #### T-001 · Repo structure & local Postgres
-- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** — · **Status:** done
+- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** — · **Status:** done · **Thực tế:** 3 giờ
 - **Phạm vi:** Thư mục `backend/ frontend/ infra/`; `.editorconfig`; `.env.example`; `infra/docker-compose.dev.yml` chạy PostgreSQL 16 + MinIO (giả lập R2).
 - **File / module:** infra/docker-compose.dev.yml, .env.example
 - **Nghiệm thu:** `docker compose -f infra/docker-compose.dev.yml up` chạy được Postgres + MinIO; README có hướng dẫn chạy local.
@@ -130,7 +130,7 @@ flowchart LR
 
 #### T-002 · Spring Boot skeleton
 - **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-001 · **Status:** todo
-- **Phạm vi:** Maven, Java 21, package theo module (catalog, order, queue, payment, notification, admin, shared); `/api/health`; `@RestControllerAdvice` → ProblemDetail có `code` + `requestId`; filter gắn `X-Request-Id`; log JSON.
+- **Phạm vi:** Maven, Java 25 (ADR-0011), package theo module (catalog, order, queue, payment, notification, admin, shared); `/api/health`; `@RestControllerAdvice` → ProblemDetail có `code` + `requestId`; filter gắn `X-Request-Id`; log JSON.
 - **File / module:** backend/pom.xml, backend/src/main/java/.../shared/*
 - **Nghiệm thu:** `./mvnw verify` xanh; `GET /api/health` trả `{status:UP}`; lỗi trả đúng định dạng API_SPEC §1.
 - **Test:** Unit test cho exception handler; MockMvc test health.

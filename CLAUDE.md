@@ -6,7 +6,7 @@ Hướng dẫn cố định cho Claude Code trong repo này. Đọc hết trư�
 Website bán figure anime in 3D sơn tay cho khách quốc tế (Singapore, Úc), giá USD. Hàng có sẵn, hàng làm theo đơn (cọc 50%, hàng đợi slot theo tháng), commission qua sản phẩm UNLISTED. Thanh toán **thủ công** qua link Artistree / Shopee — website không xử lý thẻ.
 Chủ dự án: Khai — sinh viên, 1 người làm, ~10 giờ/tuần, **mục tiêu chính là học full-stack** và bán thật sau launch.
 
-Stack: Next.js (TypeScript) · Spring Boot (Java 21, Maven, modular monolith) · PostgreSQL + Flyway · Docker Compose + Caddy trên VPS Singapore · Cloudflare R2 · Resend.
+Stack: Next.js (TypeScript) · Spring Boot (Java 25 LTS, Maven, modular monolith) · PostgreSQL + Flyway · Docker Compose + Caddy trên VPS Singapore · Cloudflare R2 · Resend.
 
 ## Bắt đầu mỗi phiên
 1. Đọc `docs/SESSION_HANDOFF.md` → biết đang ở task nào, bước tiếp theo.

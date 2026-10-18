@@ -8,6 +8,7 @@ Ghi các thay đổi quan trọng. Mới nhất ở trên. Định dạng: ngày
 - 2026-10-18 · T-001: cấu trúc repo (`backend/ frontend/ infra/`), `.editorconfig`, `.env.example`, `infra/docker-compose.dev.yml` (PostgreSQL 16 + MinIO). MinIO dùng image Chainguard vì Docker Hub đã gỡ `minio/minio`.
 
 ### Tài liệu & kế hoạch
+- 2026-10-18 · ADR-0011: dùng Java 25 (LTS) thay Java 21.
 - 2026-10-18 · Phase 5: quy trình phát triển (`DEVELOPMENT.md`), chiến lược test (`TESTING.md`), template PR/bug, cập nhật `CLAUDE.md`.
 - 2026-10-18 · Phase 4: roadmap + 40 task (`tasks.py`, `TASKS.md`, `ROADMAP.md`). Chọn phương án A: giữ phạm vi, 10 giờ/tuần, launch ~đầu 3/2027.
 - 2026-10-18 · Phase 3: thiết kế DB (chạy thử trên PostgreSQL 16, 17 tình huống đạt), workflow, API, security, deployment. Thêm commission qua sản phẩm UNLISTED.

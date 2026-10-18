@@ -7,7 +7,7 @@
 | Lớp | Lựa chọn | ADR |
 |---|---|---|
 | Frontend | Next.js (App Router, TypeScript) + Tailwind CSS | 0002 |
-| Backend | Spring Boot, Java 21, Maven — modular monolith | 0003 |
+| Backend | Spring Boot, Java 25 (LTS), Maven — modular monolith | 0003, 0011 |
 | Database | PostgreSQL + Flyway | 0004 |
 | Hosting | 1 VPS ≥ 4 GB ở **Singapore** + Docker Compose + Caddy (HTTPS) | 0005 |
 | DNS / domain | Cloudflare | 0005 |
