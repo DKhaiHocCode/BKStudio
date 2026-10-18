@@ -1,6 +1,6 @@
 # ADR-0010: Vận hành — log, giám sát, backup, vận chuyển
 
-- Trạng thái: Proposed
+- Trạng thái: Accepted
 - Ngày: 2026-10-18
 
 ## Quyết định

@@ -23,7 +23,7 @@ BKStudio làm figure anime custom: in 3D từ file STL, lắp ráp và sơn tay 
 | Tên miền | Chưa có |
 
 ## 4. Ngoài phạm vi (MVP)
-- Hệ thống commission riêng (tiếp tục dùng Artistree).
+- Hệ thống commission đầy đủ trên web (form yêu cầu, báo giá, duyệt bản nháp). MVP chỉ có trang Commission + link mạng xã hội + sản phẩm ẩn — xem REQUIREMENTS F-15, F-16.
 - Tài khoản khách hàng, wishlist, review.
 - Cổng thanh toán tự động / webhook.
 - Tích hợp API vận chuyển, tính phí ship tự động.

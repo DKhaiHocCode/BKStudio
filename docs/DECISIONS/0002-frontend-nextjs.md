@@ -1,6 +1,6 @@
 # ADR-0002: Frontend — Next.js (TypeScript)
 
-- Trạng thái: Proposed
+- Trạng thái: Accepted
 - Ngày: 2026-10-18
 
 ## Bối cảnh

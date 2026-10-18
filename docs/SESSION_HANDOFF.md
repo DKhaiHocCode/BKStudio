@@ -3,17 +3,19 @@
 > Cập nhật: 2026-10-18
 
 ## Đang ở đâu
-**Phase 2 — Technical decisions: đã viết xong 10 ADR (trạng thái Proposed), chờ chủ dự án duyệt.**
+**Phase 3 — System design: ĐÃ DUYỆT** (kèm bổ sung commission: F-15, F-16).
 
 ## Đã làm
-- Phase 1 hoàn tất: `docs/REQUIREMENTS.md` đã duyệt (v1). Chốt: hàng có sẵn trả 100%, hạn trả nốt 30 ngày (nhắc 7 ngày và 1 ngày trước), hỗ trợ cả Artistree và Shopee + mua hộ.
-- Phase 2: kiểm tra giá/chính sách (Vercel Hobby cấm thương mại, R2 free tier, Resend free tier, giá Hetzner, Railway). Viết `docs/ARCHITECTURE.md` + ADR 0001–0010.
+- Phase 1–2 hoàn tất (REQUIREMENTS v1, ARCHITECTURE, ADR 0001–0010 Accepted).
+- Phase 3:
+  - `DATABASE.md` + `schema-draft.sql`: schema đã chạy thật trên PostgreSQL 16.15; 14 tình huống (2 khách mua món cuối, cấp slot đồng thời, bấm xác nhận 2 lần, dùng lại invoice…) đều cho kết quả đúng.
+  - `WORKFLOWS.md`: máy trạng thái 2 loại đơn, checkout, thanh toán thủ công, hàng đợi slot, nhắc hạn/mất cọc, upload ảnh, job định kỳ.
+  - `API_SPEC.md`, `SECURITY.md` (18 mối đe doạ), `DEPLOYMENT.md` (env, deploy, backup, RPO 24h / RTO 4h).
+  - Điều chỉnh F-02: 1 biến thể có thể vừa có hàng sẵn vừa làm theo đơn.
+  - Q6–Q9 đã duyệt. Thêm commission: trang Commission + link mạng xã hội; admin tạo sản phẩm `UNLISTED` có quota 1 suất, khách đặt theo luồng làm theo đơn (test 15–17 đạt).
 
 ## Đang chặn
-- Chủ dự án duyệt ADR (đặc biệt 0002 Next.js, 0004 PostgreSQL, 0005 Hetzner).
-- Chọn vị trí datacenter (EU hay Singapore) — phụ thuộc khách ở đâu.
-- Chủ shop kiểm tra ToS Artistree về hàng vật lý (rủi ro R1).
+- (Trước launch) Kiểm tra ToS Artistree; chọn nhà cung cấp VPS; mua tên miền.
 
 ## Việc tiếp theo
-1. Duyệt ADR → đổi trạng thái thành `Accepted`.
-2. Bắt đầu **Phase 3 — System design**: ERD + schema, máy trạng thái đơn chi tiết, thiết kế xử lý đồng thời cho slot/kho, API spec, threat model.
+**Phase 4 — Roadmap & task breakdown**: `ROADMAP.md`, `TASKS.md` (ID, phạm vi, tiêu chí nghiệm thu, test, ước lượng giờ trong ngân sách 130 giờ), dependency graph + critical path. Sau đó Phase 5: quy trình làm việc (git, test, Definition of Done).

@@ -1,6 +1,6 @@
 # ADR-0001: Kiến trúc tổng thể
 
-- Trạng thái: Proposed
+- Trạng thái: Accepted
 - Ngày: 2026-10-18
 
 ## Bối cảnh

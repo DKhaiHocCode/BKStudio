@@ -1,6 +1,6 @@
 # ADR-0009: Email giao dịch — Resend
 
-- Trạng thái: Proposed
+- Trạng thái: Accepted
 - Ngày: 2026-10-18
 
 ## Bối cảnh

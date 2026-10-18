@@ -1,6 +1,6 @@
 # ADR-0008: Thanh toán — `PaymentRequest` thủ công, độc lập nền tảng
 
-- Trạng thái: Proposed
+- Trạng thái: Accepted
 - Ngày: 2026-10-18
 
 ## Bối cảnh

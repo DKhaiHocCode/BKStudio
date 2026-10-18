@@ -1,6 +1,6 @@
 # ADR-0004: Database — PostgreSQL + Flyway
 
-- Trạng thái: Proposed
+- Trạng thái: Accepted
 - Ngày: 2026-10-18
 
 ## Bối cảnh
@@ -17,7 +17,7 @@ Dữ liệu quan hệ rõ ràng (sản phẩm, biến thể, đơn, thanh toán,
 | Kiểu dữ liệu | `jsonb`, enum, `timestamptz` chuẩn | JSON có nhưng yếu hơn |
 | Dịch vụ managed miễn phí (nếu sau này cần) | Nhiều (Neon, Supabase…) | Ít hơn |
 
-Chênh lệch không lớn; chọn PostgreSQL vì ràng buộc toàn vẹn mạnh hơn cho bài toán slot/kho, và đây là kỹ năng đáng học. **Nếu muốn giữ MySQL thì vẫn chấp nhận được** — quyết định này rẻ để đổi trước khi viết migration đầu tiên.
+Chênh lệch không lớn; chọn PostgreSQL vì ràng buộc toàn vẹn mạnh hơn cho bài toán slot/kho, và đây là kỹ năng đáng học. Chủ dự án đã chọn PostgreSQL (2026-10-18).
 
 ## Hệ quả
 - ✅ Ràng buộc ở tầng DB là lưới an toàn cuối cùng cho bài toán đồng thời.

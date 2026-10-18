@@ -1,6 +1,6 @@
 # ADR-0006: Xác thực — Admin dùng session + TOTP 2FA; khách tra cứu đơn bằng token
 
-- Trạng thái: Proposed
+- Trạng thái: Accepted
 - Ngày: 2026-10-18
 
 ## Bối cảnh

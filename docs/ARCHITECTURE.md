@@ -1,6 +1,6 @@
 # Architecture — BKStudio
 
-> Trạng thái: **Proposed (chờ duyệt)** · Cập nhật: 2026-10-18
+> Trạng thái: **Accepted** · Cập nhật: 2026-10-18
 > Chi tiết và lý do từng lựa chọn: xem `docs/DECISIONS/`.
 
 ## 1. Stack tóm tắt
@@ -9,7 +9,7 @@
 | Frontend | Next.js (App Router, TypeScript) + Tailwind CSS | 0002 |
 | Backend | Spring Boot, Java 21, Maven — modular monolith | 0003 |
 | Database | PostgreSQL + Flyway | 0004 |
-| Hosting | 1 VPS (~4 GB, Hetzner CX23) + Docker Compose + Caddy (HTTPS) | 0005 |
+| Hosting | 1 VPS ≥ 4 GB ở **Singapore** + Docker Compose + Caddy (HTTPS) | 0005 |
 | DNS / domain | Cloudflare | 0005 |
 | Xác thực | Admin: session cookie + TOTP 2FA. Khách: token trong link đơn | 0006 |
 | Ảnh | Cloudflare R2 + CDN | 0007 |
@@ -72,15 +72,14 @@ BKStudio/
 ## 5. Chi phí ước tính hằng tháng
 | Khoản | Ước tính | Ghi chú |
 |---|---|---|
-| VPS Hetzner CX23 + IPv4 | ~€4.49 | Giá sau đợt tăng 4/2026 theo nguồn tổng hợp — xác nhận khi đăng ký |
-| Backup VPS | ~€0.90 | ~20% giá server |
-| Cloudflare R2 | $0 | Trong free tier 10 GB |
+| VPS 4 GB ở Singapore + IPv4 + backup | **chưa chắc chắn, mục tiêu ≤ $15** | Giá Hetzner 2026 không thống nhất giữa các nguồn; xem console khi deploy (ADR-0005) |
+| Cloudflare R2 | $0 | Free tier 10 GB, egress miễn phí |
 | Resend | $0 | Free tier 3.000 email/tháng |
 | Cloudflare DNS | $0 | |
 | Tên miền | ~$10–15/năm (~$1/tháng) | Tuỳ đuôi tên miền |
-| **Tổng** | **~$6–8/tháng** | Nằm trong ngân sách $5–15 |
+| **Tổng** | **mục tiêu ≤ $16/tháng** | Vượt thì chủ dự án duyệt trước |
 
 ## 6. Còn chờ quyết định
-- Vị trí datacenter (theo nơi đa số khách ở).
+- Nhà cung cấp VPS cụ thể (theo giá thật lúc deploy — quy tắc trong ADR-0005).
 - Tên miền.
 - Xác nhận ToS Artistree về hàng vật lý (ADR-0008).

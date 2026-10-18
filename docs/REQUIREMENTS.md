@@ -1,11 +1,12 @@
 # Requirements — BKStudio
 
-> Trạng thái: **Đã duyệt (v1)** · Cập nhật: 2026-10-18
+> Trạng thái: **Đã duyệt (v1.1)** — bổ sung từ Phase 3: F-02, F-15, F-16 (commission), Q6–Q9 · Cập nhật: 2026-10-18
 > Ký hiệu: ✅ đã xác nhận · ❓ còn mở
 
 ## 1. Sự thật đã xác nhận
 - ✅ Bán thật sau khi launch, **chỉ khách quốc tế**, giá **USD**, giao diện **tiếng Anh**.
-- ✅ Loại hàng: **hàng có sẵn** và **hàng làm theo đơn**. Commission tiếp tục qua Artistree.
+- ✅ Loại hàng: **hàng có sẵn** và **hàng làm theo đơn**.
+- ✅ **Commission** (cập nhật 2026-10-18): khách liên hệ qua mạng xã hội (Reddit, Facebook, Instagram, X); trao đổi ngoài web. Admin tạo **sản phẩm ẩn (UNLISTED)** riêng cho khách đó và gửi link; khách đặt và cọc theo đúng luồng hàng làm theo đơn.
 - ✅ Biến thể duy nhất: **tỉ lệ** (vd 1/7, 1/6). Mọi figure đều sơn hoàn thiện.
 - ✅ Giới hạn **slot/tháng**, **1 figure = 1 slot**. Hết slot vẫn cho đặt, xếp vào hàng đợi, thời gian chờ dài hơn.
 - ✅ Hàng làm theo đơn: **cọc 50%** khi đặt, qua Artistree.
@@ -39,7 +40,7 @@ Lý do: hàng đã có, không có thời gian chờ để cọc phát huy tác 
 
 Lưu ý: khách trả bằng thẻ vẫn có thể mở dispute với ngân hàng. Điều khoản rõ ràng + bằng chứng đồng ý là cách phòng vệ tốt nhất bạn có.
 
-### 2.5 Trạng thái đơn hàng (bản nháp)
+### 2.5 Trạng thái đơn hàng (tóm tắt — bản chi tiết ở `WORKFLOWS.md` §1)
 ```
 Làm theo đơn:
 AWAITING_DEPOSIT → QUEUED → IN_PRODUCTION → AWAITING_BALANCE → PAID_IN_FULL → SHIPPED → COMPLETED
@@ -63,7 +64,7 @@ AWAITING_BALANCE ──(quá hạn)──▶ FORFEITED
 | ID | Yêu cầu |
 |---|---|
 | F-01 | Catalog: danh sách + trang chi tiết sản phẩm (ảnh, mô tả, nhân vật/series, giá USD theo tỉ lệ) |
-| F-02 | Mỗi biến thể tỉ lệ có loại: `IN_STOCK` (số lượng) hoặc `MADE_TO_ORDER` |
+| F-02 | Mỗi biến thể tỉ lệ có thể **vừa có hàng sẵn** (số lượng) **vừa nhận làm theo đơn**; khách chọn 1 trong 2 khi thêm vào giỏ. Một đơn chỉ chứa 1 loại *(cập nhật ở Phase 3 — xem DATABASE.md)* |
 | F-03 | Hiển thị thời gian chờ dự kiến cho hàng làm theo đơn |
 | F-04 | Giỏ hàng + checkout không cần tài khoản (email, tên, địa chỉ giao hàng, đồng ý điều khoản) |
 | F-05 | Tạo đơn + `PaymentRequest` tương ứng; giữ hàng có sẵn trong thời hạn thanh toán |
@@ -76,17 +77,18 @@ AWAITING_BALANCE ──(quá hạn)──▶ FORFEITED
 | F-12 | Admin: quản lý đơn, tạo/xác nhận `PaymentRequest`, nhập vận đơn, xem hàng đợi |
 | F-13 | Trang Policy / Terms: cọc không hoàn, thời gian chờ, ship, trách nhiệm hư hỏng |
 | F-14 | Giao diện responsive (mobile + desktop) |
+| F-15 | **Sản phẩm ẩn (UNLISTED)** cho commission: chỉ vào được bằng link trực tiếp, không hiện trong catalog / tìm kiếm / sitemap, có `noindex`. Giới hạn số suất làm theo đơn (vd 1 suất) để chỉ đúng 1 khách đặt được |
+| F-16 | **Trang Commission** + link mạng xã hội (Reddit, Facebook, Instagram, X) ở trang Commission và footer; admin sửa link trong Cài đặt |
 
 ### P1 — nên có
 | ID | Yêu cầu |
 |---|---|
-| F-20 | Trang Commission → dẫn sang Artistree |
 | F-21 | Dashboard admin "việc cần làm" (đơn chờ xác nhận tiền, sắp quá hạn) |
 | F-22 | Mã giảm giá đơn giản |
 | F-23 | Backup tự động DB + ảnh |
 
 ### P2 — sau launch
-Cổng thanh toán tự động · hệ thống commission riêng · tích hợp API ship · tài khoản khách · wishlist · đa ngôn ngữ.
+Cổng thanh toán tự động · hệ thống commission riêng (form yêu cầu, báo giá, duyệt bản nháp trên web) · tích hợp API ship · tài khoản khách · wishlist · đa ngôn ngữ.
 
 ## 4. Yêu cầu phi chức năng
 | ID | Yêu cầu |
@@ -107,3 +109,8 @@ Cổng thanh toán tự động · hệ thống commission riêng · tích hợp
 | Q3 | Phần còn lại: Artistree hay Shopee + mua hộ? | Cách thu phí ship | ✅ Hỗ trợ cả hai |
 | Q4 | Sức chứa slot ban đầu mỗi tháng? | Dữ liệu cấu hình (admin nhập, không ảnh hưởng thiết kế) | ❓ |
 | Q5 | ToS Artistree có cho dùng thanh toán hàng vật lý không? | R1 | ❓ Xem ADR-0008 |
+| Q6 | Hạn thanh toán link cọc / hàng sẵn: 48 giờ **kể từ lúc gửi link** | Job hết hạn | ✅ |
+| Q7 | Một đơn chỉ chứa 1 loại (toàn hàng sẵn hoặc toàn làm theo đơn) | Giỏ hàng, checkout | ✅ |
+| Q8 | Ẩn danh thông tin liên hệ/địa chỉ sau 2 năm kể từ khi đơn kết thúc | Privacy, job dọn dữ liệu | ✅ |
+| Q9 | Tháng sản xuất hiển thị lúc đặt chỉ là ước tính; tháng chính thức báo khi xác nhận cọc | Nội dung điều khoản, UI | ✅ |
+| Q10 | Commission có chiếm slot trong hàng đợi tháng như hàng làm theo đơn không? | Hàng đợi | Mặc định: **có** (1 figure = 1 slot) |
