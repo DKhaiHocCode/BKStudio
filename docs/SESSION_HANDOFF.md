@@ -3,21 +3,26 @@
 > Cập nhật: 2026-10-18
 
 ## Đang ở đâu
-**Lập kế hoạch hoàn tất (Phase 1–5).** Chưa có code. Task tiếp theo: **T-001**.
+**T-001 xong** (nhánh `chore/T-001-repo-structure`, chờ tạo PR và merge). Task tiếp theo: **T-002** (Spring Boot skeleton) hoặc **T-004** (Next.js skeleton) — cả hai chỉ phụ thuộc T-001.
 
 ## Đã làm
-- Phase 1–3: yêu cầu v1.1, 10 ADR, thiết kế DB (chạy thử PostgreSQL 16, 17 tình huống đạt), workflow, API, security, deployment; commission qua sản phẩm UNLISTED.
-- Phase 4: 40 task (`tasks.py` → `TASKS.md`), `ROADMAP.md`. **Đã chọn phương án A**: giữ phạm vi, 10 giờ/tuần, ~197 giờ kể cả dự phòng, launch ~đầu 3/2027.
-- Phase 5: `DEVELOPMENT.md` (git, quy ước code, quy trình task, DoD, báo lỗi), `TESTING.md`, `CHANGELOG.md`, template PR/bug, `CLAUDE.md` đầy đủ.
+- Phase 1–5: lập kế hoạch (yêu cầu, ADR, DB, workflow, API, security, 40 task, quy trình).
+- T-001: `backend/ frontend/ infra/` (có `.gitkeep`), `.editorconfig`, `.env.example`, `infra/docker-compose.dev.yml` (PostgreSQL 16 + MinIO + tự tạo bucket `bkstudio-dev`), README có hướng dẫn chạy local.
+  - Bằng chứng: Postgres `healthy`, `psql` trả PostgreSQL 16.15; MinIO `/minio/health/live` = 200, console = 200, bucket tạo thành công.
+
+## Lưu ý / vướng
+- `minio/minio` và `minio/mc` trên Docker Hub đã bị gỡ (pull access denied), quay.io trả 401. Đã chuyển sang `cgr.dev/chainguard/minio` + `minio-client` (distroless, không shell, nên `minio-init` dùng `restart: on-failure` thay vì vòng chờ). Chỉ dùng cho dev; khi cần thì xem lại cho production (R2 thật, không dùng MinIO).
+- **JDK trên máy là 24, dự án cần Java 21** → cài JDK 21 trước T-002.
+- Windows: `python3` là alias Microsoft Store, dùng `py`/`python`; chạy `PYTHONUTF8=1 python docs/tasks.py --render` để khỏi lỗi mã hoá.
+- Chưa ghi `actual` giờ cho T-001 trong `tasks.py` (cần Khai báo số giờ thực tế).
 
 ## Đang chặn
-- Không có gì chặn T-001.
 - (Trước T-032) O-2 nội dung điều khoản; O-5 link mạng xã hội.
 - (Trước T-043) O-4 chọn VPS + tên miền, duyệt chi phí.
 - (Trước launch) O-1 ToS Artistree.
 
 ## Việc tiếp theo
-1. Cài môi trường máy (DEVELOPMENT.md §1): JDK 21, Node LTS, Docker Desktop (WSL2), Git Bash.
-2. Bật bảo vệ nhánh `main` trên GitHub (PR + CI xanh).
-3. **T-001** Repo structure & local Postgres (3 giờ) → T-002 → T-003…
-Mở phiên mới: *"Đọc SESSION_HANDOFF và bắt đầu T-001."*
+1. Khai review, push nhánh, tạo PR, bật bảo vệ nhánh `main` (PR + CI xanh), squash merge.
+2. Cài JDK 21.
+3. **T-002** Spring Boot skeleton (4 giờ).
+Mở phiên mới: *"Đọc SESSION_HANDOFF và bắt đầu T-002."*
