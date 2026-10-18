@@ -1,6 +1,6 @@
 # ADR-0003: Backend — Spring Boot (Java 21)
 
-- Trạng thái: Accepted
+- Trạng thái: Accepted — phần phiên bản Java được thay bởi ADR-0011
 - Ngày: 2026-10-18
 
 ## Bối cảnh

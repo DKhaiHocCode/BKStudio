@@ -8,13 +8,13 @@
 
 TASKS = [
 # ---------------- M0 Setup ----------------
-dict(id="T-001", m="M0", t="Repo structure & local Postgres", h=3, deps=[], p="P0", launch=True, status="done",
+dict(id="T-001", m="M0", t="Repo structure & local Postgres", h=3, deps=[], p="P0", launch=True, status="done", actual=3,
   scope="Thư mục `backend/ frontend/ infra/`; `.editorconfig`; `.env.example`; `infra/docker-compose.dev.yml` chạy PostgreSQL 16 + MinIO (giả lập R2).",
   files="infra/docker-compose.dev.yml, .env.example",
   ac="`docker compose -f infra/docker-compose.dev.yml up` chạy được Postgres + MinIO; README có hướng dẫn chạy local.",
   test="Kết nối psql thành công.", risk="Docker Desktop trên Windows cần WSL2."),
-dict(id="T-002", m="M0", t="Spring Boot skeleton", h=4, deps=["T-001"], p="P0", launch=True,
-  scope="Maven, Java 21, package theo module (catalog, order, queue, payment, notification, admin, shared); `/api/health`; `@RestControllerAdvice` → ProblemDetail có `code` + `requestId`; filter gắn `X-Request-Id`; log JSON.",
+dict(id="T-002", m="M0", t="Spring Boot skeleton", h=4, deps=["T-001"], p="P0", launch=True, status="done",
+  scope="Maven, Java 25 (ADR-0011), package theo module (catalog, order, queue, payment, notification, admin, shared); `/api/health`; `@RestControllerAdvice` → ProblemDetail có `code` + `requestId`; filter gắn `X-Request-Id`; log JSON.",
   files="backend/pom.xml, backend/src/main/java/.../shared/*",
   ac="`./mvnw verify` xanh; `GET /api/health` trả `{status:UP}`; lỗi trả đúng định dạng API_SPEC §1.",
   test="Unit test cho exception handler; MockMvc test health.", risk="Chọn đúng bản Spring Boot ổn định mới nhất."),
@@ -222,9 +222,11 @@ if __name__ == "__main__":
     print("critical path:", cp_h, "h", " → ".join(cp))
     print("tasks:", len(TASKS), "max task h:", max(t["h"] for t in TASKS))
     done = [t for t in TASKS if t.get("status") == "done"]
-    est_done = sum(t["h"] for t in done); act_done = sum(t.get("actual", 0) for t in done)
-    print(f"progress: {len(done)}/{len(TASKS)} tasks done; estimated {est_done}h vs actual {act_done}h"
-          + (f" ({(act_done/est_done-1)*100:+.0f}%)" if est_done else ""))
+    timed = [t for t in done if "actual" in t]
+    est_t = sum(t["h"] for t in timed); act_t = sum(t["actual"] for t in timed)
+    print(f"progress: {len(done)}/{len(TASKS)} tasks done"
+          + (f"; on tasks with actual hours: estimated {est_t}h vs actual {act_t}h ({(act_t/est_t-1)*100:+.0f}%)" if est_t else "")
+          + (f"; missing actual: {', '.join(t['id'] for t in done if 'actual' not in t)}" if len(timed) < len(done) else ""))
 
 def render():
     byid = {t["id"]: t for t in TASKS}

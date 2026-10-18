@@ -1,0 +1,5 @@
+# Local development overrides. Database settings are added in T-003.
+logging:
+  structured:
+    format:
+      console: "" # empty -> plain text logs, easier to read while developing

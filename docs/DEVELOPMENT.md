@@ -6,7 +6,7 @@
 ## 1. Môi trường máy của bạn (Windows)
 | Công cụ | Ghi chú |
 |---|---|
-| JDK 21 (Temurin) | `java -version` phải ra 21 |
+| JDK 25 LTS (Eclipse Temurin) | `java -version` phải ra 25; không cần gỡ JDK khác (ADR-0011) |
 | Node.js LTS | Cho Next.js |
 | Docker Desktop (bật WSL2) | Cho Postgres/MinIO local và Testcontainers |
 | Git + Git Bash | Chạy script `.sh`; repo dùng line ending LF (`.gitattributes`) |
