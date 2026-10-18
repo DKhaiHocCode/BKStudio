@@ -145,7 +145,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Testcontainers trên Windows cần Docker chạy.
 
 #### T-004 · Next.js skeleton
-- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-001 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-001 · **Status:** done
 - **Phạm vi:** Next.js App Router + TypeScript + Tailwind; layout chung; API client gọi `/api` (rewrite sang backend khi dev); error boundary hiển thị requestId; ESLint + Prettier.
 - **File / module:** frontend/*
 - **Nghiệm thu:** `npm run build` thành công; trang chủ gọi được `/api/health` qua proxy.

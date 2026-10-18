@@ -23,7 +23,7 @@ dict(id="T-003", m="M0", t="Flyway V1 + Testcontainers + DB tests", h=5, deps=["
   files="backend/src/main/resources/db/migration/V1__init.sql, backend/src/test/.../DbConstraintsIT.java",
   ac="17 test DB xanh trên PostgreSQL thật trong container.",
   test="Integration test (Testcontainers).", risk="Testcontainers trên Windows cần Docker chạy."),
-dict(id="T-004", m="M0", t="Next.js skeleton", h=4, deps=["T-001"], p="P0", launch=True,
+dict(id="T-004", m="M0", t="Next.js skeleton", h=4, deps=["T-001"], p="P0", launch=True, status="done",
   scope="Next.js App Router + TypeScript + Tailwind; layout chung; API client gọi `/api` (rewrite sang backend khi dev); error boundary hiển thị requestId; ESLint + Prettier.",
   files="frontend/*",
   ac="`npm run build` thành công; trang chủ gọi được `/api/health` qua proxy.",
