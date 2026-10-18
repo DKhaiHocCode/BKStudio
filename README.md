@@ -2,7 +2,7 @@
 
 Website bán figure anime in 3D, sơn tay hoàn thiện, dành cho khách quốc tế.
 
-> **Trạng thái:** Phase 3 xong — sắp vào Phase 4 (Roadmap & tasks). Chưa có code.
+> **Trạng thái:** Lập kế hoạch xong (Phase 1–5). Bắt đầu code từ T-001. Launch dự kiến ~đầu tháng 3/2027.
 
 ## Tài liệu
 
@@ -18,6 +18,11 @@ Website bán figure anime in 3D, sơn tay hoàn thiện, dành cho khách quốc
 | [`docs/API_SPEC.md`](docs/API_SPEC.md) | Hợp đồng API công khai + admin |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model, xử lý lỗi, logging |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Biến môi trường, deploy, backup, khôi phục |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Mốc, phương án thời gian, tiêu chí launch |
+| [`docs/TASKS.md`](docs/TASKS.md) | 40 task chi tiết + sơ đồ phụ thuộc (sinh từ `docs/tasks.py`) |
+| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Quy trình làm việc, git, quy ước code, Definition of Done |
+| [`docs/TESTING.md`](docs/TESTING.md) | Chiến lược test |
+| [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | Thay đổi quan trọng + sự cố |
 | [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) | Tiến độ hiện tại và việc tiếp theo |
 
-Roadmap và danh sách task sẽ được thêm ở Phase 4.
+Phiên Claude Code mới: *"Đọc SESSION_HANDOFF và tiếp tục."*
