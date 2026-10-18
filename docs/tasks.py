@@ -8,7 +8,7 @@
 
 TASKS = [
 # ---------------- M0 Setup ----------------
-dict(id="T-001", m="M0", t="Repo structure & local Postgres", h=3, deps=[], p="P0", launch=True,
+dict(id="T-001", m="M0", t="Repo structure & local Postgres", h=3, deps=[], p="P0", launch=True, status="done",
   scope="Thư mục `backend/ frontend/ infra/`; `.editorconfig`; `.env.example`; `infra/docker-compose.dev.yml` chạy PostgreSQL 16 + MinIO (giả lập R2).",
   files="infra/docker-compose.dev.yml, .env.example",
   ac="`docker compose -f infra/docker-compose.dev.yml up` chạy được Postgres + MinIO; README có hướng dẫn chạy local.",
