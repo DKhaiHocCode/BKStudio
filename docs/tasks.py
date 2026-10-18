@@ -13,7 +13,7 @@ dict(id="T-001", m="M0", t="Repo structure & local Postgres", h=3, deps=[], p="P
   files="infra/docker-compose.dev.yml, .env.example",
   ac="`docker compose -f infra/docker-compose.dev.yml up` chạy được Postgres + MinIO; README có hướng dẫn chạy local.",
   test="Kết nối psql thành công.", risk="Docker Desktop trên Windows cần WSL2."),
-dict(id="T-002", m="M0", t="Spring Boot skeleton", h=4, deps=["T-001"], p="P0", launch=True,
+dict(id="T-002", m="M0", t="Spring Boot skeleton", h=4, deps=["T-001"], p="P0", launch=True, status="done",
   scope="Maven, Java 25 (ADR-0011), package theo module (catalog, order, queue, payment, notification, admin, shared); `/api/health`; `@RestControllerAdvice` → ProblemDetail có `code` + `requestId`; filter gắn `X-Request-Id`; log JSON.",
   files="backend/pom.xml, backend/src/main/java/.../shared/*",
   ac="`./mvnw verify` xanh; `GET /api/health` trả `{status:UP}`; lỗi trả đúng định dạng API_SPEC §1.",

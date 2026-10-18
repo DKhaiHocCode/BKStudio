@@ -129,7 +129,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Docker Desktop trên Windows cần WSL2.
 
 #### T-002 · Spring Boot skeleton
-- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-001 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-001 · **Status:** done
 - **Phạm vi:** Maven, Java 25 (ADR-0011), package theo module (catalog, order, queue, payment, notification, admin, shared); `/api/health`; `@RestControllerAdvice` → ProblemDetail có `code` + `requestId`; filter gắn `X-Request-Id`; log JSON.
 - **File / module:** backend/pom.xml, backend/src/main/java/.../shared/*
 - **Nghiệm thu:** `./mvnw verify` xanh; `GET /api/health` trả `{status:UP}`; lỗi trả đúng định dạng API_SPEC §1.

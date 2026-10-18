@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: bkstudio-backend
+
+# Health lives at /api/health (same /api base path as the rest of the API).
+management:
+  endpoints:
+    web:
+      base-path: /api
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  structured:
+    format:
+      console: ecs # one JSON object per line; MDC keys (requestId) become top-level fields

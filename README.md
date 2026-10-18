@@ -51,3 +51,12 @@ docker compose --env-file .env -f infra/docker-compose.dev.yml exec postgres psq
 Dừng: `docker compose --env-file .env -f infra/docker-compose.dev.yml down` (thêm `-v` để xoá cả dữ liệu).
 
 > Image MinIO trên Docker Hub đã bị gỡ, nên compose dùng bản của Chainguard (`cgr.dev/chainguard/minio`). Chỉ dùng cho dev.
+
+### Backend
+
+Cần JDK 25 (Temurin), `JAVA_HOME` trỏ tới nó. Từ thư mục `backend/`:
+
+```bash
+./mvnw verify                                                  # Windows CMD: mvnw.cmd verify
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev          # http://localhost:8080/api/health
+```
