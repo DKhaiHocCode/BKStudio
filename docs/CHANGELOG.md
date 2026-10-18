@@ -5,6 +5,7 @@ Ghi các thay đổi quan trọng. Mới nhất ở trên. Định dạng: ngày
 ## [Chưa phát hành]
 
 ### Hạ tầng
+- 2026-10-18 · T-004: Next.js 16.4.2 skeleton (`frontend/`, App Router, TypeScript, Tailwind 4), API client `apiFetch`/`ApiError`, proxy `/api` → backend, error boundary hiển thị requestId, ESLint + Prettier.
 - 2026-10-18 · T-002: Spring Boot 4.1.1 skeleton (`backend/`, Java 25, package `com.bkstudio`), `/api/health`, `RequestIdFilter`, `GlobalExceptionHandler` (Problem Details có `code` + `requestId`), log JSON. 11 test xanh.
 - 2026-10-18 · T-001: cấu trúc repo (`backend/ frontend/ infra/`), `.editorconfig`, `.env.example`, `infra/docker-compose.dev.yml` (PostgreSQL 16 + MinIO). MinIO dùng image Chainguard vì Docker Hub đã gỡ `minio/minio`.
 

@@ -60,3 +60,13 @@ Cần JDK 25 (Temurin), `JAVA_HOME` trỏ tới nó. Từ thư mục `backend/`:
 ./mvnw verify                                                  # Windows CMD: mvnw.cmd verify
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev          # http://localhost:8080/api/health
 ```
+
+### Frontend
+
+Cần Node 20.19+ hoặc 22 LTS (Node 20.17 chạy được nhưng npm báo cảnh báo engine). Từ thư mục `frontend/`:
+
+```bash
+npm install
+npm run dev     # http://localhost:3000 — /api/* được proxy sang backend (BACKEND_URL, mặc định localhost:8080)
+npm run lint && npm run format:check && npm run build   # kiểm tra trước khi commit
+```
