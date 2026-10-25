@@ -4,7 +4,8 @@
 
 ## Đang ở đâu
 **M0 xong về code.** T-007 làm xong trên nhánh `chore/T-007-build-hardening`, **chưa commit/push** (chờ Khai chạy lệnh git, mở PR, xem CI xanh). T-001..T-006 đã merge vào `main` (T-005 = PR #7). Task tiếp theo đề xuất: **T-010** (Catalog API công khai).
-Việc Khai còn nợ: bật branch protection trên GitHub (required checks `backend`, `frontend`, `gitleaks`); ghi `actual` giờ cho T-002..T-007 trong `docs/tasks.py` (còn thiếu).
+Branch protection đã bật (2026-10-26). Việc Khai còn nợ: xử lý các PR Dependabot đang mở (xem dưới); kiểm tra `localhost:3000` bằng mắt (cần chạy `npm run dev`).
+**PR Dependabot đang mở (2026-10-26):** `typescript 5.9.3 → 7.0.2` đỏ ở `lint` ("typescript-eslint does not support TS 7.0") — không phải lỗi code của ta, nên đóng PR đó và chặn bump major; `eslint 9 → 10` và `@types/node 20 → 26` cũng là major (runtime là Node 22) → nên đóng; nhóm `npm-minor-patch` và `maven-minor-patch` (có bump Spring Boot parent) xem CI rồi mới quyết.
 
 ## Đã làm
 - T-007: `distributionSha256Sum` cho Maven 3.10.0 trong `maven-wrapper.properties` (sha256 do ta tự tính từ zip, đối chiếu sha512 Apache công bố — Apache không công bố sha256); Spotless 3.10.4 + palantir-java-format 2.102.0, `check` gắn `process-sources` nên `verify`/CI thực thi (`ci.yml` không đổi); `spotless:apply` định dạng lại 3 file Java (chỉ định dạng).
@@ -22,7 +23,7 @@ Việc Khai còn nợ: bật branch protection trên GitHub (required checks `ba
   - **Chưa kiểm chứng:** hành vi trong trình duyệt thật (máy này không có công cụ trình duyệt): chữ "Backend status: UP" trên trang chủ do client gọi, và error boundary bắt lỗi thật. Khai mở `http://localhost:3000` kiểm tra bằng mắt.
 
 ## Lưu ý / quyết định nhỏ
-- **T-006 (thiết kế) xong** ngoài code: mockup + tokens trong `docs/DESIGN.md`, `docs/design/tokens.css`, logo `docs/design/logo-512.png`. **Chưa áp vào `frontend/`** để không lẫn vào PR T-004 — việc áp dụng nằm trong T-014 (DESIGN.md §5). Còn mở: tên hiển thị BKStudio hay BK3D; thiếu `actual` của T-006.
+- **T-006 (thiết kế) xong** ngoài code: mockup + tokens trong `docs/DESIGN.md`, `docs/design/tokens.css`, logo `docs/design/logo-512.png`. **Chưa áp vào `frontend/`** để không lẫn vào PR T-004 — việc áp dụng nằm trong T-014 (DESIGN.md §5). Tên hiển thị đã chốt: **BKStudio** (2026-10-26). Khai quyết định **không cần ghi `actual` giờ** cho các task đã xong (2026-10-26) — dòng "missing actual" của `tasks.py` chỉ là thông tin.
 - Next 16.4 có khác biệt so với tài liệu cũ: `error.tsx` nhận `{ error, retry }` (không còn `reset`); `cacheComponents` + `partialPrefetching` bật sẵn trong `next.config.ts` (dữ liệu động phải nằm trong Suspense hoặc client component). `frontend/AGENTS.md` do Next sinh, yêu cầu đọc `node_modules/next/dist/docs/` trước khi viết code — giữ nguyên.
 - Node trên máy là 20.17: `npm install` báo EBADENGINE (eslint-visitor-keys cần ^20.19 || ^22.13 || >=24) nhưng lint/build vẫn chạy. Khuyến nghị nâng lên Node 22 LTS trước khi có CI (T-005 phải dùng cùng phiên bản).
 - `npm audit`: 5 lỗi "high" (braces → micromatch → fast-glob → `eslint-config-next`), chỉ ở dependency lint lúc dev, không vào bundle. `npm audit fix --force` sẽ hạ eslint-config-next xuống 14 → **không chạy**. Theo dõi khi Next ra bản vá.

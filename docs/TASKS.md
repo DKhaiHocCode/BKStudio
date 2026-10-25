@@ -179,7 +179,7 @@ flowchart LR
 - **File / module:** docs/DESIGN.md, docs/design/*
 - **Nghiệm thu:** Chủ dự án duyệt hướng thiết kế và font; tokens có trong repo.
 - **Test:** Duyệt bằng mắt trên canvas.
-- **Rủi ro / câu hỏi:** Tên hiển thị BKStudio hay BK3D chưa chốt. Ảnh sản phẩm cần chụp lại trước launch.
+- **Rủi ro / câu hỏi:** Tên hiển thị đã chốt: BKStudio. Ảnh sản phẩm cần chụp lại trước launch.
 
 #### T-010 · Catalog API công khai
 - **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-003 · **Status:** todo

@@ -5,6 +5,7 @@ Ghi các thay đổi quan trọng. Mới nhất ở trên. Định dạng: ngày
 ## [Chưa phát hành]
 
 ### Hạ tầng
+- 2026-10-26 · chore: Dependabot bỏ qua bản major của `typescript`, `eslint`, `@types/node` (typescript 7 làm hỏng lint qua `eslint-config-next`); chốt tên hiển thị **BKStudio**; bật branch protection (`backend`, `frontend`, `gitleaks`).
 - 2026-10-26 · T-007: checksum SHA-256 cho Maven wrapper (3.10.0), Spotless (palantir-java-format) chạy trong `verify` nên CI đỏ khi code Java sai định dạng; định dạng lại 3 file Java. Dev chạy `./mvnw spotless:apply` để sửa. 11 test Surefire + 20 test Failsafe xanh.
 - 2026-10-26 · T-005: `.github/workflows/ci.yml` (3 job song song: backend `mvnw verify` JDK 25, frontend lint/typecheck/format/build Node 22, gitleaks quét toàn bộ lịch sử bằng binary đã kiểm checksum), mọi action ghim SHA, `contents: read`, `persist-credentials: false`; `.github/dependabot.yml` (maven, npm, github-actions, hằng tuần). Thêm T-007 (Spotless + checksum Maven wrapper). `SECURITY.md` T14 cập nhật.
 - 2026-10-26 · T-003: Flyway `V1__init.sql` (14 bảng, mọi constraint/index có tên tường minh), Testcontainers (PostgreSQL 16, `@ServiceConnection`), `DbConstraintsIT` 17 tình huống DATABASE.md §5 + 3 test siết thêm (độ dài hash token, TOTP bật phải có secret, email admin không phân biệt hoa/thường). Thêm `maven-failsafe-plugin` để `*IT` chạy trong `verify`. Chưa có JPA (T-010). 11 test Surefire + 20 test Failsafe xanh.

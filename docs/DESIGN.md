@@ -51,5 +51,5 @@ Trang chủ (desktop + mobile) · Sản phẩm · Commission · Giỏ hàng (tá
 Chưa có: tra cứu đơn, trang Policy/FAQ, toàn bộ admin — làm thẳng trong code theo tokens.
 
 ## 7. Còn mở
-- Tên hiển thị: **BKStudio** hay **BK3D** (chữ trên áo logo)?
+- ~~Tên hiển thị~~ — **đã chốt (2026-10-26): BKStudio.**
 - Ảnh sản phẩm: chụp lại trên phông trơn, khung dọc 4:5, tắt watermark camera, tránh để ảnh/màn hình của người khác trong khung.

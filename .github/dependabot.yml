@@ -13,6 +13,15 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Majors need a manual look: typescript 7 breaks typescript-eslint (via eslint-config-next),
+    # eslint 10 is not supported by eslint-config-next 16, @types/node must match the CI Node (22).
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-minor-patch:
         update-types: [minor, patch]
