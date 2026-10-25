@@ -140,7 +140,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Chọn đúng bản Spring Boot ổn định mới nhất.
 
 #### T-003 · Flyway V1 + Testcontainers + DB tests
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-002 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-002 · **Status:** done
 - **Phạm vi:** Chuyển `docs/schema-draft.sql` thành `V1__init.sql` (đặt tên constraint tường minh); base class integration test với Testcontainers; viết lại 17 tình huống trong DATABASE.md §5 thành test.
 - **File / module:** backend/src/main/resources/db/migration/V1__init.sql, backend/src/test/.../DbConstraintsIT.java
 - **Nghiệm thu:** 17 test DB xanh trên PostgreSQL thật trong container.

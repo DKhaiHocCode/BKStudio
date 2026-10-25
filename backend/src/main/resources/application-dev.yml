@@ -1,5 +1,11 @@
-# Local development overrides. Database settings are added in T-003.
+# Local development overrides.
 logging:
   structured:
     format:
       console: "" # empty -> plain text logs, easier to read while developing
+spring:
+  datasource:
+    # Matches .env.example / infra/docker-compose.dev.yml. No password default: POSTGRES_PASSWORD must be set.
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:bkstudio}
+    username: ${POSTGRES_USER:bkstudio}
+    password: ${POSTGRES_PASSWORD}

@@ -1,13 +1,16 @@
 # Session Handoff
 
-> Cập nhật: 2026-10-25 (tối)
+> Cập nhật: 2026-10-26
 
 ## Đang ở đâu
-**M0 còn lại: T-003 và T-005.** T-001, T-002, T-004, T-006 đã merge vào `main` (T-004 và T-006 nằm chung một commit do `git add .` — không sửa lịch sử, chấp nhận). Task tiếp theo: **T-003** (Flyway V1 + Testcontainers + 17 test DB, 5 giờ).
-Repo đã chuyển sang `D:\Project\Side_Project\BKStudio` (2026-10-25).
-**Mới (2026-10-25): dựng multi-agent** — `/task T-xxx` + 7 subagent trong `.claude/agents/` (DEVELOPMENT.md §12). Chưa commit: nhánh `chore/multi-agent-setup`.
+**M0 còn lại: T-005 (CI).** T-003 code + test xong trên nhánh `feat/T-003-flyway-testcontainers`, **chưa commit/PR** (chờ Khai ghi `actual` giờ và chạy lệnh git). T-001, T-002, T-004, T-006 và bộ multi-agent đã merge vào `main`.
 
 ## Đã làm
+- T-003: `V1__init.sql` (14 bảng, constraint/index đặt tên), Testcontainers PostgreSQL 16 + `@ServiceConnection`, `DbConstraintsIT` = 17 tình huống §5 + 3 test siết thêm. Chưa có JPA (T-010 thêm, `ddl-auto=validate`).
+  - **Bằng chứng:** `mvnw.cmd verify` → Surefire 11/11, Failsafe 20/20, 0 skipped, BUILD SUCCESS (điều phối viên tự chạy). Reviewer: không Critical/High/Must fix.
+  - Mục đã quyết: siết hash 32 byte, TOTP bật phải có secret, `UNIQUE (lower(email))` cho admin (V1 chưa merge nên sửa tại chỗ). **Bỏ** siết regex `payment_url` vì chưa chốt cổng thanh toán → làm ở T-025 cùng allow-list tên miền.
+  - Email admin đầu tiên: `bk3dprinls@gmail.com` (dùng cho lệnh CLI tạo admin ở T-012, không seed vào V1).
+  - Ghi nhận cho sau: job ẩn danh PII sau 2 năm (DATABASE.md §6); audit_log/email_outbox payload không được chứa token, email, địa chỉ; profile mặc định chưa có datasource (cấu hình prod thuộc T-043); test #15 chỉ chứng minh SQL của chính nó — T-010 phải test lại trên repository thật; image test `postgres:16-alpine` chưa pin digest.
 - T-001 (3h thực tế), T-002 (merge PR #2).
 - T-004: `frontend/` Next.js 16.4.2 (App Router, TS 5, Tailwind 4, `src/`), layout chung, `src/lib/api.ts` (`apiFetch`, `ApiError` mang `code/status/requestId`), `rewrites` `/api/*` → `BACKEND_URL` (mặc định `localhost:8080`), `error.tsx` + `global-error.tsx` + `not-found.tsx` dùng chung `ErrorView` (hiện requestId hoặc digest), trang chủ gọi `/api/health` từ trình duyệt, Prettier + `eslint-config-prettier`, scripts `format`, `format:check`, `typecheck`.
   - **Bằng chứng:** `npm run lint`, `typecheck`, `format:check`, `build` đều thành công. Chạy thật backend + `npm run dev`: `GET localhost:3000/api/health` qua proxy → 200 `status=UP` + `X-Request-Id`; trang chủ 200; `/nope` 404. `ErrorView` render đúng "Reference: <requestId>" (kiểm bằng trang tạm, đã xoá).
