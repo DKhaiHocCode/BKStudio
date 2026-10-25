@@ -1,6 +1,8 @@
 spring:
   application:
     name: bkstudio-backend
+  flyway:
+    enabled: true # schema is owned by db/migration; JPA (T-010) must use ddl-auto=validate or none
 
 # Health lives at /api/health (same /api base path as the rest of the API).
 management:

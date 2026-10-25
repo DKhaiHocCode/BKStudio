@@ -33,7 +33,8 @@ Không viết unit test frontend cho từng component ở MVP — E2E bao phủ 
 | Việc | Lệnh |
 |---|---|
 | Toàn bộ test backend | `./mvnw verify` |
-| 1 lớp test | `./mvnw -Dtest=CheckoutIT verify` |
+| 1 lớp unit test | `./mvnw -Dtest=GlobalExceptionHandlerTest test` |
+| 1 lớp integration test (`*IT`, chạy bằng Failsafe) | `./mvnw -Dit.test=CheckoutIT verify` |
 | Frontend | `npm run lint && npm run build` (trong `frontend/`) |
 | E2E | `npm run e2e` (trong `e2e/`, cần `docker compose` đang chạy) |
 | Báo cáo độ phủ | `backend/target/site/jacoco/index.html` |

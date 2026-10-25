@@ -1,7 +1,8 @@
 # Database — BKStudio
 
 > Trạng thái: **Đã duyệt (Phase 3)** · Cập nhật: 2026-10-18
-> DDL đầy đủ: [`schema-draft.sql`](schema-draft.sql) — đã chạy thử trên **PostgreSQL 16.15** (xem mục 5). Sẽ trở thành Flyway `V1__init.sql` ở Phase 4.
+> DDL đầy đủ: [`schema-draft.sql`](schema-draft.sql) — đã chạy thử trên **PostgreSQL 16.15** (xem mục 5).
+> **Nguồn sự thật hiện tại: `backend/src/main/resources/db/migration/V1__init.sql`** (T-003). `schema-draft.sql` chỉ là bản thiết kế; V1 khác ở: tên constraint/index tường minh, thêm `chk_order_access_token_hash_length`, `chk_admin_user_totp_secret_when_enabled`, và `uq_admin_user_email_lower` (unique trên `lower(email)`). 17 tình huống ở mục 5 đã thành test tự động (`DbConstraintsIT`).
 
 ## 1. Quy ước
 | Quy ước | Lý do |
