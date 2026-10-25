@@ -18,6 +18,7 @@ Website bán figure anime in 3D, sơn tay hoàn thiện, dành cho khách quốc
 | [`docs/API_SPEC.md`](docs/API_SPEC.md) | Hợp đồng API công khai + admin |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model, xử lý lỗi, logging |
 | [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Biến môi trường, deploy, backup, khôi phục |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | Định hướng giao diện, design tokens, link mockup |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Mốc, phương án thời gian, tiêu chí launch |
 | [`docs/TASKS.md`](docs/TASKS.md) | 40 task chi tiết + sơ đồ phụ thuộc (sinh từ `docs/tasks.py`) |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Quy trình làm việc, git, quy ước code, Definition of Done |

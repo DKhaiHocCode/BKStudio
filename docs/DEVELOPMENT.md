@@ -1,6 +1,6 @@
 # Development Workflow — BKStudio
 
-> Trạng thái: **Phase 5** · Cập nhật: 2026-10-18
+> Trạng thái: **Phase 5** · Cập nhật: 2026-10-25 (thêm §12 multi-agent)
 > Quy trình làm việc hằng ngày. Quy trình nghiệp vụ (đơn hàng, thanh toán…) nằm ở `WORKFLOWS.md`; chiến lược test ở `TESTING.md`.
 
 ## 1. Môi trường máy của bạn (Windows)
@@ -129,3 +129,35 @@ Một task chỉ là **done** khi:
 - `docs/SESSION_HANDOFF.md` là "biên bản bàn giao": đang ở task nào, làm tới đâu, vướng gì, bước tiếp theo. **Cập nhật cuối mỗi phiên**, kể cả khi task chưa xong.
 - Repo + tài liệu là nguồn sự thật duy nhất; không dựa vào trí nhớ của cuộc trò chuyện trước.
 - Phiên mới bắt đầu bằng: *"Đọc SESSION_HANDOFF và tiếp tục."*
+
+## 12. Multi-agent (điều phối viên + chuyên gia)
+**Mô hình.** Phiên Claude Code chính là *điều phối viên*. Subagent là các "chuyên gia", mỗi con một context riêng, nhận một việc rồi trả báo cáo. Subagent **không gọi được subagent khác**, nên điều phối luôn nằm ở phiên chính.
+
+| Agent | Vai trò | Quyền |
+|---|---|---|
+| `db-engineer` | Flyway migration, ràng buộc, cấu hình datasource, khoá/race ở DB | Viết |
+| `backend-dev` | Service, controller, DTO, domain trong các module | Viết |
+| `frontend-dev` | Trang, component Next.js, áp design tokens | Viết |
+| `test-engineer` | Test JUnit/Testcontainers/Playwright, tái hiện bug | Viết |
+| `devops` | CI, Docker, compose, Caddy, backup (không deploy, không tiêu tiền) | Viết |
+| `security-reviewer` | Soát diff theo `SECURITY.md` T1–T19, kết luận BLOCK/OK | Chỉ đọc |
+| `code-reviewer` | Đúng/sai, quy ước, Definition of Done | Chỉ đọc |
+
+**Luồng một task** (`/task T-xxx`, file `.claude/commands/task.md`):
+1. Điều phối viên đọc task → lập kế hoạch chia việc → **Khai duyệt**.
+2. Agent viết code chạy **lần lượt** trên cùng nhánh, để không sửa đè file của nhau.
+3. Sau mỗi báo cáo, điều phối viên **tự kiểm lại**: mở file, chạy lại test.
+4. Cổng review: `security-reviewer` và `code-reviewer` chạy **song song**. Lỗi Must fix / Critical / High quay lại agent viết code để sửa.
+5. Điều phối viên chạy toàn bộ test, giải thích code cho Khai, cập nhật tài liệu điều phối, đưa lệnh `git add <file cụ thể>` + commit. Khai tự push và tạo PR.
+
+**Luật chống xung đột**
+- Chỉ điều phối viên sửa `tasks.py`, `TASKS.md`, `CHANGELOG.md`, `SESSION_HANDOFF.md`.
+- Mỗi thời điểm chỉ một task có migration Flyway mới.
+- Không bao giờ `git add .`.
+
+**Chế độ học** (T-012, T-022, T-023, T-025): agent viết code chỉ dựng khung và viết test. Khai viết logic chính; reviewer soát và giải thích.
+
+**Song song nhiều task** (khi có task độc lập, vd T-010 ∥ T-014): mở mỗi task một phiên bằng `claude --worktree <tên>`. Worktree nằm ở `.claude/worktrees/` (đã gitignore), `.env` được chép vào qua `.worktreeinclude`. Khi chạy app thật, mỗi worktree dùng cổng riêng. Đổi tên nhánh theo quy ước trước khi push.
+
+**Chi phí.** Mỗi subagent tốn token riêng. Task nhỏ (≤ 2 giờ) có thể làm thẳng trong phiên chính, chỉ gọi reviewer.
+

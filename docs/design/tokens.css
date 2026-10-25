@@ -1,0 +1,50 @@
+/*
+ * BKStudio design tokens — Tailwind CSS v4.
+ * Source of truth: docs/DESIGN.md. Applied to the app in T-014:
+ *   1. Load Rubik with next/font/google in src/app/layout.tsx:
+ *        const rubik = Rubik({ subsets: ["latin"], weight: ["400","500","700","800"], variable: "--font-rubik" });
+ *        <html className={rubik.variable}> ...
+ *   2. Replace the default :root / dark-mode block in src/app/globals.css with the block below
+ *      (the design is light-only; do not keep prefers-color-scheme: dark).
+ */
+
+@theme {
+  /* Colour */
+  --color-red: #d63a1a;        /* primary, CTAs (white text 4.6:1) */
+  --color-red-dark: #a82a10;   /* hover, destructive text on cream */
+  --color-citrus: #f6b634;     /* highlight panels, cart pill */
+  --color-capybara: #c99b70;   /* warm image backdrops */
+  --color-bark: #7a4e30;       /* dark accent */
+  --color-ink: #151515;        /* outlines, text */
+  --color-paper: #f4f1ea;      /* page background */
+  --color-cream: #fffdf8;      /* cards, inputs */
+  --color-muted: #4a433c;      /* secondary text (8.6:1 on paper) */
+  --color-subtle: #6a5e52;     /* small caps labels (6.2:1 on cream) */
+  --color-line: #c9c2b6;       /* dashed dividers */
+  --color-disabled: #e4dfd6;   /* disabled / reserved */
+
+  /* Status tints (always with ink text + 2px ink border) */
+  --color-tint-stock: #bfe6c6;      /* In stock */
+  --color-tint-mto: #ffe3a3;        /* Made to order */
+  --color-tint-commission: #bde3f7; /* Commission */
+  --color-tint-pink: #f8c9be;       /* decorative */
+
+  /* Type */
+  --font-sans: var(--font-rubik), system-ui, sans-serif;
+
+  /* Radius */
+  --radius-button: 14px;
+  --radius-card: 22px;
+  --radius-panel: 30px;
+
+  /* Hard offset shadows (no blur) */
+  --shadow-sticker-sm: 3px 3px 0 #151515;
+  --shadow-sticker: 5px 5px 0 #151515;
+  --shadow-sticker-lg: 8px 8px 0 #151515;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
