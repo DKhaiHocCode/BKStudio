@@ -3,9 +3,11 @@
 > Cập nhật: 2026-10-26
 
 ## Đang ở đâu
-**M0 còn lại: T-005 (CI).** T-003 code + test xong trên nhánh `feat/T-003-flyway-testcontainers`, **chưa commit/PR** (chờ Khai ghi `actual` giờ và chạy lệnh git). T-001, T-002, T-004, T-006 và bộ multi-agent đã merge vào `main`.
+**T-005 (CI) viết xong trên nhánh `feat/T-005-ci`, chưa commit/push — task vẫn `todo`** vì tiêu chí nghiệm thu chỉ chứng minh được trên GitHub: (1) mở PR → 3 job `backend`, `frontend`, `gitleaks` xanh; (2) commit secret giả (AKIA + 16 chữ hoa ngẫu nhiên, không chứa "EXAMPLE") trên nhánh tạm → job gitleaks đỏ; xoá nhánh tạm, không merge. Sau đó Khai bật branch protection (required checks `backend`, `frontend`, `gitleaks`; check chỉ hiện sau lần chạy đầu). T-001..T-004, T-006, T-003 (PR #5) đã merge vào `main`.
+Lần chạy đầu có thể lỗi ở: Temurin 25 trên runner, Testcontainers/Docker, hoặc gitleaks báo nhầm (nếu có, thêm `.gitleaks.toml` allowlist). Review: không Critical/High; việc sửa Spotless + checksum Maven wrapper tách thành **T-007**.
 
 ## Đã làm
+- T-005 (đã review, chưa chạy trên GitHub): xem CHANGELOG. Bằng chứng cục bộ: YAML parse OK, mọi `uses:` ghim SHA 40 ký tự (khớp `git ls-remote`), checksum gitleaks 8.30.1 khớp file chính thức. Chưa chạy `actionlint`.
 - T-003: `V1__init.sql` (14 bảng, constraint/index đặt tên), Testcontainers PostgreSQL 16 + `@ServiceConnection`, `DbConstraintsIT` = 17 tình huống §5 + 3 test siết thêm. Chưa có JPA (T-010 thêm, `ddl-auto=validate`).
   - **Bằng chứng:** `mvnw.cmd verify` → Surefire 11/11, Failsafe 20/20, 0 skipped, BUILD SUCCESS (điều phối viên tự chạy). Reviewer: không Critical/High/Must fix.
   - Mục đã quyết: siết hash 32 byte, TOTP bật phải có secret, `UNIQUE (lower(email))` cho admin (V1 chưa merge nên sửa tại chỗ). **Bỏ** siết regex `payment_url` vì chưa chốt cổng thanh toán → làm ở T-025 cùng allow-list tên miền.

@@ -7,7 +7,7 @@
 
 | Nhóm | Giờ | Task |
 |---|---|---|
-| M0 — Setup | 19 | T-001, T-002, T-003, T-004, T-005 |
+| M0 — Setup | 20 | T-001, T-002, T-003, T-004, T-005, T-007 |
 | M1 — Catalog & đăng nhập admin | 48 | T-006, T-010, T-011, T-012, T-013, T-014, T-015, T-016 |
 | M2 — Đơn hàng, thanh toán, hàng đợi | 42 | T-020, T-021, T-022, T-023, T-024, T-025, T-026, T-027, T-028 |
 | M3 — Giao diện khách & admin | 31 | T-030, T-031, T-032, T-033, T-034, T-035 |
@@ -162,6 +162,14 @@ flowchart LR
 - **Nghiệm thu:** PR mở ra thì CI chạy và xanh; commit thử 1 secret giả bị gitleaks bắt.
 - **Test:** Chính CI.
 - **Rủi ro / câu hỏi:** —
+
+#### T-007 · Hardening build: Spotless + checksum Maven wrapper
+- **Ưu tiên:** P1 (làm sau launch được) · **Ước lượng:** 1 giờ · **Phụ thuộc:** T-005 · **Status:** todo
+- **Phạm vi:** Thêm Spotless (palantir-java-format) và bước `spotless:check` vào CI (DEVELOPMENT.md §4); thêm `distributionSha256Sum` vào `backend/.mvn/wrapper/maven-wrapper.properties` (từ review T-005).
+- **File / module:** backend/pom.xml, backend/.mvn/wrapper/maven-wrapper.properties, .github/workflows/ci.yml
+- **Nghiệm thu:** CI đỏ khi code Java sai định dạng; `./mvnw` từ chối bản Maven sai checksum.
+- **Test:** Chính CI.
+- **Rủi ro / câu hỏi:** Spotless sẽ định dạng lại code đã có (diff lớn một lần).
 
 ### M1 — Catalog & đăng nhập admin
 

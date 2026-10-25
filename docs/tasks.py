@@ -33,6 +33,11 @@ dict(id="T-005", m="M0", t="CI (GitHub Actions)", h=3, deps=["T-003", "T-004"], 
   files=".github/workflows/ci.yml, .github/dependabot.yml",
   ac="PR mở ra thì CI chạy và xanh; commit thử 1 secret giả bị gitleaks bắt.",
   test="Chính CI.", risk="—"),
+dict(id="T-007", m="M0", t="Hardening build: Spotless + checksum Maven wrapper", h=1, deps=["T-005"], p="P1", launch=False,
+  scope="Thêm Spotless (palantir-java-format) và bước `spotless:check` vào CI (DEVELOPMENT.md §4); thêm `distributionSha256Sum` vào `backend/.mvn/wrapper/maven-wrapper.properties` (từ review T-005).",
+  files="backend/pom.xml, backend/.mvn/wrapper/maven-wrapper.properties, .github/workflows/ci.yml",
+  ac="CI đỏ khi code Java sai định dạng; `./mvnw` từ chối bản Maven sai checksum.",
+  test="Chính CI.", risk="Spotless sẽ định dạng lại code đã có (diff lớn một lần)."),
 
 # ---------------- M1 Catalog & admin auth ----------------
 dict(id="T-006", m="M1", t="Thiết kế giao diện (mockup + design tokens)", h=5, deps=[], p="P0", launch=True, status="done",

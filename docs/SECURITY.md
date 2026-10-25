@@ -27,7 +27,7 @@
 | T11 | Lộ secret | Secret chỉ ở `.env` trên VPS (quyền 600) và GitHub Actions secrets; `.gitignore` chặn `.env`; quét secret trong CI (gitleaks); khoá TOTP mã hoá AES-GCM bằng khoá từ env | P0 |
 | T12 | DB bị truy cập từ Internet | PostgreSQL **không mở port ra ngoài**, chỉ trong mạng Docker; firewall chỉ mở 22/80/443 | P0 |
 | T13 | Chiếm VPS qua SSH | Chỉ SSH key, tắt đăng nhập mật khẩu và root; fail2ban; cập nhật bảo mật tự động | P0 |
-| T14 | Thư viện có lỗ hổng | Dependabot cho Maven + npm; cập nhật hằng tháng | P1 |
+| T14 | Thư viện có lỗ hổng | Dependabot cho Maven + npm + GitHub Actions (quét hằng tuần, gom minor/patch); xem PR hằng tuần, gộp hằng tháng | P1 |
 | T15 | Email giả mạo shop (phishing khách) | SPF + DKIM + DMARC cho domain | P0 |
 | T16 | Lộ dữ liệu qua log | Không log email, địa chỉ, token, mật khẩu; log chỉ có mã đơn + requestId | P0 |
 | T17 | Mất dữ liệu (lỗi, ransomware, xoá nhầm) | Backup hằng ngày ra R2 (bucket riêng, khoá riêng chỉ có quyền ghi), mã hoá; diễn tập khôi phục | P0 |
