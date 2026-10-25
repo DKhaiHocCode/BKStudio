@@ -32,7 +32,8 @@ Không viết unit test frontend cho từng component ở MVP — E2E bao phủ 
 ## 5. Lệnh
 | Việc | Lệnh |
 |---|---|
-| Toàn bộ test backend | `./mvnw verify` |
+| Toàn bộ test backend (gồm kiểm định dạng Spotless) | `./mvnw verify` |
+| Tự định dạng code Java khi Spotless báo lỗi | `./mvnw spotless:apply` |
 | 1 lớp unit test | `./mvnw -Dtest=GlobalExceptionHandlerTest test` |
 | 1 lớp integration test (`*IT`, chạy bằng Failsafe) | `./mvnw -Dit.test=CheckoutIT verify` |
 | Frontend | `npm run lint && npm run build` (trong `frontend/`) |

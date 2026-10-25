@@ -3,11 +3,14 @@
 > Cập nhật: 2026-10-26
 
 ## Đang ở đâu
-**T-005 (CI) viết xong trên nhánh `feat/T-005-ci`, chưa commit/push — task vẫn `todo`** vì tiêu chí nghiệm thu chỉ chứng minh được trên GitHub: (1) mở PR → 3 job `backend`, `frontend`, `gitleaks` xanh; (2) commit secret giả (AKIA + 16 chữ hoa ngẫu nhiên, không chứa "EXAMPLE") trên nhánh tạm → job gitleaks đỏ; xoá nhánh tạm, không merge. Sau đó Khai bật branch protection (required checks `backend`, `frontend`, `gitleaks`; check chỉ hiện sau lần chạy đầu). T-001..T-004, T-006, T-003 (PR #5) đã merge vào `main`.
-Lần chạy đầu có thể lỗi ở: Temurin 25 trên runner, Testcontainers/Docker, hoặc gitleaks báo nhầm (nếu có, thêm `.gitleaks.toml` allowlist). Review: không Critical/High; việc sửa Spotless + checksum Maven wrapper tách thành **T-007**.
+**M0 xong về code.** T-007 làm xong trên nhánh `chore/T-007-build-hardening`, **chưa commit/push** (chờ Khai chạy lệnh git, mở PR, xem CI xanh). T-001..T-006 đã merge vào `main` (T-005 = PR #7). Task tiếp theo đề xuất: **T-010** (Catalog API công khai).
+Việc Khai còn nợ: bật branch protection trên GitHub (required checks `backend`, `frontend`, `gitleaks`); ghi `actual` giờ cho T-002..T-007 trong `docs/tasks.py` (còn thiếu).
 
 ## Đã làm
-- T-005 (đã review, chưa chạy trên GitHub): xem CHANGELOG. Bằng chứng cục bộ: YAML parse OK, mọi `uses:` ghim SHA 40 ký tự (khớp `git ls-remote`), checksum gitleaks 8.30.1 khớp file chính thức. Chưa chạy `actionlint`.
+- T-007: `distributionSha256Sum` cho Maven 3.10.0 trong `maven-wrapper.properties` (sha256 do ta tự tính từ zip, đối chiếu sha512 Apache công bố — Apache không công bố sha256); Spotless 3.10.4 + palantir-java-format 2.102.0, `check` gắn `process-sources` nên `verify`/CI thực thi (`ci.yml` không đổi); `spotless:apply` định dạng lại 3 file Java (chỉ định dạng).
+  - **Bằng chứng:** `mvnw.cmd verify` → Surefire 11/11, Failsafe 20/20, BUILD SUCCESS (điều phối viên tự chạy). `spotless:check` đỏ khi cố tình sai định dạng, wrapper báo "Failed to validate Maven distribution SHA-256" khi checksum sai (devops thử trên bản sao, đã hoàn nguyên). Reviewer: không Must fix/Critical/High. **Chưa kiểm chứng:** lần chạy CI trên GitHub với Spotless.
+  - Còn lưu ý: Dependabot có thể không bump phiên bản palantir lồng trong `<configuration>` của plugin → tự nâng thỉnh thoảng.
+- T-005: CI 3 job (`backend`, `frontend`, `gitleaks`) xanh trên GitHub, gitleaks bắt được secret giả (Khai xác nhận). Lỗi đầu tiên: `typecheck` thiếu `LayoutProps` vì `.next/types` chưa sinh trên checkout mới → `typecheck` giờ chạy `next typegen && tsc --noEmit`. Mọi action ghim SHA, `contents: read`, `persist-credentials: false`. Chưa chạy `actionlint`.
 - T-003: `V1__init.sql` (14 bảng, constraint/index đặt tên), Testcontainers PostgreSQL 16 + `@ServiceConnection`, `DbConstraintsIT` = 17 tình huống §5 + 3 test siết thêm. Chưa có JPA (T-010 thêm, `ddl-auto=validate`).
   - **Bằng chứng:** `mvnw.cmd verify` → Surefire 11/11, Failsafe 20/20, 0 skipped, BUILD SUCCESS (điều phối viên tự chạy). Reviewer: không Critical/High/Must fix.
   - Mục đã quyết: siết hash 32 byte, TOTP bật phải có secret, `UNIQUE (lower(email))` cho admin (V1 chưa merge nên sửa tại chỗ). **Bỏ** siết regex `payment_url` vì chưa chốt cổng thanh toán → làm ở T-025 cùng allow-list tên miền.

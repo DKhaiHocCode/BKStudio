@@ -59,6 +59,7 @@ Cần JDK 25 (Temurin), `JAVA_HOME` trỏ tới nó. Từ thư mục `backend/`:
 
 ```bash
 ./mvnw verify                                                  # Windows CMD: mvnw.cmd verify
+./mvnw spotless:apply                                          # format Java code (verify fails on unformatted code)
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev          # http://localhost:8080/api/health
 ```
 
