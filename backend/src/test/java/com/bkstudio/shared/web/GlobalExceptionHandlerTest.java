@@ -50,7 +50,9 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void validationFailureListsFieldErrors() throws Exception {
-        mvc.perform(post("/test/validate").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"\"}"))
+        mvc.perform(post("/test/validate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors[0].field").value("name"))

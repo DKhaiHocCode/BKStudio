@@ -54,7 +54,7 @@ Loại: `feat` · `fix` · `test` · `refactor` · `docs` · `chore` · `ci`. Co
 - Tiền: kiểu `long` cent (hoặc value object `Money`), không `double`.
 - Thời gian: inject `java.time.Clock` (để test giả được thời gian); lưu `Instant`.
 - Lỗi nghiệp vụ: ném exception có `code` (vd `OutOfStockException`) → handler chung chuyển thành ProblemDetail.
-- Định dạng code tự động bằng Spotless (palantir-java-format) — CI kiểm tra.
+- Định dạng code tự động bằng Spotless (palantir-java-format). `./mvnw verify` (và CI) thất bại nếu code chưa định dạng; sửa bằng `./mvnw spotless:apply`.
 - Log: không ghi email, địa chỉ, token, mật khẩu.
 
 **Frontend (TypeScript)**

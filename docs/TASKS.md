@@ -156,7 +156,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Học App Router (server vs client component).
 
 #### T-005 · CI (GitHub Actions)
-- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-003, T-004 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-003, T-004 · **Status:** done
 - **Phạm vi:** Workflow: backend `mvn verify` (có Testcontainers), frontend lint + build, gitleaks quét secret; Dependabot cho Maven + npm.
 - **File / module:** .github/workflows/ci.yml, .github/dependabot.yml
 - **Nghiệm thu:** PR mở ra thì CI chạy và xanh; commit thử 1 secret giả bị gitleaks bắt.
@@ -164,9 +164,9 @@ flowchart LR
 - **Rủi ro / câu hỏi:** —
 
 #### T-007 · Hardening build: Spotless + checksum Maven wrapper
-- **Ưu tiên:** P1 (làm sau launch được) · **Ước lượng:** 1 giờ · **Phụ thuộc:** T-005 · **Status:** todo
-- **Phạm vi:** Thêm Spotless (palantir-java-format) và bước `spotless:check` vào CI (DEVELOPMENT.md §4); thêm `distributionSha256Sum` vào `backend/.mvn/wrapper/maven-wrapper.properties` (từ review T-005).
-- **File / module:** backend/pom.xml, backend/.mvn/wrapper/maven-wrapper.properties, .github/workflows/ci.yml
+- **Ưu tiên:** P1 (làm sau launch được) · **Ước lượng:** 1 giờ · **Phụ thuộc:** T-005 · **Status:** done
+- **Phạm vi:** Thêm Spotless (palantir-java-format), `spotless:check` gắn vào phase `process-sources` nên `verify` (và CI) thực thi, `ci.yml` không đổi (DEVELOPMENT.md §4); thêm `distributionSha256Sum` vào `backend/.mvn/wrapper/maven-wrapper.properties` (từ review T-005).
+- **File / module:** backend/pom.xml, backend/.mvn/wrapper/maven-wrapper.properties
 - **Nghiệm thu:** CI đỏ khi code Java sai định dạng; `./mvnw` từ chối bản Maven sai checksum.
 - **Test:** Chính CI.
 - **Rủi ro / câu hỏi:** Spotless sẽ định dạng lại code đã có (diff lớn một lần).
