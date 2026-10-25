@@ -8,13 +8,13 @@
 | Nhóm | Giờ | Task |
 |---|---|---|
 | M0 — Setup | 19 | T-001, T-002, T-003, T-004, T-005 |
-| M1 — Catalog & đăng nhập admin | 42 | T-010, T-011, T-012, T-013, T-014, T-015, T-016 |
+| M1 — Catalog & đăng nhập admin | 48 | T-006, T-010, T-011, T-012, T-013, T-014, T-015, T-016 |
 | M2 — Đơn hàng, thanh toán, hàng đợi | 42 | T-020, T-021, T-022, T-023, T-024, T-025, T-026, T-027, T-028 |
 | M3 — Giao diện khách & admin | 31 | T-030, T-031, T-032, T-033, T-034, T-035 |
 | M4 — Bảo mật, deploy, launch | 30 | T-040, T-041, T-042, T-043, T-044, T-045, T-046 |
 | M5 — Làm ngay sau launch | 3 | T-050, T-051 |
 | P1 — Chỉ làm nếu còn thời gian | 13 | T-060, T-061, T-062, T-063 |
-| **Cần để launch** | **164** | M0–M4 |
+| **Cần để launch** | **170** | M0–M4 |
 
 **Critical path** (chuỗi phụ thuộc dài nhất, 66 giờ): T-001 → T-002 → T-003 → T-010 → T-022 → T-023 → T-025 → T-026 → T-033 → T-034 → T-035 → T-041 → T-046
 
@@ -27,11 +27,12 @@ flowchart LR
   T003["T-003<br/>Flyway V1 + Testcontainers + DB tests<br/>5h"]
   T004["T-004<br/>Next.js skeleton<br/>4h"]
   T005["T-005<br/>CI (GitHub Actions)<br/>3h"]
+  T006["T-006<br/>Thiết kế giao diện (mockup + design tokens)<br/>5h"]
   T010["T-010<br/>Catalog API công khai<br/>5h"]
   T011["T-011<br/>Pipeline xử lý & lưu ảnh<br/>6h"]
   T012["T-012<br/>Xác thực admin (session + TOTP)<br/>8h"]
   T013["T-013<br/>Admin API sản phẩm<br/>5h"]
-  T014["T-014<br/>Trang catalog & sản phẩm (frontend)<br/>6h"]
+  T014["T-014<br/>Trang catalog & sản phẩm (frontend)<br/>7h"]
   T015["T-015<br/>Khung admin UI + đăng nhập<br/>5h"]
   T016["T-016<br/>Admin UI quản lý sản phẩm<br/>7h"]
   T020["T-020<br/>Settings, điều khoản, link MXH<br/>3h"]
@@ -67,8 +68,10 @@ flowchart LR
   T011 --> T013
   T012 --> T013
   T004 --> T014
+  T006 --> T014
   T010 --> T014
   T004 --> T015
+  T006 --> T015
   T012 --> T015
   T013 --> T016
   T015 --> T016
@@ -162,6 +165,14 @@ flowchart LR
 
 ### M1 — Catalog & đăng nhập admin
 
+#### T-006 · Thiết kế giao diện (mockup + design tokens)
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** — · **Status:** done
+- **Phạm vi:** Định hướng thương hiệu từ logo capybara; mockup trang chủ (desktop + mobile), sản phẩm, Commission, giỏ hàng, checkout, trạng thái đơn trên canvas thiết kế; chọn font Rubik; ghi design tokens (màu, font, viền, bóng, bo góc) vào `docs/DESIGN.md` + `docs/design/tokens.css`.
+- **File / module:** docs/DESIGN.md, docs/design/*
+- **Nghiệm thu:** Chủ dự án duyệt hướng thiết kế và font; tokens có trong repo.
+- **Test:** Duyệt bằng mắt trên canvas.
+- **Rủi ro / câu hỏi:** Tên hiển thị BKStudio hay BK3D chưa chốt. Ảnh sản phẩm cần chụp lại trước launch.
+
 #### T-010 · Catalog API công khai
 - **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-003 · **Status:** todo
 - **Phạm vi:** Entity + repository product/variant/image; `GET /api/products` (chỉ ACTIVE), `GET /api/products/{slug}` (ACTIVE + UNLISTED, cờ `unlisted`); tình trạng có sẵn / làm theo đơn (tôn trọng quota); không lộ số tồn kho.
@@ -195,15 +206,15 @@ flowchart LR
 - **Rủi ro / câu hỏi:** —
 
 #### T-014 · Trang catalog & sản phẩm (frontend)
-- **Ưu tiên:** P0 · **Ước lượng:** 6 giờ · **Phụ thuộc:** T-004, T-010 · **Status:** todo
-- **Phạm vi:** Trang danh sách (lọc series), trang chi tiết (gallery `srcset`, chọn tỉ lệ, có sẵn / làm theo đơn + tháng dự kiến); render trên server; thẻ Open Graph; `noindex` cho UNLISTED; sitemap chỉ ACTIVE.
+- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-004, T-006, T-010 · **Status:** todo
+- **Phạm vi:** Áp dụng design tokens (`docs/DESIGN.md` §5: Rubik qua `next/font`, khối `@theme` của Tailwind, bỏ dark mode mặc định, header/footer theo mockup). Trang danh sách (lọc series), trang chi tiết (gallery `srcset`, chọn tỉ lệ, có sẵn / làm theo đơn + tháng dự kiến); render trên server; thẻ Open Graph; `noindex` cho UNLISTED; sitemap chỉ ACTIVE.
 - **File / module:** frontend/app/(shop)/*
 - **Nghiệm thu:** Dán link sản phẩm vào trình kiểm tra OG (vd Facebook Sharing Debugger hoặc opengraph.xyz) thấy ảnh + tên + giá.
 - **Test:** Kiểm tra thủ công + build.
 - **Rủi ro / câu hỏi:** —
 
 #### T-015 · Khung admin UI + đăng nhập
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-004, T-012 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-004, T-006, T-012 · **Status:** todo
 - **Phạm vi:** Trang login + nhập TOTP + mã khôi phục; layout admin; chặn route khi chưa đăng nhập; xử lý CSRF trong API client.
 - **File / module:** frontend/app/admin/*
 - **Nghiệm thu:** Đăng nhập đủ 2 bước vào được admin; hết session tự về trang login.

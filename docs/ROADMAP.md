@@ -6,7 +6,7 @@
 ## 1. Sự thật cần nói thẳng
 | | Giờ |
 |---|---|
-| Phạm vi đã duyệt (P0) cần để launch | **164 giờ** |
+| Phạm vi đã duyệt (P0) cần để launch | **170 giờ** (cập nhật 2026-10-19: +T-006 thiết kế 5h, +1h áp tokens vào T-014) |
 | Dự phòng 20% (bug, học công nghệ mới, ước lượng sai) | +33 giờ → **~197 giờ** |
 | Ngân sách ban đầu (3 tháng × 10 giờ/tuần) | **130 giờ** |
 | Thiếu | **~67 giờ** |
@@ -34,7 +34,7 @@ Nếu muốn rút ngắn mà ít đau nhất, các ứng viên cắt (theo thứ
 | Mốc | Nội dung | Giờ (chưa dự phòng) | Xong khoảng | Kết quả kiểm chứng được |
 |---|---|---|---|---|
 | **M0** Setup | Repo, Postgres local, Spring Boot + Next.js skeleton, Flyway V1 + 17 test DB, CI | 19 | tuần 3 (~8/11) | CI xanh; 17 test DB chạy trên Postgres thật |
-| **M1** Catalog & admin | API catalog, pipeline ảnh, đăng nhập admin + TOTP, admin sản phẩm, trang sản phẩm có OG | 42 | tuần 8 (~13/12) | Tạo sản phẩm trong admin → hiện trên web; share link lên mạng xã hội có ảnh |
+| **M1** Catalog & admin | Thiết kế giao diện (T-006 ✅), API catalog, pipeline ảnh, đăng nhập admin + TOTP, admin sản phẩm, trang sản phẩm có OG | 48 | tuần 8–9 (~20/12) | Tạo sản phẩm trong admin → hiện trên web; share link lên mạng xã hội có ảnh |
 | **M2** Đơn & thanh toán | Checkout, máy trạng thái, email, payment request, hàng đợi slot, job hết hạn/nhắc hạn | 42 | tuần 13 (~17/1/2027) | Toàn bộ vòng đời đơn chạy được qua API (test tự động) |
 | **M3** Giao diện | Giỏ hàng, checkout, trang đơn, Commission/Policy, admin đơn hàng + dashboard, responsive | 31 | tuần 17 (~14/2/2027) | Đi hết vòng đời 1 đơn chỉ bằng giao diện |
 | **M4** Launch | Rà soát bảo mật, E2E, Docker production, server + domain, backup + diễn tập khôi phục, deploy | 30 | tuần 20 (~7/3/2027) | Launch checklist §4 đều ✅ |

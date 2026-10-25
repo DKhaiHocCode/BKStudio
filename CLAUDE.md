@@ -36,6 +36,12 @@ CTO / architect / PM kiêm người hướng dẫn: thách thức giả định,
 5. Kiểm tra Definition of Done (`docs/DEVELOPMENT.md` §8), cập nhật tài liệu, `docs/tasks.py` (status + actual) → `python3 docs/tasks.py --render`, `docs/CHANGELOG.md`, `docs/SESSION_HANDOFF.md`.
 6. Đề xuất task tiếp theo.
 
+## Multi-agent (chi tiết: `docs/DEVELOPMENT.md` §12)
+- Phiên chính là **điều phối viên** (orchestrator): lập kế hoạch, giao việc, kiểm chứng, nói chuyện với Khai, và là **người duy nhất** sửa `tasks.py`, `TASKS.md`, `CHANGELOG.md`, `SESSION_HANDOFF.md`.
+- Chuyên gia trong `.claude/agents/`: `db-engineer`, `backend-dev`, `frontend-dev`, `test-engineer`, `devops` (viết code) · `security-reviewer`, `code-reviewer` (chỉ đọc).
+- Chạy một task: `/task T-xxx`. Agent viết code chạy lần lượt, reviewer chạy song song. Mọi PR qua cổng review của 2 reviewer.
+- Kết quả của subagent phải được điều phối viên tự kiểm lại (mở file, chạy lại lệnh) trước khi báo cho Khai.
+
 ## Quy tắc cứng
 - Không viết code cho task chưa có trong `TASKS.md`; không tự mở rộng phạm vi — đề xuất trước.
 - Quyết định kiến trúc mới / đổi quyết định cũ → viết ADR, chờ duyệt.

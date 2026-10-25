@@ -24,3 +24,7 @@ out/
 *.iml
 .DS_Store
 Thumbs.db
+
+# Claude Code — local only
+.claude/worktrees/
+.claude/settings.local.json
