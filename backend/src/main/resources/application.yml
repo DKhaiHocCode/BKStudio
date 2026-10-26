@@ -2,7 +2,17 @@ spring:
   application:
     name: bkstudio-backend
   flyway:
-    enabled: true # schema is owned by db/migration; JPA (T-010) must use ddl-auto=validate or none
+    enabled: true # schema is owned by db/migration; JPA must use ddl-auto=validate or none
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+app:
+  catalog:
+    # Public base of the image bucket/CDN (R2 in prod, MinIO locally); keys are appended by CatalogProperties.
+    image-base-url: ${R2_PUBLIC_BASE_URL:http://localhost:9000/bkstudio-dev}
+    ships-within-days: 7
 
 # Health lives at /api/health (same /api base path as the rest of the API).
 management:
