@@ -21,6 +21,7 @@ Chưa cần môi trường staging; dùng nhánh + chạy local trước khi dep
 | `RESEND_API_KEY`, `MAIL_FROM` | Email |
 | `TOTP_ENCRYPTION_KEY` | Mã hoá secret TOTP trong DB |
 | `ALLOWED_PAYMENT_HOSTS` | Danh sách tên miền link thanh toán |
+Upload ảnh (T-013): backend đặt `spring.servlet.multipart.max-file-size=10MB`, `max-request-size=11MB`; Caddy/Cloudflare phía trước phải cho body tối thiểu 11 MB trên `/api/admin/**`. Tomcat ghi file upload tạm vào `java.io.tmpdir` nên thư mục này phải ghi được trong container (kể cả khi filesystem read-only).
 Một file `.env.example` (không có giá trị thật) sẽ nằm trong repo.
 
 ## 3. Quy trình deploy (dự kiến)

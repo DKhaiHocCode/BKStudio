@@ -13,8 +13,12 @@ public enum ErrorCode {
     VERSION_CONFLICT(HttpStatus.CONFLICT),
     TERMS_OUTDATED(HttpStatus.CONFLICT),
     RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS),
+    /** Duplicate slug / scale, image limit reached. */
+    CONFLICT(HttpStatus.CONFLICT),
+    /** Upload over the multipart limit. */
+    PAYLOAD_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
-    /** Fallback for client errors without a dedicated code (405, 415, ...). Not yet in API_SPEC. */
+    /** Fallback for client errors without a dedicated code (405, 415, ...). */
     BAD_REQUEST(HttpStatus.BAD_REQUEST);
 
     private final HttpStatus status;
@@ -39,6 +43,7 @@ public enum ErrorCode {
             case 401 -> UNAUTHENTICATED;
             case 403 -> FORBIDDEN;
             case 404 -> NOT_FOUND;
+            case 413 -> PAYLOAD_TOO_LARGE;
             case 429 -> RATE_LIMITED;
             default -> status >= 500 ? INTERNAL_ERROR : BAD_REQUEST;
         };

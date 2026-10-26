@@ -23,7 +23,7 @@
 | T7 | Sửa giá / số lượng ở phía client | Backend luôn lấy giá từ DB; DTO riêng cho request (không bind thẳng vào entity → chống mass assignment) | P0 |
 | T8 | Tráo / dán nhầm link thanh toán | Chỉ chấp nhận `https://` thuộc danh sách tên miền cho phép; DB CHECK `https://`; mọi thay đổi link ghi audit | P0 |
 | T9 | Bot spam đơn để giữ hết hàng sẵn | Rate limit 5 đơn/IP/giờ; giữ hàng tự hết hạn; đơn làm theo đơn **không** giữ slot khi chưa cọc. P1: Cloudflare Turnstile | P0 / P1 |
-| T10 | Upload file độc (chỉ admin) | Kiểm tra magic bytes, giới hạn dung lượng + kích thước pixel, mã hoá lại ảnh, key ngẫu nhiên, phục vụ từ domain khác | P0 |
+| T10 | Upload file độc (chỉ admin) | Kiểm tra magic bytes, giới hạn dung lượng + kích thước pixel, mã hoá lại ảnh, key ngẫu nhiên, phục vụ từ domain khác. Đã triển khai (T-011/T-013): chỉ nhận JPEG/PNG, ≤ 10 MB, ≤ 40 MP, tối đa 2 ảnh giải mã cùng lúc, 20 ảnh/sản phẩm; mọi thao tác ghi sản phẩm/ảnh ghi `audit_log` (không chứa dữ liệu cá nhân). Nợ: file mồ côi trên storage nếu xoá/ghi DB lỗi giữa chừng (chưa có job dọn); slug UNLISTED là bí mật duy nhất của link commission nên cần giới hạn tốc độ GET công khai trước production | P0 |
 | T11 | Lộ secret | Secret chỉ ở `.env` trên VPS (quyền 600) và GitHub Actions secrets; `.gitignore` chặn `.env`; quét secret trong CI (gitleaks); khoá TOTP mã hoá AES-GCM bằng khoá từ env | P0 |
 | T12 | DB bị truy cập từ Internet | PostgreSQL **không mở port ra ngoài**, chỉ trong mạng Docker; firewall chỉ mở 22/80/443 | P0 |
 | T13 | Chiếm VPS qua SSH | Chỉ SSH key, tắt đăng nhập mật khẩu và root; fail2ban; cập nhật bảo mật tự động | P0 |
