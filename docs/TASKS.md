@@ -182,12 +182,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Tên hiển thị đã chốt: BKStudio. Ảnh sản phẩm cần chụp lại trước launch.
 
 #### T-010 · Catalog API công khai
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-003 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-003 · **Status:** done
 - **Phạm vi:** Entity + repository product/variant/image; `GET /api/products` (chỉ ACTIVE), `GET /api/products/{slug}` (ACTIVE + UNLISTED, cờ `unlisted`); tình trạng có sẵn / làm theo đơn (tôn trọng quota); không lộ số tồn kho.
 - **File / module:** backend/.../catalog/*
 - **Nghiệm thu:** Đúng hợp đồng API_SPEC §2; UNLISTED không bao giờ xuất hiện trong danh sách.
 - **Test:** Integration test cho list/detail/UNLISTED/quota hết.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** `estimatedStartMonth` = null tới T-021; `R2_PUBLIC_BASE_URL` phải đặt ở prod (T-043), mặc định là MinIO local; thiếu Cache-Control/rate limit cho GET công khai (Caddy/Cloudflare); CatalogService (domain) import DTO của api — tách trước T-021/T-022.
 
 #### T-011 · Pipeline xử lý & lưu ảnh
 - **Ưu tiên:** P0 · **Ước lượng:** 6 giờ · **Phụ thuộc:** T-010 · **Status:** todo

@@ -4,6 +4,9 @@ Ghi các thay đổi quan trọng. Mới nhất ở trên. Định dạng: ngày
 
 ## [Chưa phát hành]
 
+### Tính năng
+- 2026-10-26 · T-010: Catalog API công khai — `GET /api/products` (chỉ ACTIVE, có sản phẩm bán được, phân trang, lọc `series`) và `GET /api/products/{slug}` (ACTIVE + UNLISTED, cờ `unlisted`; DRAFT/ARCHIVED/không tồn tại đều 404 giống nhau). JPA entity chỉ-đọc + `ddl-auto=validate`, không lộ số tồn kho/quota, `estimatedStartMonth` = null tới T-021. Thêm `R2_PUBLIC_BASE_URL`. `ProductCatalogIT` 23 test; Surefire 11 + Failsafe 43 xanh.
+
 ### Hạ tầng
 - 2026-10-26 · chore: Dependabot bỏ qua bản major của `typescript`, `eslint`, `@types/node` (typescript 7 làm hỏng lint qua `eslint-config-next`); chốt tên hiển thị **BKStudio**; bật branch protection (`backend`, `frontend`, `gitleaks`).
 - 2026-10-26 · T-007: checksum SHA-256 cho Maven wrapper (3.10.0), Spotless (palantir-java-format) chạy trong `verify` nên CI đỏ khi code Java sai định dạng; định dạng lại 3 file Java. Dev chạy `./mvnw spotless:apply` để sửa. 11 test Surefire + 20 test Failsafe xanh.

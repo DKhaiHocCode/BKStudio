@@ -13,7 +13,7 @@
 | Phân trang | `?page=0&size=20` → `{ "items": [...], "page": 0, "size": 20, "total": 57 }` |
 | Lỗi | **RFC 9457 Problem Details** (`ProblemDetail` có sẵn trong Spring) |
 | Xác thực admin | Cookie session + header `X-XSRF-TOKEN` cho mọi request thay đổi dữ liệu |
-| Request ID | Mọi response có header `X-Request-Id` (in kèm trong lỗi để tra log) |
+| Request ID | Mọi response có header `X-Request-Id` (in kèm trong lỗi để tra log). Server sinh UUID v4 bỏ dấu gạch (32 ký tự hex); chấp nhận id do client gửi nếu khớp `[A-Za-z0-9_-]{8,64}` |
 
 ### Mẫu lỗi
 ```json
@@ -23,12 +23,13 @@
   "status": 409,
   "code": "OUT_OF_STOCK",
   "detail": "Pneuma 1/7 has only 0 ready units left.",
-  "requestId": "01JB7X…"
+  "requestId": "3f2b8c1e9a4d4c6f8e7a1b2c3d4e5f60"
 }
 ```
 | `code` | HTTP | Khi nào |
 |---|---|---|
 | `VALIDATION_FAILED` | 400 | Dữ liệu sai (kèm `errors: [{field, message}]`) |
+| `BAD_REQUEST` | 4xx | Lỗi client không có mã riêng (405, 415, …) — dự phòng do Spring MVC sinh ra |
 | `UNAUTHENTICATED` | 401 | Chưa đăng nhập admin |
 | `FORBIDDEN` | 403 | Thiếu quyền / sai CSRF |
 | `NOT_FOUND` | 404 | Không có tài nguyên (kể cả token đơn sai — không tiết lộ đơn có tồn tại hay không) |
@@ -54,7 +55,7 @@
 ```json
 {
   "slug": "pneuma", "name": "Pneuma", "series": "Xenoblade Chronicles 2",
-  "description": "…",
+  "description": "…", "unlisted": false,
   "images": [{ "url": "https://cdn.bkstudio.xxx/products/9f…/1000.webp", "srcset": {"400": "…", "1000": "…", "2000": "…"}, "alt": "Front view", "width": 2000, "height": 2667 }],
   "variants": [{
     "id": 12, "scale": "1/7", "priceCents": 25000,
@@ -64,6 +65,15 @@
 }
 ```
 (Không trả số lượng tồn kho chính xác — chỉ có/không.)
+`estimatedStartMonth` là `null` cho tới khi module hàng đợi (T-021) điền vào. Chỉ trả biến thể `active`.
+
+`GET /api/products` → mỗi phần tử trong `items`:
+```json
+{ "slug": "pneuma", "name": "Pneuma", "series": "Xenoblade Chronicles 2",
+  "coverImage": { "url": "…", "alt": "Front view", "width": 2000, "height": 2667 },
+  "fromPriceCents": 25000, "inStock": true, "madeToOrder": true }
+```
+`fromPriceCents` = giá thấp nhất trong các biến thể `active`; `coverImage` = ảnh đầu theo `sort_order` (`null` nếu chưa có ảnh). Sản phẩm `ACTIVE` chưa có biến thể `active` nào bị ẩn khỏi danh sách (vẫn mở được bằng slug). `size` mặc định 20, tối đa 50; sắp mới nhất trước.
 
 ### Đặt hàng & tra cứu
 | Method | Path | Mô tả |

@@ -3,9 +3,10 @@
 > Cập nhật: 2026-10-26
 
 ## Đang ở đâu
-**M0 xong về code.** T-007 làm xong trên nhánh `chore/T-007-build-hardening`, **chưa commit/push** (chờ Khai chạy lệnh git, mở PR, xem CI xanh). T-001..T-006 đã merge vào `main` (T-005 = PR #7). Task tiếp theo đề xuất: **T-010** (Catalog API công khai).
-Branch protection đã bật (2026-10-26). Việc Khai còn nợ: xử lý các PR Dependabot đang mở (xem dưới); kiểm tra `localhost:3000` bằng mắt (cần chạy `npm run dev`).
-**PR Dependabot đang mở (2026-10-26):** `typescript 5.9.3 → 7.0.2` đỏ ở `lint` ("typescript-eslint does not support TS 7.0") — không phải lỗi code của ta, nên đóng PR đó và chặn bump major; `eslint 9 → 10` và `@types/node 20 → 26` cũng là major (runtime là Node 22) → nên đóng; nhóm `npm-minor-patch` và `maven-minor-patch` (có bump Spring Boot parent) xem CI rồi mới quyết.
+**M0 xong, đã merge hết vào `main`** (T-001..T-007; T-005 = PR #7, T-007 = PR #13). Branch protection đã bật; `localhost:3000` Khai đã kiểm bằng mắt (T-004 OK); `actionlint` 1.7.7 chạy trên `.github/` không báo lỗi. **T-010 (Catalog API công khai) code xong, đã qua review, chờ Khai commit/PR** trên nhánh `feat/T-010-catalog-api`. Bằng chứng: `mvnw verify` do điều phối viên tự chạy → Surefire 11/11, Failsafe 43/43 (`ProductCatalogIT` 23 + `DbConstraintsIT` 20), BUILD SUCCESS. security-reviewer + code-reviewer: không Must fix/Critical/High; các Medium/Low đã sửa (page ≤ 10000, series ≤ 200, race biến thể, đổi tên `ProductPage`, test key-set). Còn nợ: `R2_PUBLIC_BASE_URL` bắt buộc ở prod (T-043); Cache-Control/rate limit GET công khai (Caddy/Cloudflare); tách DTO khỏi `CatalogService` trước T-021/T-022; `estimatedStartMonth` điền ở T-021. Việc tiếp: T-011 (ảnh) hoặc T-012.
+**Dependabot:** 3 PR major (`typescript 7`, `eslint 10`, `@types/node 26`) Khai đã đóng; `maven-minor-patch` (có bump Spring Boot parent) xem CI rồi quyết.
+**Quyết định (2026-10-26):** giữ `ErrorCode.BAD_REQUEST`; request id giữ UUID v4 bỏ gạch; log giữ ECS. Không ghi `actual` giờ.
+**Quyết định T-010:** `estimatedStartMonth` = `null` tới T-021; phần tử danh sách = `slug, name, series, coverImage, fromPriceCents, inStock, madeToOrder`; sản phẩm ACTIVE không có biến thể active bị ẩn khỏi danh sách; `shipsWithinDays` = 7 (cấu hình); URL ảnh = `{R2_PUBLIC_BASE_URL}/{storage_key}/{400|1000|2000}.webp`.
 
 ## Đã làm
 - T-007: `distributionSha256Sum` cho Maven 3.10.0 trong `maven-wrapper.properties` (sha256 do ta tự tính từ zip, đối chiếu sha512 Apache công bố — Apache không công bố sha256); Spotless 3.10.4 + palantir-java-format 2.102.0, `check` gắn `process-sources` nên `verify`/CI thực thi (`ci.yml` không đổi); `spotless:apply` định dạng lại 3 file Java (chỉ định dạng).
