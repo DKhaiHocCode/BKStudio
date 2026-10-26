@@ -190,12 +190,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** `estimatedStartMonth` = null tới T-021; `R2_PUBLIC_BASE_URL` phải đặt ở prod (T-043), mặc định là MinIO local; thiếu Cache-Control/rate limit cho GET công khai (Caddy/Cloudflare); CatalogService (domain) import DTO của api — tách trước T-021/T-022.
 
 #### T-011 · Pipeline xử lý & lưu ảnh
-- **Ưu tiên:** P0 · **Ước lượng:** 6 giờ · **Phụ thuộc:** T-010 · **Status:** todo
-- **Phạm vi:** Kiểm tra magic bytes, ≤10 MB, ≤8000×8000; decode → WebP 400/1000/2000 (mất EXIF); upload R2 (S3 SDK; MinIO khi dev); key ngẫu nhiên; xoá ảnh.
+- **Ưu tiên:** P0 · **Ước lượng:** 6 giờ · **Phụ thuộc:** T-010 · **Status:** done
+- **Phạm vi:** Kiểm tra magic bytes, ≤10 MB, ≤8000×8000 và ≤40 MP; decode → WebP 400/1000/2000 (mất EXIF, xoay theo orientation); upload R2 (S3 SDK; MinIO khi dev); key ngẫu nhiên; xoá ảnh. Chỉ là service, endpoint upload ở T-013.
 - **File / module:** backend/.../catalog/image/*
-- **Nghiệm thu:** Ảnh JPEG/PNG/WebP hợp lệ → 3 file WebP trên storage; file `.php` đổi đuôi `.jpg` bị từ chối; ảnh có GPS EXIF → output không còn EXIF.
+- **Nghiệm thu:** Ảnh JPEG/PNG hợp lệ → 3 file WebP trên storage (đầu vào WebP bị từ chối — rủi ro libwebp native, ADR-0007); file `.php` đổi đuôi `.jpg` bị từ chối; ảnh có GPS EXIF → output không còn EXIF.
 - **Test:** Unit test với file mẫu (hợp lệ, giả mạo, quá lớn); integration test với MinIO.
-- **Rủi ro / câu hỏi:** Thư viện WebP cho Java (cần chọn: TwelveMonkeys/webp-imageio hoặc gọi libvips).
+- **Rủi ro / câu hỏi:** Thư viện `gotson/webp-imageio` 0.2.2 không còn bảo trì, native glibc x86_64/aarch64 → image Docker phải Ubuntu, không Alpine (T-042). Cần: cờ `--enable-native-access=ALL-UNNAMED` trong Dockerfile; thử `java -jar` upload thật (SPI ImageIO trong fat jar chưa kiểm); giới hạn upload đồng thời + `multipart.max-file-size` + heap/container memory (T-013, T-042); R2 token chỉ Object Read/Write; ảnh chưa step-down khi thu nhỏ rất nhiều (hơi răng cưa).
 
 #### T-012 · Xác thực admin (session + TOTP)
 - **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-002 · **Status:** todo

@@ -13,6 +13,15 @@ app:
     # Public base of the image bucket/CDN (R2 in prod, MinIO locally); keys are appended by CatalogProperties.
     image-base-url: ${R2_PUBLIC_BASE_URL:http://localhost:9000/bkstudio-dev}
     ships-within-days: 7
+  storage:
+    # S3-compatible store: MinIO locally, Cloudflare R2 in prod (R2_ENDPOINT = https://<account>.r2.cloudflarestorage.com).
+    # Credentials have no secret default here; dev profile maps them from MINIO_*, prod sets R2_* env vars.
+    endpoint: ${R2_ENDPOINT:http://localhost:${MINIO_API_PORT:9000}}
+    region: ${R2_REGION:auto}
+    bucket: ${R2_BUCKET:bkstudio-dev}
+    access-key: ${R2_ACCESS_KEY_ID:}
+    secret-key: ${R2_SECRET_ACCESS_KEY:}
+    path-style: true
 
 # Health lives at /api/health (same /api base path as the rest of the API).
 management:

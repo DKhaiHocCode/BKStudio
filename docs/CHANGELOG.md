@@ -5,6 +5,7 @@ Ghi các thay đổi quan trọng. Mới nhất ở trên. Định dạng: ngày
 ## [Chưa phát hành]
 
 ### Tính năng
+- 2026-10-26 · T-011: pipeline ảnh (`catalog/image`) — nhận JPEG/PNG (≤10 MB, ≤8000 px/cạnh, ≤40 MP; kiểm magic bytes, JPEG hỏng/cắt cụt bị từ chối), giải mã lại rồi xuất WebP 400/1000/2000 (không phóng to, xoay theo EXIF orientation, mất toàn bộ metadata), lưu S3-compatible (MinIO dev / R2 prod) dưới `products/{uuid}/{w}.webp` với `Cache-Control: immutable`, xoá 3 file, dọn khi upload lỡ. Thêm AWS SDK v2 + `gotson/webp-imageio`; đầu vào WebP bị từ chối có chủ ý (ADR-0007). Biến môi trường mới `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`; profile `prod` kiểm cấu hình lúc khởi động.
 - 2026-10-26 · T-010: Catalog API công khai — `GET /api/products` (chỉ ACTIVE, có sản phẩm bán được, phân trang, lọc `series`) và `GET /api/products/{slug}` (ACTIVE + UNLISTED, cờ `unlisted`; DRAFT/ARCHIVED/không tồn tại đều 404 giống nhau). JPA entity chỉ-đọc + `ddl-auto=validate`, không lộ số tồn kho/quota, `estimatedStartMonth` = null tới T-021. Thêm `R2_PUBLIC_BASE_URL`. `ProductCatalogIT` 23 test; Surefire 11 + Failsafe 43 xanh.
 
 ### Hạ tầng
