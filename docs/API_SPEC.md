@@ -36,6 +36,8 @@
 | `OUT_OF_STOCK` | 409 | Hết hàng sẵn |
 | `INVALID_TRANSITION` | 409 | Chuyển trạng thái không hợp lệ |
 | `VERSION_CONFLICT` | 409 | Dữ liệu đã bị sửa ở tab khác — tải lại |
+| `CONFLICT` | 409 | Trùng dữ liệu duy nhất (slug do client đặt, tỉ lệ của sản phẩm) hoặc vượt giới hạn số lượng (20 ảnh/sản phẩm) |
+| `PAYLOAD_TOO_LARGE` | 413 | Body/file vượt giới hạn (ảnh > 10 MB) |
 | `TERMS_OUTDATED` | 409 | Khách đồng ý phiên bản điều khoản cũ |
 | `RATE_LIMITED` | 429 | Gọi quá nhiều (kèm `Retry-After`) |
 | `INTERNAL_ERROR` | 500 | Lỗi không mong muốn — không lộ chi tiết, chỉ `requestId` |
@@ -132,6 +134,16 @@ Chi tiết đã triển khai (T-012):
 | PUT | `/api/admin/products/{id}/images/order` | Sắp xếp `[imageId…]` |
 | PATCH | `/api/admin/images/{id}` | Sửa alt text |
 | DELETE | `/api/admin/images/{id}` | Xoá ảnh |
+| GET | `/api/admin/products/{id}` | Chi tiết đầy đủ (thêm ở T-013 cho form sửa): mô tả, mọi biến thể kể cả `active=false` với `stockQty`/`madeToOrderQuota`, ảnh |
+
+Chi tiết đã triển khai (T-013):
+- **Danh sách:** `page`, `size` (tối đa 50, `page` ≤ 10000), `status`, `q` (chứa trong tên hoặc slug, không phân biệt hoa thường; `%` `_` `\` coi là ký tự thường). Trả `{items, page, size, total}`; mỗi phần tử `{id, slug, name, series, status, version, updatedAt, variantCount, imageCount, coverImage}`, sắp theo `updatedAt` giảm dần.
+- **Chi tiết** `{id, slug, name, series, description, status, version, createdAt, updatedAt, variants[], images[]}`; biến thể `{id, scale, priceCents, stockQty, madeToOrderEnabled, madeToOrderQuota, active, version}`; ảnh `{id, sortOrder, altText, urls{400,1000,2000}, width, height}`.
+- **Slug:** server tự sinh từ tên (chữ thường, gạch nối), hoặc nhận `slug` hợp lệ từ client (tối đa 80 ký tự khi nhập); trùng slug do client đặt → `409 CONFLICT`, slug tự sinh tự thêm `-2`, `-3`. Sản phẩm `UNLISTED` **luôn** có hậu tố ngẫu nhiên, kể cả khi đổi sang `UNLISTED` lúc sửa (slug được ghi lại). Slug không đổi được ngoài trường hợp đó.
+- **Sửa:** `PUT` cần `version` đã đọc; sai → `409 VERSION_CONFLICT`; thành công trả bản mới với `version + 1`. Trạng thái chuyển tự do. `status` phải là chữ (`"ACTIVE"`), số bị từ chối `400`.
+- **Biến thể:** không có endpoint xoá, ẩn bằng `active=false`; trùng `scale` trong cùng sản phẩm → `409 CONFLICT`. `scale` không đổi sau khi tạo.
+- **Ảnh:** multipart, phần `file` (JPEG/PNG; WebP bị từ chối) và `altText` tuỳ chọn; tối đa 20 ảnh/sản phẩm (ảnh thứ 21 → `409 CONFLICT`); file > 10 MB → `413 PAYLOAD_TOO_LARGE`; tối đa 2 ảnh xử lý cùng lúc, quá thì chờ tối đa 5 giây rồi `429 RATE_LIMITED` kèm `Retry-After`. `PUT .../images/order` nhận `{"imageIds":[...]}` phải đúng bằng tập ảnh hiện có (tối đa 20), nếu không `400`. Xoá ảnh xoá cả 3 file trên storage (lỗi storage không làm lỗi request).
+- Mỗi thao tác ghi ghi 1 dòng `audit_log` trong cùng transaction.
 
 ### Đơn hàng — mỗi hành động là 1 endpoint riêng (dễ kiểm tra quyền & điều kiện)
 | Method | Path | Body | Chuyển trạng thái |

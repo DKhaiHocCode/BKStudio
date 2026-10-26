@@ -14,7 +14,8 @@ public abstract class AbstractPostgresTest {
     // Static singleton: started once per JVM, shared by all Spring contexts, removed by Ryuk on exit.
     // @ServiceConnection overrides the datasource URL/credentials with the container's.
     @ServiceConnection
-    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine");
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:16-alpine")
+            .withCommand("postgres", "-c", "max_connections=300"); // every cached Spring context keeps its own pool
 
     static {
         POSTGRES.start();

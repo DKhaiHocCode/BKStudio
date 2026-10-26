@@ -206,12 +206,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Nợ chấp nhận, xử lý ở T-043: session/bộ chặn IP/guard TOTP trong bộ nhớ (mất khi restart); IP = getRemoteAddr nên sau Caddy phải cấu hình `server.forward-headers-strategy` (cũng ảnh hưởng cờ Secure của cookie XSRF-TOKEN) — BẮT BUỘC trước khi mở production, nếu không 5 request rác từ ai cũng chặn cả admin 15 phút; email thông báo đăng nhập tới bk3dprinls@gmail.com chờ hạ tầng email; `--create-admin` chưa chạy thật end-to-end (Khai chạy khi tạo admin); mọi POST công khai (checkout T-022) cần CSRF token; route admin mới phải nằm dưới /api/admin/** (mặc định ngoài đó là permitAll); AES-GCM chưa có AAD gắn admin id.
 
 #### T-013 · Admin API sản phẩm
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-011, T-012 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-011, T-012 · **Status:** done
 - **Phạm vi:** CRUD product/variant (giá, tồn kho, bật làm theo đơn, quota, `version`); UNLISTED tự gắn hậu tố slug ngẫu nhiên; upload/sắp xếp/sửa alt/xoá ảnh.
 - **File / module:** backend/.../catalog/admin/*
 - **Nghiệm thu:** Đúng API_SPEC §3 Sản phẩm; sửa với `version` cũ → 409 VERSION_CONFLICT.
 - **Test:** Integration test.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Đã thêm `GET /api/admin/products/{id}`, mã lỗi CONFLICT/PAYLOAD_TOO_LARGE, AuditLogWriter dùng chung, `JacksonConfig` (từ chối số cho enum). Nợ: file ảnh mồ côi nếu lỗi giữa chừng (chưa có job dọn); xoá/ghi lại slug UNLISTED khi đổi trạng thái làm link cũ chết (không redirect); hai lần cùng sinh trùng hậu tố 52 bit có thể 500 (xác suất ~2^-52); giới hạn tốc độ GET công khai trước production vì slug UNLISTED là bí mật duy nhất; `stock_qty` là ghi đè tuyệt đối — code trừ kho ở T-022 PHẢI tăng `version` cùng lúc; reorder không đổi vẫn ghi audit; Caddy phải cho body ≥ 11 MB trên /api/admin.
 
 #### T-014 · Trang catalog & sản phẩm (frontend)
 - **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-004, T-006, T-010 · **Status:** todo
@@ -261,7 +261,7 @@ flowchart LR
 - **File / module:** backend/.../order/checkout/*
 - **Nghiệm thu:** Gửi giá sai từ client không ảnh hưởng; retry cùng key → cùng đơn; 2 người mua món cuối → 1 người nhận OUT_OF_STOCK.
 - **Test:** Integration test gồm test song song.
-- **Rủi ro / câu hỏi:** Thiết kế transaction đúng là trọng tâm học.
+- **Rủi ro / câu hỏi:** Thiết kế transaction đúng là trọng tâm học. Lưu ý T-013: `UPDATE product_variant` trừ `stock_qty`/quota phải kèm `version = version + 1`, nếu không admin sửa từ form cũ sẽ ghi đè mất lần trừ kho; mọi POST công khai cần CSRF token (T-012).
 
 #### T-023 · Máy trạng thái đơn + audit log
 - **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-022 · **Status:** todo
