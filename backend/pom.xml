@@ -15,7 +15,21 @@
 	<description>BKStudio backend (modular monolith)</description>
 	<properties>
 		<java.version>25</java.version>
+		<awssdk.version>2.57.3</awssdk.version>
+		<!-- Java 25 warns about native access (libwebp via JNI) unless allowed; used by run, surefire and failsafe. -->
+		<native.access.arg>--enable-native-access=ALL-UNNAMED</native.access.arg>
 	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>bom</artifactId>
+				<version>${awssdk.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -45,6 +59,30 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>software.amazon.awssdk</groupId>
+					<artifactId>netty-nio-client</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>software.amazon.awssdk</groupId>
+					<artifactId>apache-client</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>url-connection-client</artifactId>
+		</dependency>
+		<!-- Lossy WebP writer/reader for ImageIO (bundled libwebp, Linux glibc only - not Alpine). -->
+		<dependency>
+			<groupId>com.github.gotson</groupId>
+			<artifactId>webp-imageio</artifactId>
+			<version>0.2.2</version>
 		</dependency>
 
 		<dependency>
@@ -79,11 +117,24 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<jvmArguments>${native.access.arg}</jvmArguments>
+				</configuration>
 			</plugin>
 			<!-- Runs *IT classes (integration tests) during `verify`; surefire only picks up *Test. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<argLine>${native.access.arg}</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>${native.access.arg}</argLine>
+				</configuration>
 			</plugin>
 			<!-- Fails `verify` (process-sources) when Java code is not formatted; fix with `./mvnw spotless:apply`. -->
 			<plugin>

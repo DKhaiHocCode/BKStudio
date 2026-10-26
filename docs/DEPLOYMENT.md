@@ -15,7 +15,7 @@ Chưa cần môi trường staging; dùng nhánh + chạy local trước khi dep
 |---|---|
 | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Database |
 | `APP_BASE_URL` | Tạo link trong email (vd `https://bkstudio.xxx`) |
-| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_IMAGES`, `R2_PUBLIC_BASE_URL` | Ảnh |
+| `R2_ENDPOINT` (`https://<account>.r2.cloudflarestorage.com`), `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL`, `R2_REGION` (tuỳ chọn, mặc định `auto`) | Ảnh. Token R2 chỉ quyền Object Read & Write trên bucket ảnh. Profile `prod` không khởi động nếu thiếu hoặc endpoint không phải `https://` |
 | `R2_BACKUP_BUCKET`, `R2_BACKUP_ACCESS_KEY_ID`, `R2_BACKUP_SECRET_ACCESS_KEY` | Backup (khoá riêng, chỉ ghi) |
 | `BACKUP_ENCRYPTION_PASSPHRASE` | Mã hoá file backup |
 | `RESEND_API_KEY`, `MAIL_FROM` | Email |
