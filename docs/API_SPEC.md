@@ -112,6 +112,14 @@ Rate limit: 5 đơn / IP / giờ. (P1: Cloudflare Turnstile chống bot.)
 | GET | `/api/admin/auth/me` | Thông tin admin hiện tại |
 Giới hạn: 5 lần sai / 15 phút / tài khoản và / IP → khoá tạm.
 
+Chi tiết đã triển khai (T-012):
+- `login` đúng → `200 {"totpRequired": true}`; session ở trạng thái chờ TOTP, **hết hạn sau 5 phút** và chưa được truy cập `/api/admin/**`. `totp` đúng → `200 {"email": "..."}` (cùng dạng với `me`), session ID đổi. `logout` → `204`.
+- Sai mật khẩu, email không tồn tại, sai TOTP/mã khôi phục → cùng một `401 UNAUTHENTICATED` ("Invalid credentials."), không cho biết sai ở đâu.
+- Giới hạn: **theo IP**, 5 lần sai (mật khẩu, TOTP hoặc mã khôi phục) / 15 phút; **theo tài khoản**, 5 lần sai TOTP/mã khôi phục / 15 phút (chỉ tính khi mật khẩu đã đúng, để người chỉ biết email không khoá được admin). Vượt giới hạn → `429 RATE_LIMITED` kèm header `Retry-After` (giây). Hết thời gian khoá thì bộ đếm của tài khoản về 0.
+- Session: hết hạn sau 30 phút không hoạt động hoặc 12 giờ kể từ lúc đăng nhập đủ 2 bước.
+- CSRF áp dụng cho **mọi** POST/PUT/PATCH/DELETE (cả endpoint công khai, vd checkout ở T-022): client phải gọi một GET bất kỳ để nhận cookie `XSRF-TOKEN`, rồi gửi giá trị đó trong header `X-XSRF-TOKEN`. Thiếu hoặc sai → `403 FORBIDDEN`.
+- `totp` nhận đúng một trong `code` hoặc `recoveryCode` (không phân biệt hoa thường, có hoặc không có dấu gạch).
+
 ### Sản phẩm
 | Method | Path | Mô tả |
 |---|---|---|

@@ -16,6 +16,8 @@
 	<properties>
 		<java.version>25</java.version>
 		<awssdk.version>2.57.3</awssdk.version>
+		<!-- Required by Spring Security's Argon2PasswordEncoder (not pulled in transitively). 1.86 = Maven Central 2026-09-11. -->
+		<bouncycastle.version>1.86</bouncycastle.version>
 		<!-- Java 25 warns about native access (libwebp via JNI) unless allowed; used by run, surefire and failsafe. -->
 		<native.access.arg>--enable-native-access=ALL-UNNAMED</native.access.arg>
 	</properties>
@@ -42,6 +44,15 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>${bouncycastle.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

@@ -86,7 +86,7 @@ Loại: `feat` · `fix` · `test` · `refactor` · `docs` · `chore` · `ci`. Co
 
 **Khi code**
 - Bước nhỏ, commit thường xuyên. Viết test cùng lúc với code (với bug: viết test tái hiện lỗi **trước**).
-- **Chế độ học**: với các task cốt lõi — **T-012** (auth), **T-022** (checkout), **T-023** (máy trạng thái), **T-025** (thanh toán) — Khai tự viết phần logic chính trước, Claude review và giải thích. Các task khác Claude có thể viết, nhưng Khai phải đọc và giải thích lại được trước khi merge.
+- Claude viết code cho mọi task, kể cả T-012, T-022, T-023, T-025 (chế độ học đã bỏ ngày 2026-10-26). Claude giải thích ngắn phần chính cho Khai.
 
 **Sau khi code**
 1. Chạy test liên quan + toàn bộ test. **Báo kết quả thật** — không nói "pass" khi chưa chạy.
@@ -154,8 +154,6 @@ Một task chỉ là **done** khi:
 - Chỉ điều phối viên sửa `tasks.py`, `TASKS.md`, `CHANGELOG.md`, `SESSION_HANDOFF.md`.
 - Mỗi thời điểm chỉ một task có migration Flyway mới.
 - Không bao giờ `git add .`.
-
-**Chế độ học** (T-012, T-022, T-023, T-025): agent viết code chỉ dựng khung và viết test. Khai viết logic chính; reviewer soát và giải thích.
 
 **Song song nhiều task** (khi có task độc lập, vd T-010 ∥ T-014): mở mỗi task một phiên bằng `claude --worktree <tên>`. Worktree nằm ở `.claude/worktrees/` (đã gitignore), `.env` được chép vào qua `.worktreeinclude`. Khi chạy app thật, mỗi worktree dùng cổng riêng. Đổi tên nhánh theo quy ước trước khi push.
 

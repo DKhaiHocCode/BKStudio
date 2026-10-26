@@ -8,7 +8,7 @@ Specialists in `.claude/agents/`: `db-engineer`, `backend-dev`, `frontend-dev`, 
 ## 1. Prepare (no delegation yet)
 1. Read `docs/SESSION_HANDOFF.md`, the task $ARGUMENTS in `docs/TASKS.md` and its docs. Check that its dependencies are `done`.
 2. Run `git status` and `git branch --show-current`. The work must happen on `feat|fix|chore/$ARGUMENTS-…`, not `main`. If you are on `main`, ask Khai before creating the branch.
-3. If $ARGUMENTS is T-012, T-022, T-023 or T-025 (**learning mode**), Khai writes the core logic. Specialists only scaffold, test and review.
+3. There is no learning mode: specialists write the code for every task, including T-012, T-022, T-023, T-025.
 4. Write the plan and **wait for Khai's approval**. The plan covers:
    - the subtasks, each with its specialist, the files it may touch, and the acceptance criteria it covers;
    - order and parallelism;

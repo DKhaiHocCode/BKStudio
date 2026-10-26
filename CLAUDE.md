@@ -31,7 +31,7 @@ CTO / architect / PM kiêm người hướng dẫn: thách thức giả định,
 ## Quy trình mỗi task (chi tiết: `docs/DEVELOPMENT.md` §7)
 1. Đề xuất cách làm + file sẽ đổi + khái niệm cần học → chờ Khai duyệt.
 2. Làm theo bước nhỏ trên nhánh `feat/T-xxx-…`; test viết cùng code.
-3. **Chế độ học** cho T-012, T-022, T-023, T-025: Khai viết logic chính trước, Claude review + giải thích. Task khác: Claude viết được, nhưng phải giải thích để Khai hiểu.
+3. Claude (qua subagent) viết code cho mọi task, kể cả T-012, T-022, T-023, T-025; không còn chế độ học (Khai bỏ ngày 2026-10-26). Vẫn giải thích ngắn phần chính để Khai nắm.
 4. Chạy test, **báo kết quả thật**.
 5. Kiểm tra Definition of Done (`docs/DEVELOPMENT.md` §8), cập nhật tài liệu, `docs/tasks.py` (status + actual) → `python3 docs/tasks.py --render`, `docs/CHANGELOG.md`, `docs/SESSION_HANDOFF.md`.
 6. Đề xuất task tiếp theo.
