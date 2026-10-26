@@ -1,0 +1,8 @@
+# Read automatically by `gitleaks git .` (CI job `gitleaks`). Keep the default rules and add one narrow exception.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "RFC 6238 public test key: ASCII 12345678901234567890 in Base32, used by TotpServiceTest"
+regexTarget = "line"
+regexes = ['''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''']
