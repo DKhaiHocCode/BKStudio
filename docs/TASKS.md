@@ -198,12 +198,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Thư viện `gotson/webp-imageio` 0.2.2 không còn bảo trì, native glibc x86_64/aarch64 → image Docker phải Ubuntu, không Alpine (T-042). Cần: cờ `--enable-native-access=ALL-UNNAMED` trong Dockerfile; thử `java -jar` upload thật (SPI ImageIO trong fat jar chưa kiểm); giới hạn upload đồng thời + `multipart.max-file-size` + heap/container memory (T-013, T-042); R2 token chỉ Object Read/Write; ảnh chưa step-down khi thu nhỏ rất nhiều (hơi răng cưa).
 
 #### T-012 · Xác thực admin (session + TOTP)
-- **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-002 · **Status:** todo
-- **Phạm vi:** Spring Security: login 2 bước (mật khẩu Argon2id → TOTP), đổi session ID, CSRF cookie→header, timeout 30 phút/12 giờ, khoá tạm 5 lần sai/15 phút, 10 mã khôi phục, secret TOTP mã hoá AES-GCM; lệnh CLI tạo admin đầu tiên.
+- **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-002 · **Status:** done
+- **Phạm vi:** Spring Security: login 2 bước (mật khẩu Argon2id → TOTP), đổi session ID, CSRF cookie→header, timeout 30 phút/12 giờ, khoá tạm 5 lần sai/15 phút (theo IP: mọi lần sai; theo tài khoản: chỉ lần sai TOTP/mã khôi phục, để kẻ biết email không khoá được admin), 10 mã khôi phục, secret TOTP mã hoá AES-GCM; lệnh CLI `--create-admin` tạo admin đầu tiên. Đã bỏ chế độ học (Khai, 2026-10-26): subagent viết code.
 - **File / module:** backend/.../admin/auth/*
-- **Nghiệm thu:** Không có TOTP thì không vào được `/api/admin/**`; sai 5 lần bị khoá; request thiếu CSRF bị 403; mã khôi phục dùng 1 lần.
+- **Nghiệm thu:** Không có TOTP thì không vào được `/api/admin/**`; sai 5 lần (TOTP/mã khôi phục) bị khoá, IP sai 5 lần bị chặn; request thiếu CSRF bị 403; mã khôi phục dùng 1 lần.
 - **Test:** Integration test cho từng tiêu chí trên.
-- **Rủi ro / câu hỏi:** Phần khó nhất về bảo mật — đọc kỹ tài liệu Spring Security.
+- **Rủi ro / câu hỏi:** Nợ chấp nhận, xử lý ở T-043: session/bộ chặn IP/guard TOTP trong bộ nhớ (mất khi restart); IP = getRemoteAddr nên sau Caddy phải cấu hình `server.forward-headers-strategy` (cũng ảnh hưởng cờ Secure của cookie XSRF-TOKEN) — BẮT BUỘC trước khi mở production, nếu không 5 request rác từ ai cũng chặn cả admin 15 phút; email thông báo đăng nhập tới bk3dprinls@gmail.com chờ hạ tầng email; `--create-admin` chưa chạy thật end-to-end (Khai chạy khi tạo admin); mọi POST công khai (checkout T-022) cần CSRF token; route admin mới phải nằm dưới /api/admin/** (mặc định ngoài đó là permitAll); AES-GCM chưa có AAD gắn admin id.
 
 #### T-013 · Admin API sản phẩm
 - **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-011, T-012 · **Status:** todo

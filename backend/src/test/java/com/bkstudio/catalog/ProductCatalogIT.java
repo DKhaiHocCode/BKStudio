@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.bkstudio.support.AbstractPostgresTest;
+import jakarta.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -410,11 +411,14 @@ class ProductCatalogIT extends AbstractPostgresTest {
 
     @Test
     void writeMethodsOnProductsAreRejectedWithErrorFormat() throws Exception {
-        mvc.perform(post("/api/products"))
+        // CSRF applies to every unsafe method, so send a token to reach the 405.
+        mvc.perform(post("/api/products").cookie(new Cookie("XSRF-TOKEN", "t")).header("X-XSRF-TOKEN", "t"))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"))
                 .andExpect(jsonPath("$.requestId").isNotEmpty());
-        mvc.perform(delete("/api/products/anything"))
+        mvc.perform(delete("/api/products/anything")
+                        .cookie(new Cookie("XSRF-TOKEN", "t"))
+                        .header("X-XSRF-TOKEN", "t"))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.code").value("BAD_REQUEST"));
     }

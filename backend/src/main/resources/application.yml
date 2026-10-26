@@ -1,3 +1,13 @@
+server:
+  servlet:
+    session:
+      tracking-modes: cookie
+      timeout: 30m # inactivity; the absolute 12 h limit is AbsoluteSessionTimeoutFilter
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: true # only application-dev.yml turns this off (plain http://localhost)
+
 spring:
   application:
     name: bkstudio-backend
@@ -13,6 +23,9 @@ app:
     # Public base of the image bucket/CDN (R2 in prod, MinIO locally); keys are appended by CatalogProperties.
     image-base-url: ${R2_PUBLIC_BASE_URL:http://localhost:9000/bkstudio-dev}
     ships-within-days: 7
+  admin:
+    # base64 of 32 random bytes, env only, no default. Required in prod (fails startup); elsewhere only when used.
+    totp-encryption-key: ${TOTP_ENCRYPTION_KEY:}
   storage:
     # S3-compatible store: MinIO locally, Cloudflare R2 in prod (R2_ENDPOINT = https://<account>.r2.cloudflarestorage.com).
     # Credentials have no secret default here; dev profile maps them from MINIO_*, prod sets R2_* env vars.

@@ -27,7 +27,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ApiException.class)
     ResponseEntity<Object> handleApi(ApiException ex) {
         ProblemDetail body = problem(ex.code(), ex.getMessage());
-        return ResponseEntity.status(ex.code().status()).body(body);
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(ex.code().status());
+        if (ex.retryAfter() != null) {
+            response.header(
+                    HttpHeaders.RETRY_AFTER,
+                    String.valueOf(Math.max(1, ex.retryAfter().toSeconds())));
+        }
+        return response.body(body);
     }
 
     /** Anything unexpected: full stack trace goes to the log, the client only gets the requestId. */
@@ -63,7 +69,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return response;
     }
 
-    private static ProblemDetail problem(ErrorCode code, String detail) {
+    static ProblemDetail problem(ErrorCode code, String detail) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(code.status(), detail);
         problem.setType(URI.create(TYPE_BASE + code.slug()));
         problem.setTitle(code.status().getReasonPhrase());

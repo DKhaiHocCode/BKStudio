@@ -14,9 +14,9 @@
 ## 2. Threat model
 | # | Mối đe doạ | Biện pháp | Ưu tiên |
 |---|---|---|---|
-| T1 | Dò mật khẩu admin (brute force, credential stuffing) | **TOTP bắt buộc**; Argon2id; khoá tạm sau 5 lần sai / 15 phút (theo tài khoản và IP); đăng nhập thành công → email thông báo | P0 |
+| T1 | Dò mật khẩu admin (brute force, credential stuffing) | **TOTP bắt buộc**; Argon2id; khoá tạm sau 5 lần sai / 15 phút: theo IP (mọi lần sai) và theo tài khoản (chỉ lần sai TOTP/mã khôi phục, sau khi mật khẩu đúng — để kẻ chỉ biết email không khoá được admin); giới hạn Argon2 chạy đồng thời (4); đăng nhập thành công → email thông báo tới `bk3dprinls@gmail.com` (hoãn tới khi có hạ tầng email; email đăng nhập admin là địa chỉ khác, không công khai) | P0 |
 | T2 | Đánh cắp session admin | Cookie `HttpOnly; Secure; SameSite=Lax`; đổi session ID sau đăng nhập (chống session fixation); hết hạn sau 30 phút không hoạt động, tối đa 12 giờ | P0 |
-| T3 | CSRF (trang lạ lừa trình duyệt admin gửi request) | CSRF token của Spring Security (cookie → header `X-XSRF-TOKEN`) cho mọi POST/PUT/PATCH/DELETE | P0 |
+| T3 | CSRF (trang lạ lừa trình duyệt admin gửi request) | CSRF token của Spring Security (cookie → header `X-XSRF-TOKEN`) cho mọi POST/PUT/PATCH/DELETE (kể cả endpoint công khai). Nợ chấp nhận ở T-012 (xử lý ở T-043): session, bộ chặn IP và guard chống dùng lại TOTP nằm trong bộ nhớ (mất khi restart, 1 instance); IP lấy từ `getRemoteAddr` nên sau Caddy phải cấu hình `server.forward-headers-strategy` (cũng ảnh hưởng cờ `Secure` của cookie `XSRF-TOKEN`); `anyRequest().permitAll()` là mặc định cho đường dẫn ngoài `/api/admin/**` nên route admin mới bắt buộc nằm dưới tiền tố này | P0 |
 | T4 | XSS (chèn script) | React tự escape; **cấm** `dangerouslySetInnerHTML` (trừ mô tả sản phẩm đã qua sanitizer); Content-Security-Policy qua Caddy; ảnh phục vụ từ domain riêng `cdn.` | P0 |
 | T5 | SQL injection | Chỉ dùng JPA / query có tham số; không ghép chuỗi SQL | P0 |
 | T6 | Xem đơn của người khác (IDOR) | Token ngẫu nhiên 256 bit trong link, DB chỉ lưu hash; tra cứu bằng mã đơn + email chỉ **gửi link qua email**; token sai → 404 | P0 |

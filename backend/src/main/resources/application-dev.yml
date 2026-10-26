@@ -14,3 +14,8 @@ app:
     # MinIO root credentials from .env; no secret default (same rule as POSTGRES_PASSWORD).
     access-key: ${MINIO_ROOT_USER:bkstudio}
     secret-key: ${MINIO_ROOT_PASSWORD}
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false # local dev runs on plain http://localhost
