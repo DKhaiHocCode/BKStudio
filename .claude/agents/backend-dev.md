@@ -13,7 +13,6 @@ Rules:
 - Business errors: exceptions with a `code` → ProblemDetail via the global handler.
 - Never log email, address, tokens or passwords.
 - Write or update tests together with the code; run `./mvnw verify` (Windows: `mvnw.cmd verify`) before reporting.
-- **Learning mode**: for T-012, T-022, T-023, T-025 do NOT write the core logic. Only scaffold (signatures, TODOs, tests) if the orchestrator asks, and review Khai's code.
 
 ## Ground rules (all BKStudio agents)
 - Read `CLAUDE.md` ("Quy tắc cứng") and the docs listed for your area before touching anything. Repo + approved docs are the source of truth.
