@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BKStudio — Font options</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&amp;family=Fredoka:wght@500;600;700&amp;family=M+PLUS+Rounded+1c:wght@400;700;800&amp;family=Nunito:wght@400;700;800&amp;family=Rubik:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#151515}a:hover{color:#A82A10}
+</style>
+</helmet>
+<div style="width: 1280px; height: 1560px; box-sizing: border-box; padding: 48px; background: #F4F1EA; color: #151515; font-family: 'Nunito', system-ui, sans-serif; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 34px">Pick a pairing — all four are rounder and easier to read than the current one</span>
+<span style="font-size: 17px; color: #4A433C">Same colours and layout, only the fonts change. Each card shows a page title, a section heading, body text, a price, a badge and a button.</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; flex: 1">
+<sc-for list="{{pairs}}" as="f" hint-placeholder-count="4">
+<div style="background: #FFFDF8; border: 3px solid #151515; border-radius: 26px; box-shadow: 6px 6px 0 #151515; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+<span style="font-family: {{f.body}}; font-weight: 700; font-size: 15px; padding: 6px 12px; border: 2px solid #151515; border-radius: 999px; background: {{f.tag}}">{{f.label}}</span>
+<span style="font-family: {{f.body}}; font-size: 14px; color: #4A433C">{{f.names}}</span>
+</div>
+<span style="font-family: {{f.display}}; font-weight: {{f.dw}}; font-size: 46px; line-height: 1.05">Your favourite characters, <span style="color: #D63A1A">painted by hand.</span></span>
+<span style="font-family: {{f.display}}; font-weight: {{f.dw}}; font-size: 26px">Pneuma · Xenoblade Chronicles 2</span>
+<span style="font-family: {{f.body}}; font-weight: 400; font-size: 17px; line-height: 1.6; color: #3A3530">Pay a 50% deposit now. Estimated start: January 2027. We confirm the exact month when your deposit is in, then send finished photos before you pay the rest.</span>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<span style="font-family: {{f.body}}; font-weight: 800; font-size: 26px">$[PRICE]</span>
+<span style="font-family: {{f.body}}; font-weight: 700; font-size: 14px; padding: 5px 10px; border: 2px solid #151515; border-radius: 999px; background: #FFE3A3">Made to order</span>
+<button type="button" style="font-family: {{f.body}}; font-weight: 800; font-size: 17px; color: #FFFDF8; background: #D63A1A; padding: 13px 22px; border: 3px solid #151515; border-radius: 14px; box-shadow: 4px 4px 0 #151515; cursor: pointer">Add to cart</button>
+</div>
+<span style="font-family: {{f.body}}; font-size: 15px; line-height: 1.5; color: #4A433C; border-top: 2px dashed #C9C2B6; padding-top: 12px">{{f.note}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      pairs: [
+        { label: 'A', tag: '#FFE3A3', names: 'Fredoka + Nunito', display: "'Fredoka', sans-serif", dw: '700', body: "'Nunito', sans-serif", note: 'Round, bubbly and friendly. Closest to the capybara logo. My pick.' },
+        { label: 'B', tag: '#F8C9BE', names: 'Baloo 2 + Nunito', display: "'Baloo 2', sans-serif", dw: '800', body: "'Nunito', sans-serif", note: 'Chunky and loud, the most cartoon-like. Great for headings, a bit heavy in long text.' },
+        { label: 'C', tag: '#BDE3F7', names: 'Rubik (one family)', display: "'Rubik', sans-serif", dw: '800', body: "'Rubik', sans-serif", note: 'Softened geometric shapes, very legible at every size. Calmer, more shop-like.' },
+        { label: 'D', tag: '#BFE6C6', names: 'M PLUS Rounded 1c (one family)', display: "'M PLUS Rounded 1c', sans-serif", dw: '800', body: "'M PLUS Rounded 1c', sans-serif", note: 'A Japanese rounded typeface, so it feels the most anime. Also covers Japanese text if you ever need it.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

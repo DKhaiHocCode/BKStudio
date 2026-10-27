@@ -214,9 +214,9 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Đã thêm `GET /api/admin/products/{id}`, mã lỗi CONFLICT/PAYLOAD_TOO_LARGE, AuditLogWriter dùng chung, `JacksonConfig` (từ chối số cho enum). Nợ: file ảnh mồ côi nếu lỗi giữa chừng (chưa có job dọn); xoá/ghi lại slug UNLISTED khi đổi trạng thái làm link cũ chết (không redirect); hai lần cùng sinh trùng hậu tố 52 bit có thể 500 (xác suất ~2^-52); giới hạn tốc độ GET công khai trước production vì slug UNLISTED là bí mật duy nhất; `stock_qty` là ghi đè tuyệt đối — code trừ kho ở T-022 PHẢI tăng `version` cùng lúc; reorder không đổi vẫn ghi audit; Caddy phải cho body ≥ 11 MB trên /api/admin.
 
 #### T-014 · Trang catalog & sản phẩm (frontend)
-- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-004, T-006, T-010 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-004, T-006, T-010 · **Status:** done
 - **Phạm vi:** Áp dụng design tokens (`docs/DESIGN.md` §5: Rubik qua `next/font`, khối `@theme` của Tailwind, bỏ dark mode mặc định, header/footer theo mockup). Trang danh sách (lọc series), trang chi tiết (gallery `srcset`, chọn tỉ lệ, có sẵn / làm theo đơn + tháng dự kiến); render trên server; thẻ Open Graph; `noindex` cho UNLISTED; sitemap chỉ ACTIVE.
-- **File / module:** frontend/app/(shop)/*
+- **File / module:** frontend/src/app/(shop)/*, frontend/src/components/shop/*, frontend/src/app/{sitemap,robots}.ts
 - **Nghiệm thu:** Dán link sản phẩm vào trình kiểm tra OG (vd Facebook Sharing Debugger hoặc opengraph.xyz) thấy ảnh + tên + giá.
 - **Test:** Kiểm tra thủ công + build.
 - **Rủi ro / câu hỏi:** —
