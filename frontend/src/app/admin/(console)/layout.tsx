@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ApiError, apiFetch } from "@/lib/api";
@@ -13,6 +14,7 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
   const [attempt, setAttempt] = useState(0);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,12 +33,14 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
   }, [router, attempt]);
 
   async function logout() {
+    setLoggingOut(true);
     try {
       await apiFetch("/api/admin/auth/logout", { method: "POST" });
       router.replace("/admin/login");
     } catch (e) {
       // Do not pretend to be signed out while the server session is still alive.
       setFailure(e);
+      setLoggingOut(false);
     }
   }
 
@@ -62,11 +66,24 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
   return (
     <AdminContext value={{ email }}>
       <div className="flex items-center justify-between gap-3 border-b-[3px] border-[#151515] bg-[#fffdf8] px-4 py-2">
-        <span className="font-extrabold">BKStudio Admin</span>
+        <span className="flex items-center gap-4">
+          <span className="font-extrabold">BKStudio Admin</span>
+          <Link
+            href="/admin/products"
+            className="inline-flex min-h-11 items-center font-bold underline"
+          >
+            Products
+          </Link>
+        </span>
         <span className="flex items-center gap-3">
           <span className="hidden text-sm sm:inline">{email}</span>
-          <button type="button" onClick={() => void logout()} className={buttonClass}>
-            Log out
+          <button
+            type="button"
+            disabled={loggingOut}
+            onClick={() => void logout()}
+            className={buttonClass}
+          >
+            {loggingOut ? "Logging out..." : "Log out"}
           </button>
         </span>
       </div>
