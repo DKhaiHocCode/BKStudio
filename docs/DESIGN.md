@@ -2,6 +2,7 @@
 
 > Trạng thái: **Đã duyệt v1 (T-006)** · Cập nhật: 2026-10-19
 > Mockup: canvas thiết kế "BKStudio — UI mockups" (link riêng tư của Khai): https://claude.ai/artifact/Y5FMwgeJNzzyf4ZA14QqkP
+> Bản lưu mockup trong repo (HTML tham khảo cho `frontend-dev`): [`design/mockups/`](design/mockups/README.md)
 > Tokens dùng được ngay: [`design/tokens.css`](design/tokens.css) · Logo: [`design/logo-512.png`](design/logo-512.png)
 
 ## 1. Định hướng

@@ -1,26 +1,69 @@
 @import "tailwindcss";
 
+/*
+ * Colour tokens (docs/design/tokens.css). Components use ONLY the semantic utilities below
+ * (bg-surface, text-body, border-border, shadow-sticker ...). Dark mode later = one block that
+ * redefines the variables in :root; no component changes.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --surface: #f4f1ea; /* page background (paper) */
+  --card: #fffdf8; /* cards, inputs, header (cream) */
+  --text: #151515; /* headings, UI text (ink) */
+  --text-body: #3a3530; /* body copy */
+  --text-muted: #4a433c; /* secondary text */
+  --text-subtle: #6a5e52; /* small caps labels */
+  --border: #151515; /* outlines */
+  --shadow-color: #151515; /* hard offset shadows */
+  --line: #c9c2b6; /* dashed dividers */
+  --disabled: #e4dfd6; /* disabled / reserved */
+  --inverse: #151515; /* announcement bar, active chip */
+  --on-inverse: #fffdf8;
+  --focus: #1b5fd1;
 }
 
+/* Fixed brand colours: identical in every theme. */
+@theme {
+  --color-red: #d63a1a;
+  --color-red-dark: #a82a10;
+  --color-citrus: #f6b634;
+  --color-capybara: #c99b70;
+  --color-bark: #7a4e30;
+  --color-ink: #151515; /* text on pastel tints / citrus / red */
+  --color-cream: #fffdf8; /* text on red */
+  --color-tint-stock: #bfe6c6;
+  --color-tint-mto: #ffe3a3;
+  --color-tint-commission: #bde3f7;
+  --color-tint-pink: #f8c9be;
+
+  --font-sans: var(--font-rubik), system-ui, sans-serif;
+
+  --radius-button: 14px;
+  --radius-card: 22px;
+  --radius-panel: 30px;
+}
+
+/* Theme-aware colours: resolved at use time so a later [data-theme=dark] block just works. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-fg: var(--text);
+  --color-body: var(--text-body);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+  --color-border: var(--border);
+  --color-line: var(--line);
+  --color-disabled: var(--disabled);
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
+  --color-focus: var(--focus);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --shadow-sticker-sm: 3px 3px 0 var(--shadow-color);
+  --shadow-sticker: 5px 5px 0 var(--shadow-color);
+  --shadow-sticker-lg: 8px 8px 0 var(--shadow-color);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
 }
