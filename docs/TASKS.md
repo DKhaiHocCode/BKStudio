@@ -222,9 +222,9 @@ flowchart LR
 - **Rủi ro / câu hỏi:** —
 
 #### T-015 · Khung admin UI + đăng nhập
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-004, T-006, T-012 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-004, T-006, T-012 · **Status:** done
 - **Phạm vi:** Trang login + nhập TOTP + mã khôi phục; layout admin; chặn route khi chưa đăng nhập; xử lý CSRF trong API client.
-- **File / module:** frontend/app/admin/*
+- **File / module:** frontend/src/app/admin/*, frontend/src/lib/api.ts
 - **Nghiệm thu:** Đăng nhập đủ 2 bước vào được admin; hết session tự về trang login.
 - **Test:** Kiểm tra thủ công; E2E ở T-041.
 - **Rủi ro / câu hỏi:** —
