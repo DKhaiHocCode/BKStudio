@@ -230,9 +230,9 @@ flowchart LR
 - **Rủi ro / câu hỏi:** —
 
 #### T-016 · Admin UI quản lý sản phẩm
-- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-013, T-015 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-013, T-015 · **Status:** done
 - **Phạm vi:** Danh sách + form sản phẩm, biến thể, upload ảnh kéo-thả + sắp xếp, chọn trạng thái (DRAFT/ACTIVE/UNLISTED/ARCHIVED), nút "Sao chép link" cho commission.
-- **File / module:** frontend/app/admin/products/*
+- **File / module:** frontend/src/app/admin/(console)/products/*
 - **Nghiệm thu:** Tạo được sản phẩm thật từ đầu đến khi hiện trên catalog; tạo được sản phẩm commission và copy link.
 - **Test:** Kiểm tra thủ công.
 - **Rủi ro / câu hỏi:** UI upload ảnh tốn thời gian hơn dự kiến.
