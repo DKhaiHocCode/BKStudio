@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BKStudio — Cart (dark)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1A1714}
+a{color:#F4F1EA}a:hover{color:#F6B634}
+</style>
+</helmet>
+<div style="font-family: 'Rubik', system-ui, sans-serif; color: #F4F1EA; background: #1A1714; width: 100%; min-height: 100vh">
+
+<header style="border-bottom: 3px solid #F4F1EA; background: #2A2520">
+<div style="max-width: 1200px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<a href="MainDark.dc.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none">
+<img src="/_blob/7abaa7a17aa7e2f482234122159e9f93" alt="BKStudio home" style="width: 52px; height: 52px; border-radius: 50%; border: 3px solid #F4F1EA; object-fit: cover">
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 24px; color: #F4F1EA">BKStudio</span>
+</a>
+<a href="CartDark.dc.html" aria-label="Cart, 2 items" style="text-decoration: none; font-weight: 700; color: #151515; padding: 10px 16px; border: 3px solid #151515; border-radius: 999px; background: #F6B634; box-shadow: 3px 3px 0 #F4F1EA">Cart · 2</a>
+</div>
+</header>
+
+<section style="max-width: 1200px; margin: 0 auto; padding: 40px 24px 64px; display: flex; flex-direction: column; gap: 24px">
+<h1 style="margin: 0; font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 44px">Your cart</h1>
+
+<div style="background: #BDE3F7; color: #151515; border: 3px solid #151515; border-radius: 18px; padding: 14px 18px; display: flex; gap: 12px; align-items: flex-start; font-size: 16px; line-height: 1.5">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#151515" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16.5v.01"></path></svg>
+<span>Ready-to-ship and made-to-order figures are paid differently, so they check out <strong>separately</strong>. Pick which one to check out first — the other stays in your cart.</span>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<div style="flex: 1 1 480px; min-width: 0; background: #2A2520; border: 3px solid #F4F1EA; border-radius: 26px; box-shadow: 6px 6px 0 {{shadow}}; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+<h2 style="margin: 0; font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 24px">{{g.title}}</h2>
+<span style="font-size: 14px; font-weight: 700; color: #151515; padding: 5px 10px; border: 2px solid #151515; border-radius: 999px; background: {{g.badgeBg}}">{{g.badge}}</span>
+</div>
+<div style="display: flex; gap: 16px; align-items: center; border-top: 2px dashed #5A5249; border-bottom: 2px dashed #5A5249; padding: 16px 0">
+<div style="flex: none; width: 96px; height: 96px; border: 3px solid #F4F1EA; border-radius: 16px; background: {{g.bg}}; overflow: hidden; display: flex; align-items: center; justify-content: center">
+<sc-if value="{{g.img}}" hint-placeholder-val="{{ true }}"><img src="{{g.img}}" alt="" style="width: 100%; height: 100%; object-fit: cover"></sc-if>
+<sc-if value="{{g.noImg}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 700; color: #4A2F1C">[Photo]</span></sc-if>
+</div>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<span style="font-weight: 800; font-size: 19px">{{g.name}}</span>
+<span style="font-size: 15px; color: #CFC6BA">{{g.detail}}</span>
+<div style="display: flex; align-items: center; gap: 10px; margin-top: 6px">
+<label style="font-size: 14px; font-weight: 700" for="{{g.qtyId}}">Qty</label>
+<input id="{{g.qtyId}}" type="number" min="1" max="5" value="1" style="font: inherit; font-weight: 700; color: #F4F1EA; width: 64px; padding: 8px 10px; border: 2px solid #F4F1EA; border-radius: 10px; background: #1A1714">
+<button type="button" style="font: inherit; font-size: 14px; font-weight: 700; color: #F4F1EA; background: none; border: 0; text-decoration: underline; cursor: pointer; padding: 8px">Remove</button>
+</div>
+</div>
+<span style="font-weight: 800; font-size: 19px">$[PRICE]</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 16px">
+<div style="display: flex; justify-content: space-between"><span>Subtotal</span><span style="font-weight: 700">$[SUBTOTAL]</span></div>
+<div style="display: flex; justify-content: space-between"><span>{{g.dueLabel}}</span><span style="font-weight: 800; font-size: 20px; color: #F6B634">{{g.due}}</span></div>
+<div style="display: flex; justify-content: space-between; color: #CFC6BA"><span>{{g.laterLabel}}</span><span>{{g.later}}</span></div>
+<div style="display: flex; justify-content: space-between; color: #CFC6BA"><span>Shipping</span><span>Quoted in your payment link</span></div>
+</div>
+<a href="CheckoutDark.dc.html" style="text-align: center; text-decoration: none; font-weight: 700; font-size: 17px; color: {{g.ctaColor}}; background: {{g.ctaBg}}; padding: 15px 22px; border: 3px solid #F4F1EA; border-radius: 14px; box-shadow: 5px 5px 0 {{shadow}}">{{g.cta}}</a>
+</div>
+</sc-for>
+</div>
+
+<a href="MainDark.dc.html" style="align-self: flex-start; font-weight: 700">← Keep shopping</a>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"shadow":{"editor":"color","default":"#F6B634","options":["#F6B634","#D63A1A","#F4F1EA","#000000"]},"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      shadow: this.props.shadow ?? '#F6B634',
+      groups: [
+        { title: 'Made to order', badge: 'Starts ~[MONTH]', badgeBg: '#FFE3A3', name: 'Pneuma', detail: 'Xenoblade Chronicles 2 · 1/7 scale', bg: '#C99B70', img: '/_blob/b023ecacb40ebe289526a52d4b192477', noImg: false, qtyId: 'qty-mto-d', dueLabel: 'Deposit due now (50%)', due: '$[DEPOSIT]', laterLabel: 'Balance when finished', later: '$[BALANCE]', cta: 'Check out made-to-order', ctaBg: '#D63A1A', ctaColor: '#FFFDF8' },
+        { title: 'Ready to ship', badge: 'Ships in ~[DAYS] days', badgeBg: '#BFE6C6', name: '[Figure name]', detail: '[Series] · 1/6 scale', bg: '#F8C9BE', img: '', noImg: true, qtyId: 'qty-stock-d', dueLabel: 'Due now (100%)', due: '$[TOTAL]', laterLabel: 'Held for you', later: '48 h after we send the link', cta: 'Check out ready-to-ship', ctaBg: '#1A1714', ctaColor: '#F4F1EA' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

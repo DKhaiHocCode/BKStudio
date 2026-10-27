@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BKStudio — Brand &amp; style tile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#151515}a:hover{color:#A82A10}
+</style>
+</helmet>
+<div style="width: 960px; height: 1180px; box-sizing: border-box; padding: 48px; background: #F4F1EA; font-family: 'Rubik', system-ui, sans-serif; color: #151515; display: flex; flex-direction: column; gap: 36px; position: relative">
+
+<div style="display: flex; align-items: center; gap: 24px">
+<img src="/_blob/7abaa7a17aa7e2f482234122159e9f93" alt="BKStudio capybara logo" style="width: 120px; height: 120px; border-radius: 50%; border: 4px solid #151515; object-fit: cover; box-shadow: 6px 6px 0 #151515">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 48px; line-height: 1">BKStudio</span>
+<span style="font-size: 18px; color: #4A433C">Bright · playful · sticker-style. Thick ink outlines and hard shadows, taken straight from the capybara logo.</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px">
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 22px">Colour</span>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{colors}}" as="c" hint-placeholder-count="8">
+<div style="border: 3px solid #151515; border-radius: 18px; overflow: hidden; background: #FFFDF8; box-shadow: 4px 4px 0 #151515">
+<div style="height: 84px; background: {{c.hex}}; border-bottom: 3px solid #151515"></div>
+<div style="padding: 10px 12px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 700; font-size: 15px">{{c.name}}</span>
+<span style="font-size: 13px; color: #4A433C">{{c.hex}} · {{c.use}}</span>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 14px">
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 22px">Components</span>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center">
+<button type="button" style="font: inherit; font-weight: 700; font-size: 17px; color: #FFFDF8; background: #D63A1A; padding: 14px 24px; border: 3px solid #151515; border-radius: 14px; box-shadow: 5px 5px 0 #151515; cursor: pointer">Primary button</button>
+<button type="button" style="font: inherit; font-weight: 700; font-size: 17px; color: #151515; background: #FFFDF8; padding: 14px 24px; border: 3px solid #151515; border-radius: 14px; box-shadow: 5px 5px 0 #151515; cursor: pointer">Secondary</button>
+<button type="button" style="font: inherit; font-weight: 700; font-size: 17px; color: #151515; background: #F6B634; padding: 14px 24px; border: 3px solid #151515; border-radius: 999px; box-shadow: 4px 4px 0 #151515; cursor: pointer">Cart · 2</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+<span style="font-size: 14px; font-weight: 700; padding: 6px 12px; border: 2px solid #151515; border-radius: 999px; background: #BFE6C6">In stock</span>
+<span style="font-size: 14px; font-weight: 700; padding: 6px 12px; border: 2px solid #151515; border-radius: 999px; background: #FFE3A3">Made to order</span>
+<span style="font-size: 14px; font-weight: 700; padding: 6px 12px; border: 2px solid #151515; border-radius: 999px; background: #BDE3F7">Commission</span>
+<span style="font-size: 14px; font-weight: 700; padding: 6px 12px; border: 2px solid #151515; border-radius: 999px; background: #E4DFD6">Reserved</span>
+<span style="transform: rotate(-6deg); background: #F6B634; border: 3px solid #151515; border-radius: 999px; padding: 10px 16px; font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 15px; box-shadow: 4px 4px 0 #151515">Sticker callout</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+<div style="border: 3px solid #151515; border-radius: 18px; padding: 14px; background: #FFFDF8; display: flex; flex-direction: column; gap: 4px; font-size: 14px"><span style="font-weight: 700">Border</span><span>3px ink #151515</span></div>
+<div style="border: 3px solid #151515; border-radius: 18px; padding: 14px; background: #FFFDF8; box-shadow: 6px 6px 0 #151515; display: flex; flex-direction: column; gap: 4px; font-size: 14px"><span style="font-weight: 700">Shadow</span><span>Hard offset 4–8px, no blur</span></div>
+<div style="border: 3px solid #151515; border-radius: 28px; padding: 14px; background: #FFFDF8; display: flex; flex-direction: column; gap: 4px; font-size: 14px"><span style="font-weight: 700">Radius</span><span>14 buttons · 22 cards · 30 panels</span></div>
+</div>
+</div><div style="display: flex; gap: 24px">
+<div style="flex: 1 1 0; min-width: 0; background: #FFFDF8; border: 3px solid #151515; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700; color: #6A5E52; text-transform: uppercase; letter-spacing: 0.06em">Headings · Rubik 800</span>
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 44px; line-height: 1.05">Painted by hand.</span>
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 24px">Pneuma · 1/7 scale</span>
+</div>
+<div style="flex: 1 1 0; min-width: 0; background: #FFFDF8; border: 3px solid #151515; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700; color: #6A5E52; text-transform: uppercase; letter-spacing: 0.06em">Text · Rubik 400 / 700</span>
+<span style="font-size: 18px; line-height: 1.6">Softened corners, very legible at every size. One family for the whole site: 800 for headings, 400 for body copy, 700 for labels, prices and buttons.</span>
+<span style="font-size: 15px; font-weight: 700">Bold 700 for labels and buttons</span>
+</div>
+</div>
+
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      colors: [
+        { name: 'Polo red', hex: '#D63A1A', use: 'primary, CTAs' },
+        { name: 'Citrus', hex: '#F6B634', use: 'highlight, cart' },
+        { name: 'Capybara', hex: '#C99B70', use: 'warm surfaces' },
+        { name: 'Bark', hex: '#7A4E30', use: 'dark accent' },
+        { name: 'Ink', hex: '#151515', use: 'outlines, text' },
+        { name: 'Paper', hex: '#F4F1EA', use: 'page ground' },
+        { name: 'Cream', hex: '#FFFDF8', use: 'cards' },
+        { name: 'Leaf', hex: '#BFE6C6', use: 'in-stock tint' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

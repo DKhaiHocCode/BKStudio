@@ -1,0 +1,208 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Brand.dc.html": {
+      "h": 1180,
+      "title": "Brand & style tile",
+      "w": 960,
+      "x": 0,
+      "y": 0
+    },
+    "Cart.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "title": "Cart — desktop",
+      "w": 1280,
+      "x": 1360,
+      "y": 3260
+    },
+    "Checkout.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "title": "Checkout — desktop",
+      "w": 1280,
+      "x": 2720,
+      "y": 3260
+    },
+    "Commission.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "title": "Commission — desktop",
+      "w": 1280,
+      "x": 3760,
+      "y": 0
+    },
+    "Fonts.dc.html": {
+      "h": 1560,
+      "title": "Font options — chose C (Rubik)",
+      "w": 1280,
+      "x": 0,
+      "y": 3260
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 2900,
+      "title": "Home — desktop",
+      "w": 1280,
+      "x": 1040,
+      "y": 0
+    },
+    "MobileHome.dc.html": {
+      "h": 1900,
+      "title": "Home — mobile",
+      "w": 390,
+      "x": 5120,
+      "y": 0
+    },
+    "OrderStatus.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "title": "Order status — desktop",
+      "w": 1280,
+      "x": 4080,
+      "y": 3260
+    },
+    "Product.dc.html": {
+      "expand": "fill",
+      "h": 1800,
+      "title": "Product page — desktop",
+      "w": 1280,
+      "x": 2400,
+      "y": 0
+    },
+    "MainDark.dc.html": {
+      "expand": "fill",
+      "h": 2900,
+      "title": "Home — desktop, dark (exploration)",
+      "w": 1280,
+      "x": 1040,
+      "y": 5400
+    },
+    "MobileHomeDark.dc.html": {
+      "h": 1900,
+      "title": "Home — mobile, dark (exploration)",
+      "w": 390,
+      "x": 5120,
+      "y": 5400
+    },
+    "ProductDark.dc.html": {
+      "expand": "fill",
+      "h": 1800,
+      "title": "Product page — dark (exploration)",
+      "w": 1280,
+      "x": 2400,
+      "y": 5400
+    },
+    "CommissionDark.dc.html": {
+      "expand": "fill",
+      "h": 1500,
+      "title": "Commission — dark (exploration)",
+      "w": 1280,
+      "x": 3760,
+      "y": 5400
+    },
+    "CartDark.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "title": "Cart — dark (exploration)",
+      "w": 1280,
+      "x": 1360,
+      "y": 8700
+    },
+    "CheckoutDark.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "title": "Checkout — dark (exploration)",
+      "w": 1280,
+      "x": 2720,
+      "y": 8700
+    },
+    "OrderStatusDark.dc.html": {
+      "expand": "fill",
+      "h": 1700,
+      "title": "Order status — dark (exploration)",
+      "w": 1280,
+      "x": 4080,
+      "y": 8700
+    },
+    "BrandDark.dc.html": {
+      "h": 1180,
+      "title": "Brand & style tile — dark (exploration)",
+      "w": 960,
+      "x": 0,
+      "y": 5400
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-18T15:20:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "flowtitle": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Cart → Checkout → Order status",
+      "w": 240,
+      "x": 1360,
+      "y": 2980
+    },
+    "fonttitle": {
+      "kind": "title1",
+      "maxW": 1280,
+      "text": "Font options",
+      "w": 240,
+      "x": 0,
+      "y": 2980
+    },
+    "rowtitle": {
+      "kind": "title1",
+      "maxW": 5510,
+      "text": "BKStudio — bright, playful, sticker-style (v1)",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "darkflowtitle": {
+      "kind": "title1",
+      "maxW": 4000,
+      "text": "Dark — Cart → Checkout → Order status",
+      "w": 240,
+      "x": 1360,
+      "y": 8420
+    },
+    "darktitle": {
+      "kind": "title1",
+      "maxW": 5510,
+      "text": "Dark mode — exploration (P1, not in launch scope)",
+      "w": 240,
+      "x": 0,
+      "y": 5120
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Brand.dc.html",
+    "Product.dc.html",
+    "Commission.dc.html",
+    "MobileHome.dc.html",
+    "Fonts.dc.html",
+    "Cart.dc.html",
+    "Checkout.dc.html",
+    "OrderStatus.dc.html",
+    "MainDark.dc.html",
+    "BrandDark.dc.html",
+    "ProductDark.dc.html",
+    "CommissionDark.dc.html",
+    "CartDark.dc.html",
+    "CheckoutDark.dc.html",
+    "OrderStatusDark.dc.html",
+    "MobileHomeDark.dc.html"
+  ],
+  "pages": [],
+  "title": "BKStudio — UI mockups"
+}

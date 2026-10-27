@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BKStudio — Commission (dark)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1A1714}
+a{color:#F4F1EA}a:hover{color:#F6B634}
+</style>
+</helmet>
+<div style="font-family: 'Rubik', system-ui, sans-serif; color: #F4F1EA; background: #1A1714; width: 100%; min-height: 100vh">
+
+<header style="border-bottom: 3px solid #F4F1EA; background: #2A2520">
+<div style="max-width: 1200px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<a href="MainDark.dc.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none">
+<img src="/_blob/7abaa7a17aa7e2f482234122159e9f93" alt="BKStudio home" style="width: 52px; height: 52px; border-radius: 50%; border: 3px solid #F4F1EA; object-fit: cover">
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 24px; color: #F4F1EA">BKStudio</span>
+</a>
+<a href="CartDark.dc.html" aria-label="Cart, 0 items" style="text-decoration: none; font-weight: 700; color: #151515; padding: 10px 16px; border: 3px solid #151515; border-radius: 999px; background: #F6B634; box-shadow: 3px 3px 0 #F4F1EA">Cart · 0</a>
+</div>
+</header>
+
+<section style="max-width: 1200px; margin: 0 auto; padding: 56px 24px 32px; display: flex; flex-wrap: wrap; gap: 40px; align-items: center">
+<div style="flex: 1 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 18px">
+<span style="align-self: flex-start; font-size: 14px; font-weight: 700; color: #151515; padding: 6px 12px; border: 2px solid #151515; border-radius: 999px; background: #BDE3F7">Commissions</span>
+<h1 style="margin: 0; font-family: 'Rubik', sans-serif; font-weight: 800; font-size: clamp(38px, 5vw, 60px); line-height: 1.05">Bring us a character. <span style="color: #F6B634">We'll paint it for you.</span></h1>
+<p style="margin: 0; font-size: 19px; line-height: 1.6; color: #D9D0C4; max-width: 560px">Send us your references on any of the channels below. We'll talk through scale, pose and price, then make a private listing just for you to place your order.</p>
+</div>
+<div style="flex: 1 1 360px; min-width: 0; background: #2A2520; border: 3px solid #F4F1EA; border-radius: 28px; box-shadow: 8px 8px 0 {{shadow}}; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 22px">Message us on</span>
+<sc-for list="{{socials}}" as="so" hint-placeholder-count="4">
+<a href="{{so.href}}" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; font-weight: 700; font-size: 18px; color: #151515; background: {{so.bg}}; border: 3px solid #151515; border-radius: 16px; padding: 14px 18px; box-shadow: 4px 4px 0 #F4F1EA">
+<span>{{so.label}}</span>
+<span style="font-size: 15px; font-weight: 500">{{so.handle}}</span>
+</a>
+</sc-for>
+</div>
+</section>
+
+<section style="max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 24px">
+<h2 style="margin: 0; font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 36px">How a commission works</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 18px">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+<div style="flex: 1 1 240px; min-width: 0; background: #2A2520; border: 3px solid #F4F1EA; border-radius: 22px; box-shadow: 5px 5px 0 {{shadow}}; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+<span style="width: 44px; height: 44px; border-radius: 50%; border: 3px solid #151515; background: {{s.dot}}; color: #151515; display: flex; align-items: center; justify-content: center; font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 18px">{{s.n}}</span>
+<span style="font-family: 'Rubik', sans-serif; font-weight: 800; font-size: 20px">{{s.title}}</span>
+<span style="font-size: 16px; line-height: 1.55; color: #D9D0C4">{{s.body}}</span>
+</div>
+</sc-for>
+</div>
+<div style="background: #F6B634; color: #151515; border: 3px solid #F4F1EA; border-radius: 22px; box-shadow: 6px 6px 0 #D63A1A; padding: 20px 24px; font-size: 16px; line-height: 1.6; font-weight: 500">
+Commissions take a production slot like any made-to-order figure, so the start month depends on the queue — currently <strong>[MONTH]</strong>. Deposit and balance rules are the same: 50% up front (non-refundable once confirmed), the rest before shipping.
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"shadow":{"editor":"color","default":"#F6B634","options":["#F6B634","#D63A1A","#F4F1EA","#000000"]},"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      shadow: this.props.shadow ?? '#F6B634',
+      socials: [
+        { label: 'Reddit', handle: '[u/handle]', href: '#reddit', bg: '#F8C9BE' },
+        { label: 'Facebook', handle: '[BKStudio page]', href: '#facebook', bg: '#BDE3F7' },
+        { label: 'Instagram', handle: '[@handle]', href: '#instagram', bg: '#FFE3A3' },
+        { label: 'X', handle: '[@handle]', href: '#x', bg: '#BFE6C6' }
+      ],
+      steps: [
+        { n: '1', title: 'Send references', body: 'Character, outfit, pose ideas and the scale you want.', dot: '#F8C9BE' },
+        { n: '2', title: 'Get a quote', body: "We reply with a price, a timeline and anything we can't do.", dot: '#BDE3F7' },
+        { n: '3', title: 'Your private link', body: 'We post a hidden listing only you can open, and you order there.', dot: '#FFE3A3' },
+        { n: '4', title: 'Deposit, paint, ship', body: 'Same flow as made-to-order: deposit, slot, finished photos, balance, tracking.', dot: '#BFE6C6' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
