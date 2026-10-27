@@ -4,30 +4,31 @@
  *   1. Load Rubik with next/font/google in src/app/layout.tsx:
  *        const rubik = Rubik({ subsets: ["latin"], weight: ["400","500","700","800"], variable: "--font-rubik" });
  *        <html className={rubik.variable}> ...
- *   2. Replace the default :root / dark-mode block in src/app/globals.css with the block below
- *      (the design is light-only; do not keep prefers-color-scheme: dark).
+ *   2. Replace the default :root / dark-mode block in src/app/globals.css with the block below.
+ *   3. T-017 adds dark mode on top: see the "Dark theme" block at the end. The real values live in
+ *      src/app/globals.css as semantic variables (--surface, --card, --text ...).
  */
 
 @theme {
   /* Colour */
-  --color-red: #d63a1a;        /* primary, CTAs (white text 4.6:1) */
-  --color-red-dark: #a82a10;   /* hover, destructive text on cream */
-  --color-citrus: #f6b634;     /* highlight panels, cart pill */
-  --color-capybara: #c99b70;   /* warm image backdrops */
-  --color-bark: #7a4e30;       /* dark accent */
-  --color-ink: #151515;        /* outlines, text */
-  --color-paper: #f4f1ea;      /* page background */
-  --color-cream: #fffdf8;      /* cards, inputs */
-  --color-muted: #4a433c;      /* secondary text (8.6:1 on paper) */
-  --color-subtle: #6a5e52;     /* small caps labels (6.2:1 on cream) */
-  --color-line: #c9c2b6;       /* dashed dividers */
-  --color-disabled: #e4dfd6;   /* disabled / reserved */
+  --color-red: #d63a1a; /* primary, CTAs (white text 4.6:1) */
+  --color-red-dark: #a82a10; /* hover, destructive text on cream */
+  --color-citrus: #f6b634; /* highlight panels, cart pill */
+  --color-capybara: #c99b70; /* warm image backdrops */
+  --color-bark: #7a4e30; /* dark accent */
+  --color-ink: #151515; /* outlines, text */
+  --color-paper: #f4f1ea; /* page background */
+  --color-cream: #fffdf8; /* cards, inputs */
+  --color-muted: #4a433c; /* secondary text (8.6:1 on paper) */
+  --color-subtle: #6a5e52; /* small caps labels (6.2:1 on cream) */
+  --color-line: #c9c2b6; /* dashed dividers */
+  --color-disabled: #e4dfd6; /* disabled / reserved */
 
   /* Status tints (always with ink text + 2px ink border) */
-  --color-tint-stock: #bfe6c6;      /* In stock */
-  --color-tint-mto: #ffe3a3;        /* Made to order */
+  --color-tint-stock: #bfe6c6; /* In stock */
+  --color-tint-mto: #ffe3a3; /* Made to order */
   --color-tint-commission: #bde3f7; /* Commission */
-  --color-tint-pink: #f8c9be;       /* decorative */
+  --color-tint-pink: #f8c9be; /* decorative */
 
   /* Type */
   --font-sans: var(--font-rubik), system-ui, sans-serif;
@@ -47,4 +48,28 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+/*
+ * Dark theme (T-017). Applied with :root[data-theme="dark"] and, when the user has not chosen
+ * (no data-theme="light"), @media (prefers-color-scheme: dark). Measured WCAG contrast on #1A1714 / #2A2520:
+ *   text #F4F1EA 15.8/13.4 · body #D8D2C6 11.9/10.1 · muted #BDB5A8 8.8/7.5 · subtle #A39A8C 6.4/5.5
+ *   accent #F0735A 6.2/5.3 · cream text on red 4.6 · ink on tints >= 12
+ */
+:root[data-theme="dark"] {
+  --surface: #1a1714;
+  --card: #2a2520;
+  --text: #f4f1ea;
+  --text-body: #d8d2c6;
+  --text-muted: #bdb5a8;
+  --text-subtle: #a39a8c;
+  --border: #f4f1ea; /* outlines become cream */
+  --shadow-color: #f6b634; /* hard shadow becomes citrus */
+  --line: #6a5e52;
+  --disabled: #3a342d;
+  --inverse: #f4f1ea;
+  --on-inverse: #151515;
+  --focus: #6fa8ff;
+  --accent: #f0735a; /* red as TEXT; light value is #d63a1a */
+  --danger: #f0735a; /* light value is #a82a10 */
 }

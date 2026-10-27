@@ -69,7 +69,7 @@ export function BuyBox({ variants }: { variants: Variant[] }) {
         <label
           className={`${option} ${
             stockOk
-              ? `cursor-pointer ${mode === "stock" ? "bg-tint-stock shadow-sticker" : "bg-card"}`
+              ? `cursor-pointer ${mode === "stock" ? "bg-tint-stock text-ink shadow-sticker" : "bg-card"}`
               : "cursor-not-allowed bg-disabled text-muted"
           }`}
         >
@@ -98,7 +98,7 @@ export function BuyBox({ variants }: { variants: Variant[] }) {
         <label
           className={`${option} ${
             mtoOk
-              ? `cursor-pointer ${mode === "mto" ? "bg-tint-mto shadow-sticker" : "bg-card"}`
+              ? `cursor-pointer ${mode === "mto" ? "bg-tint-mto text-ink shadow-sticker" : "bg-card"}`
               : "cursor-not-allowed bg-disabled text-muted"
           }`}
         >

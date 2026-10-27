@@ -24,6 +24,28 @@
 
 **Tương phản (đã đo, WCAG AA ≥ 4.5:1):** chữ cream trên `red` 4.6 · `ink` trên `citrus` 10.1 · `muted` trên `paper` 8.6 · `subtle` trên `cream` 6.2 · `red-dark` trên `cream` 6.9. Không đặt chữ trắng lên `citrus` hay `capybara`.
 
+### Chế độ tối (T-017)
+Mặc định theo hệ điều hành; nút đổi 3 trạng thái System / Light / Dark (lưu `localStorage` khóa `bkstudio-theme`). Component chỉ dùng token ngữ nghĩa (`bg-surface`, `bg-card`, `text-fg`, `border-border`, `shadow-sticker`…); chế độ tối chỉ đổi giá trị biến CSS. Viền 3px thành kem, bóng cứng thành `citrus`, nút chính vẫn `red` + chữ kem, badge trạng thái giữ tint pastel + chữ `ink`.
+
+| Token | Sáng | Tối | Tương phản (tối) |
+|---|---|---|---|
+| `surface` (nền trang) | `#F4F1EA` | `#1A1714` | — |
+| `card` (thẻ, ô nhập, header) | `#FFFDF8` | `#2A2520` | — |
+| `text` (tiêu đề, UI) | `#151515` | `#F4F1EA` | 15.8 / 13.4 (trang / thẻ) |
+| `text-body` | `#3A3530` | `#D8D2C6` | 11.9 / 10.1 |
+| `text-muted` | `#4A433C` | `#BDB5A8` | 8.8 / 7.5 |
+| `text-subtle` | `#6A5E52` | `#A39A8C` | 6.4 / 5.5 |
+| `border` | `#151515` | `#F4F1EA` | 15.8 |
+| `shadow-color` | `#151515` | `#F6B634` | 9.9 / 8.4 |
+| `line` (đường kẻ trang trí) | `#C9C2B6` | `#6A5E52` | 2.8 / 2.4 (chỉ trang trí) |
+| `disabled` | `#E4DFD6` | `#3A342D` | chữ `muted` trên nó 6.0 |
+| `inverse` / `on-inverse` | `#151515` / `#FFFDF8` | `#F4F1EA` / `#151515` | 16.2 |
+| `focus` | `#1B5FD1` | `#6FA8FF` | 7.4 / 6.3 |
+| `accent` (chữ đỏ lớn) | `#D63A1A` | `#F0735A` | 6.2 / 5.3 |
+| `danger` (chữ lỗi, hover link) | `#A82A10` | `#F0735A` | 6.2 / 5.3 |
+
+`red` làm chữ trên nền tối chỉ đạt 3.8, nên chữ đỏ dùng `accent`/`danger`, còn `red` chỉ làm nền nút. Chữ kem trên `red` 4.6. Tint trạng thái luôn kèm `text-ink` (≥ 12:1).
+
 ## 3. Chữ
 - **Rubik** cho toàn site (đã chọn giữa 4 phương án; font cũ Dela Gothic One bị khó đọc).
 - Tiêu đề 800 · nội dung 400 · nhãn, giá, nút 700.
@@ -42,10 +64,12 @@
 
 ## 5. Áp dụng vào code (T-014)
 1. `src/app/layout.tsx`: thay Geist bằng `Rubik` từ `next/font/google` (weights 400/500/700/800, `variable: "--font-rubik"`).
-2. `src/app/globals.css`: thay khối `:root` + dark mode mặc định bằng nội dung `docs/design/tokens.css`. **Thiết kế chỉ có giao diện sáng.**
+2. `src/app/globals.css`: thay khối `:root` + dark mode mặc định bằng nội dung `docs/design/tokens.css`. Từ T-017 có thêm khối `[data-theme="dark"]` và `@media (prefers-color-scheme: dark)` (xem §2); lựa chọn rõ ràng của người dùng thắng hệ điều hành.
 3. Đặt logo vào `frontend/public/logo.png` (từ `docs/design/logo-512.png`).
 4. Header/footer theo mockup (logo tròn viền đen, nút giỏ hàng pill `citrus`).
 5. Admin (T-015, T-016) dùng cùng tokens nhưng bố cục đơn giản, không cần sticker.
+
+6. T-017: `ThemeToggle` (client, `src/components/ThemeToggle.tsx`) ở header shop (cạnh giỏ hàng, cả mobile), header admin và trang đăng nhập admin. Script inline `beforeInteractive` trong `src/app/layout.tsx` đặt `data-theme` trước khi vẽ để không bị nháy; `<html>` có `suppressHydrationWarning`. `global-error` không có script nên chỉ theo hệ điều hành.
 
 ## 6. Các màn hình đã có mockup
 Trang chủ (desktop + mobile) · Sản phẩm · Commission · Giỏ hàng (tách 2 khối hàng sẵn / làm theo đơn) · Checkout (không có ô thẻ, checkbox điều khoản bắt buộc) · Trạng thái đơn (thanh tiến trình 6 bước).

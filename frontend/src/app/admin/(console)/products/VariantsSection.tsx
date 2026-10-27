@@ -63,12 +63,12 @@ export function VariantsSection({
                 }}
               />
             ) : (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border-[3px] border-[#151515] p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border-[3px] border-border p-3">
                 <span>
                   <strong>{v.scale}</strong> · {formatUsd(v.priceCents)} · stock {v.stockQty}
                   {v.madeToOrderEnabled && ` · made to order (quota ${v.madeToOrderQuota ?? 0})`}
                   {!v.active && (
-                    <span className="ml-2 rounded-full border-2 border-[#151515] bg-[#e4dfd6] px-2 py-0.5 text-xs font-bold">
+                    <span className="ml-2 rounded-full border-2 border-border bg-tint-neutral px-2 py-0.5 text-xs font-bold text-ink">
                       INACTIVE
                     </span>
                   )}

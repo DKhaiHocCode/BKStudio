@@ -84,7 +84,7 @@ export function VariantForm({
     <form
       onSubmit={(ev) => void onSubmit(ev)}
       noValidate
-      className="flex flex-col gap-3 rounded-[14px] border-[3px] border-dashed border-[#151515] p-3"
+      className="flex flex-col gap-3 rounded-[14px] border-[3px] border-dashed border-border p-3"
     >
       <ErrorBanner error={failure} onReload={onReload} />
       {variant ? (

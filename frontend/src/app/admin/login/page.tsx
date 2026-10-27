@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { ApiError, apiFetch } from "@/lib/api";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { buttonClass, cardClass, inputClass, linkButtonClass } from "../ui";
 
 /** Same text for every auth failure, so the form never reveals whether an email exists. */
@@ -77,13 +78,14 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-12">
+    <main className="relative flex flex-1 items-center justify-center px-4 py-12">
+      <ThemeToggle className="absolute top-3 right-3" />
       <div className={cardClass}>
         <h1 className="mb-4 text-2xl font-extrabold">Admin sign in</h1>
         {error && (
           <p
             role="alert"
-            className="mb-4 rounded-[14px] border-[3px] border-[#151515] bg-[#f8c9be] p-3 text-sm"
+            className="mb-4 rounded-[14px] border-[3px] border-border bg-tint-pink p-3 text-sm text-ink"
           >
             {error.text}
             {error.requestId && (

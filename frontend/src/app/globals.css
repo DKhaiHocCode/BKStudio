@@ -2,10 +2,12 @@
 
 /*
  * Colour tokens (docs/design/tokens.css). Components use ONLY the semantic utilities below
- * (bg-surface, text-body, border-border, shadow-sticker ...). Dark mode later = one block that
- * redefines the variables in :root; no component changes.
+ * (bg-surface, text-body, border-border, shadow-sticker ...). Dark mode (T-017) = the blocks
+ * below redefine the variables; no component changes. An explicit data-theme (set by the toggle
+ * and the inline script in layout.tsx) wins over the OS preference.
  */
 :root {
+  color-scheme: light;
   --surface: #f4f1ea; /* page background (paper) */
   --card: #fffdf8; /* cards, inputs, header (cream) */
   --text: #151515; /* headings, UI text (ink) */
@@ -19,13 +21,58 @@
   --inverse: #151515; /* announcement bar, active chip */
   --on-inverse: #fffdf8;
   --focus: #1b5fd1;
+  --accent: #d63a1a; /* red as TEXT: large hero text only (4.2:1 on paper) */
+  --danger: #a82a10; /* error text, destructive actions, link hover */
+}
+
+/* Dark values. The two blocks below must stay identical (CSS cannot share them). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #1a1714;
+  --card: #2a2520;
+  --text: #f4f1ea;
+  --text-body: #d8d2c6;
+  --text-muted: #bdb5a8;
+  --text-subtle: #a39a8c;
+  --border: #f4f1ea;
+  --shadow-color: #f6b634;
+  --line: #6a5e52;
+  --disabled: #3a342d;
+  --inverse: #f4f1ea;
+  --on-inverse: #151515;
+  --focus: #6fa8ff;
+  --accent: #f0735a;
+  --danger: #f0735a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface: #1a1714;
+    --card: #2a2520;
+    --text: #f4f1ea;
+    --text-body: #d8d2c6;
+    --text-muted: #bdb5a8;
+    --text-subtle: #a39a8c;
+    --border: #f4f1ea;
+    --shadow-color: #f6b634;
+    --line: #6a5e52;
+    --disabled: #3a342d;
+    --inverse: #f4f1ea;
+    --on-inverse: #151515;
+    --focus: #6fa8ff;
+    --accent: #f0735a;
+    --danger: #f0735a;
+  }
 }
 
 /* Fixed brand colours: identical in every theme. */
 @theme {
   --color-red: #d63a1a;
   --color-red-dark: #a82a10;
+  --color-red-deep: #8a220d; /* pressed red button */
   --color-citrus: #f6b634;
+  --color-citrus-deep: #e0a32a; /* pressed citrus */
   --color-capybara: #c99b70;
   --color-bark: #7a4e30;
   --color-ink: #151515; /* text on pastel tints / citrus / red */
@@ -34,6 +81,8 @@
   --color-tint-mto: #ffe3a3;
   --color-tint-commission: #bde3f7;
   --color-tint-pink: #f8c9be;
+  --color-tint-pink-deep: #eeb3a5; /* pressed pink */
+  --color-tint-neutral: #e4dfd6; /* draft / inactive badge */
 
   --font-sans: var(--font-rubik), system-ui, sans-serif;
 
@@ -42,7 +91,7 @@
   --radius-panel: 30px;
 }
 
-/* Theme-aware colours: resolved at use time so a later [data-theme=dark] block just works. */
+/* Theme-aware colours: resolved at use time so the dark blocks above just work. */
 @theme inline {
   --color-surface: var(--surface);
   --color-card: var(--card);
@@ -56,6 +105,8 @@
   --color-inverse: var(--inverse);
   --color-on-inverse: var(--on-inverse);
   --color-focus: var(--focus);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
 
   --shadow-sticker-sm: 3px 3px 0 var(--shadow-color);
   --shadow-sticker: 5px 5px 0 var(--shadow-color);

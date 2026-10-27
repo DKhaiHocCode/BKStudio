@@ -16,9 +16,9 @@ export function Field({
     <label className="flex flex-col gap-1 font-medium">
       {label}
       {children}
-      {hint && <span className="text-sm font-normal text-[#4a433c]">{hint}</span>}
+      {hint && <span className="text-sm font-normal text-muted">{hint}</span>}
       {error && (
-        <span role="alert" className="text-sm font-bold text-[#a82a10]">
+        <span role="alert" className="text-sm font-bold text-danger">
           {error}
         </span>
       )}

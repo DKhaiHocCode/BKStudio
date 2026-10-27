@@ -54,11 +54,13 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
         <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-4 md:flex-[1_1_460px] md:gap-[22px]">
           <div className="flex flex-wrap gap-2 md:gap-2.5">
             <span className={`${heroBadge} bg-card`}>3D printed</span>
-            <span className={`${heroBadge} bg-tint-mto`}>Hand-painted</span>
-            <span className={`${heroBadge} hidden bg-tint-pink sm:inline`}>One at a time</span>
+            <span className={`${heroBadge} bg-tint-mto text-ink`}>Hand-painted</span>
+            <span className={`${heroBadge} hidden bg-tint-pink text-ink sm:inline`}>
+              One at a time
+            </span>
           </div>
           <h1 className="text-[38px] leading-[1.08] font-extrabold tracking-[-0.01em] md:text-[clamp(40px,5.4vw,68px)] md:leading-[1.05]">
-            Your favourite characters, <span className="text-red">painted by hand.</span>
+            Your favourite characters, <span className="text-accent">painted by hand.</span>
           </h1>
           <p className="max-w-[520px] text-[17px] leading-relaxed text-body md:text-[19px]">
             Anime figures printed in resin and finished with a brush in our small studio. Grab one

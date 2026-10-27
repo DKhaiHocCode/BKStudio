@@ -26,8 +26,10 @@ export function ProductCard({ product }: { product: ProductListItem }) {
           <span className="text-sm font-bold text-bark">Photo coming soon</span>
         )}
         <span className="absolute top-2 left-2 flex flex-wrap gap-1 sm:top-3 sm:left-3">
-          {product.inStock && <span className={`${badge} bg-tint-stock`}>In stock</span>}
-          {product.madeToOrder && <span className={`${badge} bg-tint-mto`}>Made to order</span>}
+          {product.inStock && <span className={`${badge} bg-tint-stock text-ink`}>In stock</span>}
+          {product.madeToOrder && (
+            <span className={`${badge} bg-tint-mto text-ink`}>Made to order</span>
+          )}
         </span>
       </div>
       <div className="flex flex-col gap-1 px-3 pt-2.5 pb-3.5 sm:gap-1.5 sm:px-[18px] sm:pt-4 sm:pb-5">

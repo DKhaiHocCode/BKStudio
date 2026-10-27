@@ -1,26 +1,26 @@
-// Admin-only Tailwind classes using the docs/design/tokens.css values (global theme arrives in T-014).
+// Admin-only Tailwind classes (semantic tokens from globals.css, so admin follows the theme).
 export const inputClass =
-  "min-h-11 w-full rounded-[14px] border-[3px] border-[#151515] bg-[#fffdf8] px-3 text-base text-[#151515]";
+  "min-h-11 w-full rounded-[14px] border-[3px] border-border bg-card px-3 text-base text-fg";
 
 // Shared click feedback: hover tint, press (nudge + smaller hard shadow), visible focus ring, dimmed disabled.
 // Transform and transition are dropped under prefers-reduced-motion; the colour change stays.
 const feedback =
   "transition-[transform,box-shadow,background-color] duration-100 motion-reduce:transition-none " +
-  "focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1b5fd1] " +
-  "not-disabled:active:translate-x-0.5 not-disabled:active:translate-y-0.5 not-disabled:active:shadow-[1px_1px_0_#151515] " +
+  "focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-focus " +
+  "not-disabled:active:translate-x-0.5 not-disabled:active:translate-y-0.5 not-disabled:active:shadow-[1px_1px_0_var(--shadow-color)] " +
   "motion-reduce:not-disabled:active:translate-x-0 motion-reduce:not-disabled:active:translate-y-0 " +
-  "disabled:cursor-not-allowed disabled:bg-[#e4dfd6] disabled:text-[#4a433c] disabled:opacity-60 disabled:shadow-none";
+  "disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted disabled:opacity-60 disabled:shadow-none";
 const solid =
-  "min-h-11 rounded-[14px] border-[3px] border-[#151515] font-bold shadow-[3px_3px_0_#151515] " +
-  feedback;
+  "min-h-11 rounded-[14px] border-[3px] border-border font-bold shadow-sticker-sm " + feedback;
 
-export const buttonClass = `${solid} bg-[#d63a1a] px-5 text-white not-disabled:hover:bg-[#a82a10] not-disabled:active:bg-[#8a220d]`;
-export const secondaryButtonClass = `${solid} bg-[#fffdf8] px-4 text-[#151515] not-disabled:hover:bg-[#f6b634] not-disabled:active:bg-[#e0a32a]`;
-export const dangerButtonClass = `${solid} bg-[#fffdf8] px-4 text-[#a82a10] not-disabled:hover:bg-[#f8c9be] not-disabled:active:bg-[#eeb3a5]`;
+export const buttonClass = `${solid} bg-red px-5 text-cream not-disabled:hover:bg-red-dark not-disabled:active:bg-red-deep`;
+export const secondaryButtonClass = `${solid} bg-card px-4 text-fg not-disabled:hover:bg-citrus not-disabled:hover:text-ink not-disabled:active:bg-citrus-deep not-disabled:active:text-ink`;
+export const dangerButtonClass = `${solid} bg-card px-4 text-danger not-disabled:hover:bg-tint-pink not-disabled:hover:text-red-dark not-disabled:active:bg-tint-pink-deep not-disabled:active:text-red-dark`;
 export const linkButtonClass =
-  "min-h-11 px-2 text-sm font-medium text-[#4a433c] underline hover:text-[#151515] active:opacity-70 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1b5fd1] disabled:cursor-not-allowed disabled:opacity-60";
+  "min-h-11 px-2 text-sm font-medium text-muted underline hover:text-fg active:opacity-70 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60";
 export const cardClass =
-  "w-full max-w-md rounded-[22px] border-[3px] border-[#151515] bg-[#fffdf8] p-6 shadow-[5px_5px_0_#151515]";
-export const alertClass = "rounded-[14px] border-[3px] border-[#151515] bg-[#f8c9be] p-3 text-sm";
+  "w-full max-w-md rounded-[22px] border-[3px] border-border bg-card p-6 shadow-sticker";
+export const alertClass =
+  "rounded-[14px] border-[3px] border-border bg-tint-pink p-3 text-sm text-ink";
 export const panelClass =
-  "rounded-[22px] border-[3px] border-[#151515] bg-[#fffdf8] p-4 shadow-[5px_5px_0_#151515] sm:p-6";
+  "rounded-[22px] border-[3px] border-border bg-card p-4 shadow-sticker sm:p-6";

@@ -3,6 +3,7 @@ import { focusRing } from "@/components/ui";
 import { CartIcon } from "./CartIcon";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NAV_LINKS } from "./nav";
 
 // Cart count is static until the cart exists (T-030).
@@ -23,7 +24,7 @@ export function SiteHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className={`inline-flex min-h-11 items-center rounded-full px-3.5 font-bold text-fg no-underline hover:bg-citrus ${focusRing}`}
+              className={`inline-flex min-h-11 items-center rounded-full px-3.5 font-bold text-fg no-underline hover:bg-citrus hover:text-ink ${focusRing}`}
             >
               {link.label}
             </Link>
@@ -32,6 +33,7 @@ export function SiteHeader() {
             <CartIcon />
             <span>Cart · 0</span>
           </Link>
+          <ThemeToggle />
         </nav>
         <div className="flex gap-2 md:hidden">
           <Link
@@ -41,6 +43,7 @@ export function SiteHeader() {
           >
             <CartIcon />
           </Link>
+          <ThemeToggle />
           <MobileMenu />
         </div>
       </div>
