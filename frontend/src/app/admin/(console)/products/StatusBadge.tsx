@@ -1,16 +1,16 @@
 import type { ProductStatus } from "./types";
 
 const TINT: Record<ProductStatus, string> = {
-  DRAFT: "bg-[#e4dfd6]",
-  ACTIVE: "bg-[#bfe6c6]",
-  UNLISTED: "bg-[#bde3f7]",
-  ARCHIVED: "bg-[#f8c9be]",
+  DRAFT: "bg-tint-neutral",
+  ACTIVE: "bg-tint-stock",
+  UNLISTED: "bg-tint-commission",
+  ARCHIVED: "bg-tint-pink",
 };
 
 export function StatusBadge({ status }: { status: ProductStatus }) {
   return (
     <span
-      className={`inline-block rounded-full border-2 border-[#151515] px-2 py-0.5 text-xs font-bold ${TINT[status]}`}
+      className={`inline-block rounded-full border-2 border-border px-2 py-0.5 text-xs font-bold text-ink ${TINT[status]}`}
     >
       {status}
     </span>

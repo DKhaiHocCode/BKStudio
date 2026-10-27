@@ -17,13 +17,14 @@ const solid =
   feedback;
 
 export const primaryButton = `${solid} bg-red text-cream not-disabled:hover:bg-red-dark`;
-export const secondaryButton = `${solid} bg-card text-fg not-disabled:hover:bg-citrus`;
+export const secondaryButton = `${solid} bg-card text-fg not-disabled:hover:bg-citrus not-disabled:hover:text-ink`;
 
 const pill =
   "inline-flex min-h-11 items-center rounded-full border-2 border-border px-4 font-bold " +
   feedback;
-export const chip = `${pill} bg-card text-fg not-disabled:hover:bg-citrus`;
+export const chip = `${pill} bg-card text-fg not-disabled:hover:bg-citrus not-disabled:hover:text-ink`;
 export const chipActive = `${pill} bg-inverse text-on-inverse`;
 
 export const badge =
-  "rounded-full border-2 border-border px-2.5 py-0.5 text-xs font-bold text-ink sm:text-[13px]";
+  "rounded-full border-2 border-border px-2.5 py-0.5 text-xs font-bold sm:text-[13px]";
+// Tinted badges keep ink text in every theme (the tints stay light): add text-ink next to bg-tint-*.

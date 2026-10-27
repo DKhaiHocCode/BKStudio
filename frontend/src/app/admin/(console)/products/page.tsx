@@ -69,10 +69,10 @@ export default function ProductsPage() {
           No products match.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-[22px] border-[3px] border-[#151515] bg-[#fffdf8]">
+        <div className="overflow-x-auto rounded-[22px] border-[3px] border-border bg-card">
           <table className="w-full min-w-[40rem] text-left">
             <thead>
-              <tr className="border-b-[3px] border-[#151515]">
+              <tr className="border-b-[3px] border-border">
                 <th scope="col" className="p-3">
                   Cover
                 </th>
@@ -95,7 +95,7 @@ export default function ProductsPage() {
             </thead>
             <tbody>
               {data.items.map((p) => (
-                <tr key={p.id} className="border-b border-[#c9c2b6] last:border-b-0">
+                <tr key={p.id} className="border-b border-line last:border-b-0">
                   <td className="p-3">
                     {p.coverImage ? (
                       // eslint-disable-next-line @next/next/no-img-element -- storage URLs are not configured for next/image
@@ -104,10 +104,10 @@ export default function ProductsPage() {
                         alt={p.coverImage.alt ?? ""}
                         width={56}
                         height={56}
-                        className="size-14 rounded-[14px] border-2 border-[#151515] object-cover"
+                        className="size-14 rounded-[14px] border-2 border-border object-cover"
                       />
                     ) : (
-                      <span className="text-sm text-[#4a433c]">None</span>
+                      <span className="text-sm text-muted">None</span>
                     )}
                   </td>
                   <td className="p-3">
@@ -117,7 +117,7 @@ export default function ProductsPage() {
                     >
                       {p.name}
                     </Link>
-                    {p.series && <div className="text-sm text-[#4a433c]">{p.series}</div>}
+                    {p.series && <div className="text-sm text-muted">{p.series}</div>}
                   </td>
                   <td className="p-3">
                     <StatusBadge status={p.status} />

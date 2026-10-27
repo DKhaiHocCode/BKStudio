@@ -84,6 +84,12 @@ dict(id="T-016", m="M1", t="Admin UI quản lý sản phẩm", h=7, deps=["T-013
   ac="Tạo được sản phẩm thật từ đầu đến khi hiện trên catalog; tạo được sản phẩm commission và copy link.",
   test="Kiểm tra thủ công.", risk="UI upload ảnh tốn thời gian hơn dự kiến."),
 
+dict(id="T-017", m="M1", t="Chế độ tối (shop + admin)", h=4, deps=["T-014", "T-016"], p="P1", launch=False, status="done",
+  scope="Bảng màu tối trong `docs/DESIGN.md` + `docs/design/tokens.css` (Khai chốt 2026-10-28: nền #1A1714, thẻ #2A2520, chữ #F4F1EA, viền/bóng cream/citrus); đo tương phản WCAG AA; khối `[data-theme=dark]` + `prefers-color-scheme` trong `globals.css`; nút bật/tắt tay (lưu localStorage, không nháy sai theme lúc tải trang); chuyển hex cứng của admin sang token.",
+  files="docs/DESIGN.md, docs/design/tokens.css, frontend/src/app/globals.css, frontend/src/components/*, frontend/src/app/admin/*",
+  ac="Mặc định theo hệ điều hành, nút đổi tay nhớ lựa chọn sau F5 và không nháy; mọi trang shop + admin đọc được ở cả 2 chế độ; chữ thường đạt ≥ 4.5:1.",
+  test="Kiểm tra thủ công cả 2 chế độ ở 375px/1280px; script tính tương phản.", risk="Chữ đỏ (`red` #D63A1A) chỉ 3.8:1 trên nền tối → cần token chữ nhấn sáng hơn; bóng đổ citrus có thể quá chói."),
+
 # ---------------- M2 Orders, payments, queue ----------------
 dict(id="T-020", m="M2", t="Settings, điều khoản, link MXH", h=3, deps=["T-003"], p="P0", launch=True,
   scope="`app_setting` (sức chứa mặc định, tên miền link cho phép, link MXH…), `terms_document`; `GET /api/terms/current`, `GET /api/site-info`; admin GET/PUT settings, đăng điều khoản mới.",

@@ -55,7 +55,7 @@ function AltForm({ image, onChange }: { image: ProductImage; onChange: Setter })
           className={inputClass}
         />
         {problem && (
-          <span role="alert" className="font-bold text-[#a82a10]">
+          <span role="alert" className="font-bold text-danger">
             {problem}
           </span>
         )}
@@ -214,7 +214,7 @@ export function ImagesSection({
       {rejected.length > 0 && (
         <ul
           role="alert"
-          className="list-disc rounded-[14px] border-[3px] border-[#151515] bg-[#f8c9be] p-3 pl-8 text-sm"
+          className="list-disc rounded-[14px] border-[3px] border-border bg-tint-pink p-3 pl-8 text-sm text-ink"
         >
           {rejected.map((r) => (
             <li key={r}>{r}</li>
@@ -222,7 +222,7 @@ export function ImagesSection({
         </ul>
       )}
       <div
-        className={`flex flex-col gap-3 rounded-[14px] border-[3px] border-dashed border-[#151515] p-4 ${dropActive ? "bg-[#ffe3a3]" : ""}`}
+        className={`flex flex-col gap-3 rounded-[14px] border-[3px] border-dashed border-border p-4 ${dropActive ? "bg-tint-mto text-ink" : ""}`}
       >
         <p className="font-medium">Drag JPEG or PNG files here (max 10 MB each), or choose them.</p>
         <label className="flex flex-col gap-1 text-sm font-medium">
@@ -257,7 +257,7 @@ export function ImagesSection({
               if (dragIndex !== null) void move(dragIndex, i);
               setDragIndex(null);
             }}
-            className="flex flex-col gap-3 rounded-[14px] border-[3px] border-[#151515] p-3 sm:flex-row"
+            className="flex flex-col gap-3 rounded-[14px] border-[3px] border-border p-3 sm:flex-row"
           >
             <div
               draggable={!busy}
@@ -276,7 +276,7 @@ export function ImagesSection({
                 width={160}
                 height={Math.round((160 * img.height) / img.width)}
                 draggable={false}
-                className="h-auto w-40 rounded-[14px] border-2 border-[#151515]"
+                className="h-auto w-40 rounded-[14px] border-2 border-border"
               />
             </div>
             <div className="flex flex-1 flex-col gap-3">

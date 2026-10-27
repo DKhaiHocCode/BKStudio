@@ -8,7 +8,7 @@
 | Nhóm | Giờ | Task |
 |---|---|---|
 | M0 — Setup | 20 | T-001, T-002, T-003, T-004, T-005, T-007 |
-| M1 — Catalog & đăng nhập admin | 48 | T-006, T-010, T-011, T-012, T-013, T-014, T-015, T-016 |
+| M1 — Catalog & đăng nhập admin | 52 | T-006, T-010, T-011, T-012, T-013, T-014, T-015, T-016, T-017 |
 | M2 — Đơn hàng, thanh toán, hàng đợi | 42 | T-020, T-021, T-022, T-023, T-024, T-025, T-026, T-027, T-028 |
 | M3 — Giao diện khách & admin | 31 | T-030, T-031, T-032, T-033, T-034, T-035 |
 | M4 — Bảo mật, deploy, launch | 30 | T-040, T-041, T-042, T-043, T-044, T-045, T-046 |
@@ -236,6 +236,14 @@ flowchart LR
 - **Nghiệm thu:** Tạo được sản phẩm thật từ đầu đến khi hiện trên catalog; tạo được sản phẩm commission và copy link.
 - **Test:** Kiểm tra thủ công.
 - **Rủi ro / câu hỏi:** UI upload ảnh tốn thời gian hơn dự kiến.
+
+#### T-017 · Chế độ tối (shop + admin)
+- **Ưu tiên:** P1 (làm sau launch được) · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-014, T-016 · **Status:** done
+- **Phạm vi:** Bảng màu tối trong `docs/DESIGN.md` + `docs/design/tokens.css` (Khai chốt 2026-10-28: nền #1A1714, thẻ #2A2520, chữ #F4F1EA, viền/bóng cream/citrus); đo tương phản WCAG AA; khối `[data-theme=dark]` + `prefers-color-scheme` trong `globals.css`; nút bật/tắt tay (lưu localStorage, không nháy sai theme lúc tải trang); chuyển hex cứng của admin sang token.
+- **File / module:** docs/DESIGN.md, docs/design/tokens.css, frontend/src/app/globals.css, frontend/src/components/*, frontend/src/app/admin/*
+- **Nghiệm thu:** Mặc định theo hệ điều hành, nút đổi tay nhớ lựa chọn sau F5 và không nháy; mọi trang shop + admin đọc được ở cả 2 chế độ; chữ thường đạt ≥ 4.5:1.
+- **Test:** Kiểm tra thủ công cả 2 chế độ ở 375px/1280px; script tính tương phản.
+- **Rủi ro / câu hỏi:** Chữ đỏ (`red` #D63A1A) chỉ 3.8:1 trên nền tối → cần token chữ nhấn sáng hơn; bóng đổ citrus có thể quá chói.
 
 ### M2 — Đơn hàng, thanh toán, hàng đợi
 

@@ -22,7 +22,7 @@ export function SiteFooter() {
             <a
               key={link.label}
               href={link.href}
-              className={`inline-flex min-h-11 items-center text-fg hover:text-red-dark ${focusRing}`}
+              className={`inline-flex min-h-11 items-center text-fg hover:text-danger ${focusRing}`}
             >
               {link.label}
             </a>
