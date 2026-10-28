@@ -11,6 +11,7 @@ public enum ErrorCode {
     OUT_OF_STOCK(HttpStatus.CONFLICT),
     INVALID_TRANSITION(HttpStatus.CONFLICT),
     VERSION_CONFLICT(HttpStatus.CONFLICT),
+    /** Checkout: acceptedTermsVersion is not the currently published terms version. */
     TERMS_OUTDATED(HttpStatus.CONFLICT),
     RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS),
     /** No production slot left in the 24-month window. */

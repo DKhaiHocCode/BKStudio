@@ -1,10 +1,12 @@
 package com.bkstudio.shared.web;
 
 import java.net.URI;
+import java.sql.SQLException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -34,6 +36,21 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                     String.valueOf(Math.max(1, ex.retryAfter().toSeconds())));
         }
         return response.body(body);
+    }
+
+    /** DB errors: message can carry row values (PostgreSQL "Failing row contains ..."), so log class + SQLState only. */
+    @ExceptionHandler(DataAccessException.class)
+    ResponseEntity<Object> handleDataAccess(DataAccessException ex) {
+        String sqlState = null;
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            if (t instanceof SQLException sql) {
+                sqlState = sql.getSQLState();
+                break;
+            }
+        }
+        log.error("Data access failure {} sqlState={}", ex.getClass().getName(), sqlState);
+        ProblemDetail body = problem(ErrorCode.INTERNAL_ERROR, "An unexpected error occurred.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
     /** Anything unexpected: full stack trace goes to the log, the client only gets the requestId. */

@@ -264,7 +264,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Từ T-021: `QueueService.allocate` chỉ gọi 1 lần cho mỗi item (xác nhận cọc phải idempotent); `orderItemId` do server tạo; `QUEUE_FULL` có thể do deadlock nhiều chiếc nên cân nhắc retry.
 
 #### T-022 · API checkout (tạo đơn)
-- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-010, T-020, T-021 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-010, T-020, T-021 · **Status:** done
 - **Phạm vi:** `POST /api/orders`: validate, 1 loại/đơn, giá lấy từ DB, trừ kho/quota có điều kiện, `Idempotency-Key`, sinh `public_code` + token (lưu hash), lưu bằng chứng điều khoản; rate limit 5 đơn/IP/giờ.
 - **File / module:** backend/.../order/checkout/*
 - **Nghiệm thu:** Gửi giá sai từ client không ảnh hưởng; retry cùng key → cùng đơn; 2 người mua món cuối → 1 người nhận OUT_OF_STOCK.
@@ -285,7 +285,7 @@ flowchart LR
 - **File / module:** backend/.../notification/*
 - **Nghiệm thu:** Resend lỗi tạm thời → email vẫn được gửi sau; cùng `dedupe_key` không gửi 2 lần.
 - **Test:** Integration test với `EmailSender` giả.
-- **Rủi ro / câu hỏi:** Template email HTML hiển thị khác nhau giữa Gmail/Outlook.
+- **Rủi ro / câu hỏi:** Template email HTML hiển thị khác nhau giữa Gmail/Outlook. Từ T-022: checkout chỉ lưu hash của token nên email "Đã nhận đơn" (link `/orders/{token}`) PHẢI được dựng và đưa vào outbox ngay trong transaction checkout (hoặc outbox lưu token mã hoá, hết hạn khi gửi) — gửi lại cùng `Idempotency-Key` trả `orderUrl=null`, nếu khách mất phản hồi đầu thì email là đường duy nhất tới link đơn; payload outbox không được chứa token thô lâu dài.
 
 #### T-025 · Payment requests
 - **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-021, T-023, T-024 · **Status:** todo
@@ -401,7 +401,7 @@ flowchart LR
 - **File / module:** docs/DEPLOYMENT.md
 - **Nghiệm thu:** HTTPS hoạt động; mail-tester ≥ 9/10; port 5432 không truy cập được từ ngoài.
 - **Test:** Kiểm tra thủ công.
-- **Rủi ro / câu hỏi:** Hetzner từ chối xác minh (R9); giá Singapore vượt ngân sách.
+- **Rủi ro / câu hỏi:** Hetzner từ chối xác minh (R9); giá Singapore vượt ngân sách. CHẶN CỨNG trước khi mở public (từ T-022): `server.forward-headers-strategy`/RemoteIpValve chỉ tin Caddy (hoặc Caddy ghi đè một header duy nhất), nếu không mọi khách dùng chung IP của Caddy → 5 đơn/giờ cho cả thế giới và attacker khoá được checkout + login; thêm IT gửi `X-Forwarded-For` giả phải bị bỏ qua; `APP_BASE_URL` https; Caddy không log header `Idempotency-Key`.
 
 #### T-044 · Backup + diễn tập khôi phục
 - **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-043 · **Status:** todo

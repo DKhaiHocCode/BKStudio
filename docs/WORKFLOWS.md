@@ -51,8 +51,8 @@ stateDiagram-v2
 2. Backend kiểm tra dữ liệu, **lấy giá từ DB** (không bao giờ tin giá client gửi lên), kiểm tra `termsVersion` khách đồng ý = phiên bản hiện hành.
 3. Hàng sẵn: trừ kho bằng `UPDATE … WHERE stock_qty >= n`. Không đủ → `OUT_OF_STOCK` (409), rollback toàn bộ.
 4. Tạo `customer_order` + `order_item`, sinh `public_code` và token truy cập ngẫu nhiên 32 byte (chỉ lưu hash).
-5. Ghi email "Đã nhận đơn" vào outbox (kèm link `/orders/{token}`).
-6. Trả về mã đơn + link. Nếu cùng `idempotencyKey` gửi lại → trả về đơn đã tạo.
+5. Ghi email "Đã nhận đơn" vào outbox (kèm link `/orders/{token}`) — làm ở T-024; T-022 chưa ghi outbox.
+6. Trả về mã đơn + link (chỉ lần tạo đầu, vì DB chỉ lưu hash của token). Nếu cùng `idempotencyKey` gửi lại → `200` với đơn đã tạo nhưng `orderUrl = null` (link nằm trong email). Cọc làm tròn lên nửa cent: `deposit = (subtotal + 1) / 2`, phần còn lại = `subtotal − deposit`.
 
 **Lưu ý về thời gian chờ dự kiến:** con số hiển thị lúc đặt chỉ là **ước tính**; slot thật được cấp khi admin xác nhận cọc (mục 4). Email xác nhận cọc báo tháng chính thức. Câu này phải hiện rõ ở trang sản phẩm và trong điều khoản.
 

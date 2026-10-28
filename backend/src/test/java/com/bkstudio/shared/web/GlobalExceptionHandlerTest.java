@@ -1,18 +1,25 @@
 package com.bkstudio.shared.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.sql.SQLException;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,6 +57,26 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void dataAccessExceptionLogsClassAndSqlStateOnly_neverTheMessage() throws Exception {
+        Logger logger = (Logger) LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        ListAppender<ILoggingEvent> logs = new ListAppender<>();
+        logs.start();
+        logger.addAppender(logs);
+        try {
+            mvc.perform(get("/test/db"))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"));
+        } finally {
+            logger.detachAppender(logs);
+        }
+        assertThat(logs.list).hasSize(1);
+        ILoggingEvent e = logs.list.get(0);
+        assertThat(e.getFormattedMessage()).contains("DataIntegrityViolationException", "sqlState=23514");
+        assertThat(e.getThrowableProxy()).isNull();
+        assertThat(e.getFormattedMessage()).doesNotContain("pii@example.com");
+    }
+
+    @Test
     void validationFailureListsFieldErrors() throws Exception {
         mvc.perform(post("/test/validate")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -82,6 +109,13 @@ class GlobalExceptionHandlerTest {
         @GetMapping("/test/out-of-stock")
         void outOfStock() {
             throw new ApiException(ErrorCode.OUT_OF_STOCK, "Pneuma 1/7 has only 0 ready units left.");
+        }
+
+        @GetMapping("/test/db")
+        void db() {
+            throw new DataIntegrityViolationException(
+                    "Failing row contains (pii@example.com)",
+                    new SQLException("Failing row contains (pii@example.com)", "23514"));
         }
 
         @GetMapping("/test/boom")
