@@ -1,5 +1,6 @@
 package com.bkstudio.order.checkout.domain;
 
+import com.bkstudio.notification.domain.OutboxWriter;
 import com.bkstudio.order.checkout.api.CheckoutDtos.CreateOrder;
 import com.bkstudio.order.checkout.api.CheckoutDtos.FulfillmentType;
 import com.bkstudio.order.checkout.api.CheckoutDtos.Item;
@@ -55,6 +56,7 @@ public class CheckoutService {
     private final CheckoutRateLimiter limiter;
     private final CheckoutProperties props;
     private final Clock clock;
+    private final OutboxWriter outbox;
     private final SecureRandom random = new SecureRandom();
 
     CheckoutService(
@@ -62,7 +64,9 @@ public class CheckoutService {
             SettingsService settings,
             CheckoutRateLimiter limiter,
             CheckoutProperties props,
-            Clock clock) {
+            Clock clock,
+            OutboxWriter outbox) {
+        this.outbox = outbox;
         this.repo = repo;
         this.settings = settings;
         this.limiter = limiter;
@@ -159,10 +163,17 @@ public class CheckoutService {
             repo.insertItem(orderId, variants.get(line.variantId()), line.quantity());
         }
 
+        // The same link goes to the client now and to the customer by email (the DB keeps only the token hash).
+        String orderUrl = props.orderUrl(token);
+        outbox.enqueue(
+                "order:" + orderId + ":received",
+                email,
+                "ORDER_RECEIVED",
+                Map.of("publicCode", code, "orderUrl", orderUrl));
+
         log.info("Order created code={}", code);
         return new Placement(
-                new OrderCreated(code, status, props.orderUrl(token), subtotalCents, deposit(mto, subtotalCents)),
-                false);
+                new OrderCreated(code, status, orderUrl, subtotalCents, deposit(mto, subtotalCents)), false);
     }
 
     private void reserve(VariantRow v, int qty, boolean mto, Instant now) {

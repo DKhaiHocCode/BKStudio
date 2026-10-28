@@ -43,6 +43,7 @@
 - Frontend: error boundary hiển thị thông báo thân thiện + `requestId` để khách gửi cho shop.
 - Log JSON: `timestamp, level, requestId, logger, message, orderCode?` — không có dữ liệu cá nhân.
 - **Audit log** (trong DB) tách biệt với log ứng dụng: ghi mọi thao tác admin và mọi chuyển trạng thái.
+- **Outbox email (T-024):** `email_outbox.payload` giữ link đơn (token) cho tới khi email được gửi (`SENT`) hoặc tối đa 7 ngày, sau đó job xoá `orderUrl`/`paymentUrl` khỏi payload. `to_email` vẫn được giữ lại (job dọn dữ liệu cá nhân là nợ kỹ thuật cho sau). Không log người nhận, nội dung, API key; `last_error` chỉ chứa mã HTTP + tên lỗi Resend.
 
 ## 5. Checklist bảo mật trước launch (rút gọn — chi tiết ở TESTING/launch checklist Phase 4)
 - [ ] Đăng nhập admin chỉ được khi có TOTP; thử khoá tạm hoạt động

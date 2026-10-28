@@ -110,7 +110,7 @@ dict(id="T-023", m="M2", t="Máy trạng thái đơn + audit log", h=5, deps=["T
   files="backend/.../order/state/*",
   ac="Mọi cặp (trạng thái, hành động) không hợp lệ → INVALID_TRANSITION.",
   test="Unit test dạng bảng cho toàn bộ cặp chuyển trạng thái.", risk="—"),
-dict(id="T-024", m="M2", t="Email outbox + Resend", h=6, deps=["T-003"], p="P0", launch=True,
+dict(id="T-024", m="M2", t="Email outbox + Resend", h=6, deps=["T-003"], p="P0", launch=True, status="done",
   scope="Bảng outbox + `dedupe_key`; job gửi mỗi phút, backoff, tối đa 8 lần; interface `EmailSender` (Resend + bản log-only khi dev); template: nhận đơn, link thanh toán, xác nhận, hoàn thiện, nhắc hạn, mất cọc, đã gửi hàng, link tra cứu.",
   files="backend/.../notification/*",
   ac="Resend lỗi tạm thời → email vẫn được gửi sau; cùng `dedupe_key` không gửi 2 lần.",
