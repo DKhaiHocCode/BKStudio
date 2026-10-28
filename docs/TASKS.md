@@ -256,12 +256,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** —
 
 #### T-021 · Module hàng đợi slot
-- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-003 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-003 · **Status:** done
 - **Phạm vi:** Tự tạo `production_month`; ước tính tháng; cấp slot (`FOR UPDATE SKIP LOCKED`) và trả slot; admin xem/sửa sức chứa (≥ allocated).
 - **File / module:** backend/.../queue/*
 - **Nghiệm thu:** 2 lần cấp slot song song không bao giờ vượt capacity; giảm capacity dưới allocated bị từ chối.
 - **Test:** Integration test có chạy song song (2 thread).
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Từ T-021: `QueueService.allocate` chỉ gọi 1 lần cho mỗi item (xác nhận cọc phải idempotent); `orderItemId` do server tạo; `QUEUE_FULL` có thể do deadlock nhiều chiếc nên cân nhắc retry.
 
 #### T-022 · API checkout (tạo đơn)
 - **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-010, T-020, T-021 · **Status:** todo
