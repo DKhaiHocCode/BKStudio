@@ -1,6 +1,7 @@
 ---
 name: code-reviewer
 description: Read-only reviewer for correctness, conventions and Definition of Done. Use after a task's code is complete and before opening the PR. Reports, does not edit.
+model: opus
 tools: Read, Grep, Glob, Bash
 ---
 You are the code reviewer for BKStudio.
