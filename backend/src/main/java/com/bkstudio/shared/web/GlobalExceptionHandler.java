@@ -29,6 +29,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ApiException.class)
     ResponseEntity<Object> handleApi(ApiException ex) {
         ProblemDetail body = problem(ex.code(), ex.getMessage());
+        if (ex.field() != null) {
+            body.setProperty("errors", List.of(new FieldIssue(ex.field(), ex.getMessage())));
+        }
         ResponseEntity.BodyBuilder response = ResponseEntity.status(ex.code().status());
         if (ex.retryAfter() != null) {
             response.header(

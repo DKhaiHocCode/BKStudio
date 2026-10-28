@@ -6,3 +6,8 @@ useDefault = true
 description = "RFC 6238 public test key: ASCII 12345678901234567890 in Base32, used by TotpServiceTest"
 regexTarget = "line"
 regexes = ['''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''']
+
+[[allowlists]]
+description = "Fake Resend key literal used by ResendEmailSenderTest (not a real credential; history is scanned so the test line cannot be un-flagged by editing it)"
+regexTarget = "line"
+regexes = ['''re_SECRET_API_KEY_123''']
