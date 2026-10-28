@@ -32,6 +32,13 @@ app:
     site-base-url: ${APP_BASE_URL:http://localhost:3000}
     rate-limit-max: 5 # orders per IP per window
     rate-limit-window: 1h
+  notification:
+    # Sender address (MAIL_FROM) and Resend key (RESEND_API_KEY, secret). Blank key = emails only logged (dev/test).
+    # Prod fails startup unless both are set.
+    mail-from: ${MAIL_FROM:}
+    resend-api-key: ${RESEND_API_KEY:}
+    outbox:
+      enabled: true # scheduled sender; tests set false and call OutboxSender.runOnce()
   admin:
     # base64 of 32 random bytes, env only, no default. Required in prod (fails startup); elsewhere only when used.
     totp-encryption-key: ${TOTP_ENCRYPTION_KEY:}

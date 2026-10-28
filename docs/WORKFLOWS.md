@@ -51,7 +51,7 @@ stateDiagram-v2
 2. Backend kiểm tra dữ liệu, **lấy giá từ DB** (không bao giờ tin giá client gửi lên), kiểm tra `termsVersion` khách đồng ý = phiên bản hiện hành.
 3. Hàng sẵn: trừ kho bằng `UPDATE … WHERE stock_qty >= n`. Không đủ → `OUT_OF_STOCK` (409), rollback toàn bộ.
 4. Tạo `customer_order` + `order_item`, sinh `public_code` và token truy cập ngẫu nhiên 32 byte (chỉ lưu hash).
-5. Ghi email "Đã nhận đơn" vào outbox (kèm link `/orders/{token}`) — làm ở T-024; T-022 chưa ghi outbox.
+5. Ghi email "Đã nhận đơn" vào outbox (kèm link `/orders/{token}`) — đã làm ở T-024 (`CheckoutService` gọi `OutboxWriter.enqueue` trong cùng transaction; replay không ghi lại).
 6. Trả về mã đơn + link (chỉ lần tạo đầu, vì DB chỉ lưu hash của token). Nếu cùng `idempotencyKey` gửi lại → `200` với đơn đã tạo nhưng `orderUrl = null` (link nằm trong email). Cọc làm tròn lên nửa cent: `deposit = (subtotal + 1) / 2`, phần còn lại = `subtotal − deposit`.
 
 **Lưu ý về thời gian chờ dự kiến:** con số hiển thị lúc đặt chỉ là **ước tính**; slot thật được cấp khi admin xác nhận cọc (mục 4). Email xác nhận cọc báo tháng chính thức. Câu này phải hiện rõ ở trang sản phẩm và trong điều khoản.
@@ -145,7 +145,7 @@ sequenceDiagram
 ## 10. Job định kỳ (`@Scheduled`, 1 instance)
 | Job | Tần suất | Việc |
 |---|---|---|
-| Gửi email outbox | 1 phút | Gửi `PENDING`; lỗi → thử lại với backoff, tối đa 8 lần rồi `FAILED` + hiện trên dashboard |
+| Gửi email outbox | 1 phút | Lấy tối đa 20 hàng `PENDING` đến hạn; lỗi tạm thời (mạng, 429, 5xx, 401/403) → thử lại backoff 1, 2, 4, 8, 16, 32, 64 phút, tối đa 8 lần rồi `FAILED` (hiện chỉ thấy trong log; dashboard là task sau). Hàng `FAILED` vẫn giữ link tối đa 7 ngày (có thể đặt lại `status=PENDING, attempts=0` để gửi lại); sau 7 ngày link bị xoá khỏi payload |
 | Hết hạn thanh toán | 10 phút | `PENDING` quá `due_at` → `EXPIRED`; huỷ đơn chờ thanh toán/cọc; nhả kho |
 | Nhắc trả nốt | 1 giờ | Mốc 7 ngày / 1 ngày |
 | Mất cọc | 1 giờ | `AWAITING_BALANCE` quá hạn → `FORFEITED` |

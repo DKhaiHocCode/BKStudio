@@ -138,6 +138,7 @@
 				<artifactId>maven-failsafe-plugin</artifactId>
 				<configuration>
 					<argLine>${native.access.arg}</argLine>
+					<systemPropertyVariables><app.notification.outbox.enabled>false</app.notification.outbox.enabled></systemPropertyVariables>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -145,6 +146,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<argLine>${native.access.arg}</argLine>
+					<systemPropertyVariables><app.notification.outbox.enabled>false</app.notification.outbox.enabled></systemPropertyVariables>
 				</configuration>
 			</plugin>
 			<!-- Fails `verify` (process-sources) when Java code is not formatted; fix with `./mvnw spotless:apply`. -->

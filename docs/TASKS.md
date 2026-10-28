@@ -280,7 +280,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** —
 
 #### T-024 · Email outbox + Resend
-- **Ưu tiên:** P0 · **Ước lượng:** 6 giờ · **Phụ thuộc:** T-003 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 6 giờ · **Phụ thuộc:** T-003 · **Status:** done
 - **Phạm vi:** Bảng outbox + `dedupe_key`; job gửi mỗi phút, backoff, tối đa 8 lần; interface `EmailSender` (Resend + bản log-only khi dev); template: nhận đơn, link thanh toán, xác nhận, hoàn thiện, nhắc hạn, mất cọc, đã gửi hàng, link tra cứu.
 - **File / module:** backend/.../notification/*
 - **Nghiệm thu:** Resend lỗi tạm thời → email vẫn được gửi sau; cùng `dedupe_key` không gửi 2 lần.

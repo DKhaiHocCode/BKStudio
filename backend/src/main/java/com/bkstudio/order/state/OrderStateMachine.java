@@ -1,5 +1,6 @@
 package com.bkstudio.order.state;
 
+import com.bkstudio.notification.domain.OutboxWriter;
 import com.bkstudio.order.checkout.api.CheckoutDtos.FulfillmentType;
 import com.bkstudio.shared.audit.AuditLogWriter;
 import com.bkstudio.shared.web.ApiException;
@@ -11,7 +12,6 @@ import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * The only place an order's status changes (WORKFLOWS §1.3). Status update, audit row and customer email are written
@@ -26,13 +26,13 @@ public class OrderStateMachine {
 
     private final JdbcTemplate jdbc;
     private final Clock clock;
-    private final JsonMapper json;
+    private final OutboxWriter outbox;
     private final AuditLogWriter audit;
 
-    OrderStateMachine(JdbcTemplate jdbc, Clock clock, JsonMapper json, AuditLogWriter audit) {
+    OrderStateMachine(JdbcTemplate jdbc, Clock clock, OutboxWriter outbox, AuditLogWriter audit) {
         this.jdbc = jdbc;
         this.clock = clock;
-        this.json = json;
+        this.outbox = outbox;
         this.audit = audit;
     }
 
@@ -118,15 +118,12 @@ public class OrderStateMachine {
                 Map.of("status", o.status().name()),
                 Map.of("status", next.name(), "action", action.name()));
 
-        String payload = json.writeValueAsString(Map.of("publicCode", o.publicCode(), "status", next.name()));
-        jdbc.update(
-                // dedupe_key contains the new version, so a conflict means this exact transition is already queued.
-                "INSERT INTO email_outbox (dedupe_key, to_email, template, payload) VALUES (?, ?, ?, ?::jsonb)"
-                        + " ON CONFLICT (dedupe_key) DO NOTHING",
+        // dedupe_key contains the new version, so a repeat means this exact transition is already queued.
+        outbox.enqueue(
                 "order:" + orderId + ":" + action + ":" + (expectedVersion + 1),
                 o.email(),
                 action.emailTemplate(),
-                payload);
+                Map.of("publicCode", o.publicCode(), "status", next.name()));
         return next;
     }
 
