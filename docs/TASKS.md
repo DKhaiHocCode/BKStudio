@@ -248,7 +248,7 @@ flowchart LR
 ### M2 — Đơn hàng, thanh toán, hàng đợi
 
 #### T-020 · Settings, điều khoản, link MXH
-- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-003 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-003 · **Status:** done
 - **Phạm vi:** `app_setting` (sức chứa mặc định, tên miền link cho phép, link MXH…), `terms_document`; `GET /api/terms/current`, `GET /api/site-info`; admin GET/PUT settings, đăng điều khoản mới.
 - **File / module:** backend/.../shared/settings/*
 - **Nghiệm thu:** Đúng API_SPEC.
@@ -293,7 +293,7 @@ flowchart LR
 - **File / module:** backend/.../payment/*
 - **Nghiệm thu:** Bấm xác nhận 2 lần chỉ có 1 hiệu ứng; mã invoice trùng → lỗi rõ ràng; link ngoài danh sách → 400.
 - **Test:** Integration test.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Từ T-020: danh sách `payment_allowed_domains` có thể chứa public suffix (vd `com.sg`) nên khi kiểm link BẮT BUỘC parse bằng `java.net.URI`, yêu cầu https, không userinfo/cổng, host khác null, hạ chữ thường rồi so khớp host chính xác (hoặc `endsWith("." + mục)`), không dùng contains/regex lỏng.
 
 #### T-026 · Admin API hành động đơn hàng
 - **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-025 · **Status:** todo
@@ -343,7 +343,7 @@ flowchart LR
 - **File / module:** frontend/app/(shop)/commission, policy, faq
 - **Nghiệm thu:** Link MXH lấy từ settings, đổi trong admin là đổi trên web.
 - **Test:** Kiểm tra thủ công.
-- **Rủi ro / câu hỏi:** Nội dung điều khoản do chủ shop viết (O-2).
+- **Rủi ro / câu hỏi:** Nội dung điều khoản do chủ shop viết (O-2). Từ T-020: `contentMd` trả về markdown thô → bắt buộc dùng bộ render markdown có lọc (không HTML thô, không link `javascript:`, `rel="noopener noreferrer"`), cấm `dangerouslySetInnerHTML` trên đầu ra thô.
 
 #### T-033 · Admin UI đơn hàng
 - **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-015, T-026 · **Status:** todo

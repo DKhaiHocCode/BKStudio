@@ -174,6 +174,11 @@ Chi tiết đã triển khai (T-013):
 | POST | `/api/admin/terms` | Đăng phiên bản điều khoản mới |
 | GET | `/api/admin/audit-log?entityType=&entityId=` | Lịch sử thao tác |
 
+Chi tiết đã triển khai (T-020):
+- **`PUT /api/admin/settings`** thay toàn bộ cấu hình trong một transaction (có khoá `pg_advisory_xact_lock`, hai PUT đồng thời xếp hàng). Body và response cùng dạng: `{"defaultCapacity": 5, "paymentAllowedDomains": ["artistree.io"], "social": {"reddit": "https://www.reddit.com/u/…", "facebook": null, "instagram": null, "x": null}}`. Cả `defaultCapacity` (1–50, mặc định 5), `paymentAllowedDomains` (tối đa 20 hostname chữ thường, trùng lặp bị loại, chữ hoa bị từ chối) và khối `social` là bắt buộc; bốn link mạng xã hội có thể `null`/rỗng (= xoá). Link phải là `https`, đúng host của nền tảng hoặc tên miền con thật (`x` chấp nhận `x.com`/`twitter.com`), không userinfo, không cổng, ≤ 300 ký tự. Lỗi trả `VALIDATION_FAILED` với `errors[].field` dạng `social.reddit`, `paymentAllowedDomains[1]`, `defaultCapacity`. PUT giống hệt giá trị đang lưu không ghi gì và không tạo audit; thay đổi thật ghi `SETTINGS_UPDATED`.
+- **`POST /api/admin/terms`** body `{"version"?: "YYYY-MM-DD" | "YYYY-MM-DD-N", "contentMd": "…"}` (≤ 50.000 ký tự, không chứa NUL); `version` mặc định là ngày UTC hôm nay. Trả `201 {version, contentMd, publishedAt}`. Điều khoản **bất biến** (không có PUT/PATCH/DELETE); trùng `version` → `409 CONFLICT`. Audit `TERMS_PUBLISHED` chỉ lưu `version` + `contentLength`.
+- **`GET /api/terms/current`** trả bản có `published_at` mới nhất (hoà thì `version` lớn hơn theo chuỗi); `404 NOT_FOUND` khi chưa đăng bản nào. Hai GET công khai (`/api/site-info`, `/api/terms/current`) có `Cache-Control: public, max-age=60`; `site-info` luôn có đủ 4 khoá, chưa đặt thì `null`.
+
 ## 4. Health
 | Method | Path | Mô tả |
 |---|---|---|
