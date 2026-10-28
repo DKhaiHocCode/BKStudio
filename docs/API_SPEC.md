@@ -179,6 +179,14 @@ Chi tiết đã triển khai (T-020):
 - **`POST /api/admin/terms`** body `{"version"?: "YYYY-MM-DD" | "YYYY-MM-DD-N", "contentMd": "…"}` (≤ 50.000 ký tự, không chứa NUL); `version` mặc định là ngày UTC hôm nay. Trả `201 {version, contentMd, publishedAt}`. Điều khoản **bất biến** (không có PUT/PATCH/DELETE); trùng `version` → `409 CONFLICT`. Audit `TERMS_PUBLISHED` chỉ lưu `version` + `contentLength`.
 - **`GET /api/terms/current`** trả bản có `published_at` mới nhất (hoà thì `version` lớn hơn theo chuỗi); `404 NOT_FOUND` khi chưa đăng bản nào. Hai GET công khai (`/api/site-info`, `/api/terms/current`) có `Cache-Control: public, max-age=60`; `site-info` luôn có đủ 4 khoá, chưa đặt thì `null`.
 
+Chi tiết đã triển khai (T-021):
+- Tháng luôn là chuỗi `yyyy-MM` (UTC); sai định dạng → `400 VALIDATION_FAILED`. Cửa sổ xếp slot = tháng hiện tại + 23 tháng.
+- **`GET /api/queue/estimate?qty=1`** (công khai, `Cache-Control: public, max-age=60`) → `{"startMonth": "2026-11"}` hoặc `{"startMonth": null}` khi hết chỗ. `qty` 1–5, ngoài khoảng → 400. Chỉ đọc; tháng chưa có dòng được tính theo sức chứa mặc định. Chi tiết sản phẩm (`variants[].madeToOrder.estimatedStartMonth`) dùng cùng số này (qty 1), `null` nếu biến thể không nhận làm theo đơn.
+- **`GET /api/admin/production-months?from=&to=`** → `[{"month":"2026-11","capacity":5,"allocated":2}]`. Mặc định `from` = tháng hiện tại, `to` = `from`+11; tối đa 24 tháng, `to` < `from` hoặc quá 24 tháng → 400. Tháng chưa có dòng trả dòng ảo (sức chứa mặc định, `allocated` 0).
+- **`PUT /api/admin/production-months/{yyyy-mm}`** body `{"capacity": 0..1000}` → `{month, capacity, allocated}`. Tháng phải ≥ tháng hiện tại (400). Dưới số đã dùng → `409 CAPACITY_BELOW_ALLOCATED` (cập nhật có điều kiện nguyên tử, không cần version). Giá trị trùng hiện tại không ghi gì, không audit; thay đổi ghi `PRODUCTION_CAPACITY_UPDATED` (entityType `PRODUCTION_MONTH`, entityId = `yyyyMM`, after `{month, oldCapacity, newCapacity}`).
+- **`GET /api/admin/queue?month=yyyy-MM`** → `{"month":"2026-11","entries":[{id, orderItemId, unitIndex, status, queuedAt}]}` sắp theo `queuedAt, id`.
+- Hết chỗ khi xếp slot (nội bộ, dùng ở T-022) → `409 QUEUE_FULL` (cũng trả khi chờ khoá quá 2 giây). `allocate` chỉ gọi **một lần** cho mỗi order item (gọi lần hai đụng `uq_queue_entry_item_unit`; T-022 phải làm xác nhận cọc idempotent). Với `qty` > 1, `estimate` tìm **một** tháng còn đủ `qty` slot, còn `allocate` có thể rải các đơn vị qua nhiều tháng; `estimate` chỉ để hiển thị.
+
 ## 4. Health
 | Method | Path | Mô tả |
 |---|---|---|

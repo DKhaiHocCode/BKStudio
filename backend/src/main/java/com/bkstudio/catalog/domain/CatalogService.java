@@ -4,6 +4,7 @@ import com.bkstudio.catalog.api.ProductDtos;
 import com.bkstudio.catalog.infra.ProductImageRepository;
 import com.bkstudio.catalog.infra.ProductRepository;
 import com.bkstudio.catalog.infra.ProductVariantRepository;
+import com.bkstudio.queue.domain.QueueService;
 import com.bkstudio.shared.web.ApiException;
 import com.bkstudio.shared.web.ErrorCode;
 import java.util.LinkedHashMap;
@@ -35,16 +36,19 @@ public class CatalogService {
     private final ProductImageRepository images;
     private final ProductVariantRepository variants;
     private final CatalogProperties props;
+    private final QueueService queue;
 
     public CatalogService(
             ProductRepository products,
             ProductImageRepository images,
             ProductVariantRepository variants,
-            CatalogProperties props) {
+            CatalogProperties props,
+            QueueService queue) {
         this.products = products;
         this.images = images;
         this.variants = variants;
         this.props = props;
+        this.queue = queue;
     }
 
     public ProductDtos.ProductPage list(String series, int page, int size) {
@@ -97,18 +101,23 @@ public class CatalogService {
         Product p = products.findBySlugAndStatusIn(slug, Set.of(ProductStatus.ACTIVE, ProductStatus.UNLISTED))
                 .orElseThrow(CatalogService::notFound);
         List<Long> ids = List.of(p.getId());
+        List<ProductVariant> activeVariants = variants.findByProductIdInAndActiveTrueOrderByIdAsc(ids);
+        // One estimate (qty 1) per request, only when a variant is made-to-order (public endpoint DB cost).
+        String estimate = activeVariants.stream().anyMatch(ProductVariant::isMadeToOrderAvailable)
+                ? queue.estimate(1).orElse(null)
+                : null;
 
         List<ProductDtos.Image> imgs = images.findByProductIdInOrderBySortOrderAscIdAsc(ids).stream()
                 .map(this::image)
                 .toList();
-        List<ProductDtos.Variant> vs = variants.findByProductIdInAndActiveTrueOrderByIdAsc(ids).stream()
+        List<ProductDtos.Variant> vs = activeVariants.stream()
                 .map(v -> new ProductDtos.Variant(
                         v.getId(),
                         v.getScale(),
                         v.getPriceCents(),
                         new ProductDtos.InStock(v.isInStock(), v.isInStock() ? props.shipsWithinDays() : null),
-                        // estimatedStartMonth stays null until the queue module (T-021) provides it.
-                        new ProductDtos.MadeToOrder(v.isMadeToOrderAvailable(), null)))
+                        new ProductDtos.MadeToOrder(
+                                v.isMadeToOrderAvailable(), v.isMadeToOrderAvailable() ? estimate : null)))
                 .toList();
         return new ProductDtos.Detail(
                 p.getSlug(),

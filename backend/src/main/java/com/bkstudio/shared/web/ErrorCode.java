@@ -13,6 +13,10 @@ public enum ErrorCode {
     VERSION_CONFLICT(HttpStatus.CONFLICT),
     TERMS_OUTDATED(HttpStatus.CONFLICT),
     RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS),
+    /** No production slot left in the 24-month window. */
+    QUEUE_FULL(HttpStatus.CONFLICT),
+    /** Admin tried to set a month's capacity below its allocated slots. */
+    CAPACITY_BELOW_ALLOCATED(HttpStatus.CONFLICT),
     /** Duplicate slug / scale, image limit reached. */
     CONFLICT(HttpStatus.CONFLICT),
     /** Upload over the multipart limit. */

@@ -363,6 +363,8 @@ class ProductCatalogIT extends AbstractPostgresTest {
                 .andExpect(jsonPath("$.variants[2].madeToOrder.available").value(false))
                 .andExpect(jsonPath("$.variants[3].madeToOrder.available").value(false))
                 .andExpect(jsonPath("$.variants[0].madeToOrder.estimatedStartMonth")
+                        .value(org.hamcrest.Matchers.matchesPattern("\\d{4}-\\d{2}")))
+                .andExpect(jsonPath("$.variants[2].madeToOrder.estimatedStartMonth")
                         .doesNotExist());
     }
 
