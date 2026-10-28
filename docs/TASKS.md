@@ -272,7 +272,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Thiết kế transaction đúng là trọng tâm học. Lưu ý T-013: `UPDATE product_variant` trừ `stock_qty`/quota phải kèm `version = version + 1`, nếu không admin sửa từ form cũ sẽ ghi đè mất lần trừ kho; mọi POST công khai cần CSRF token (T-012).
 
 #### T-023 · Máy trạng thái đơn + audit log
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-022 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-022 · **Status:** done
 - **Phạm vi:** `OrderStateMachine` với bảng chuyển hợp lệ cho 2 loại đơn; optimistic lock; ghi audit; hook tạo email outbox trong cùng transaction.
 - **File / module:** backend/.../order/state/*
 - **Nghiệm thu:** Mọi cặp (trạng thái, hành động) không hợp lệ → INVALID_TRANSITION.

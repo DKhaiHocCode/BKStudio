@@ -105,7 +105,7 @@ dict(id="T-022", m="M2", t="API checkout (tạo đơn)", h=7, deps=["T-010", "T-
   files="backend/.../order/checkout/*",
   ac="Gửi giá sai từ client không ảnh hưởng; retry cùng key → cùng đơn; 2 người mua món cuối → 1 người nhận OUT_OF_STOCK.",
   test="Integration test gồm test song song.", risk="Thiết kế transaction đúng là trọng tâm học. Lưu ý T-013: `UPDATE product_variant` trừ `stock_qty`/quota phải kèm `version = version + 1`, nếu không admin sửa từ form cũ sẽ ghi đè mất lần trừ kho; mọi POST công khai cần CSRF token (T-012)."),
-dict(id="T-023", m="M2", t="Máy trạng thái đơn + audit log", h=5, deps=["T-022"], p="P0", launch=True,
+dict(id="T-023", m="M2", t="Máy trạng thái đơn + audit log", h=5, deps=["T-022"], p="P0", launch=True, status="done",
   scope="`OrderStateMachine` với bảng chuyển hợp lệ cho 2 loại đơn; optimistic lock; ghi audit; hook tạo email outbox trong cùng transaction.",
   files="backend/.../order/state/*",
   ac="Mọi cặp (trạng thái, hành động) không hợp lệ → INVALID_TRANSITION.",
