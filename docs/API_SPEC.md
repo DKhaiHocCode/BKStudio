@@ -159,7 +159,7 @@ Chi tiết đã triển khai (T-013):
 |---|---|---|---|
 | GET | `/api/admin/orders?status=&q=&page=` | — | — |
 | GET | `/api/admin/orders/{id}` | — | (kèm `allowedActions` cho UI) |
-| POST | `/api/admin/orders/{id}/payment-requests` | `{type, amountCents, shippingCents?, channel, paymentUrl}` | — (gửi email link) |
+| POST | `/api/admin/orders/{id}/payment-requests` | `{type, amountCents, shippingCents?, channel, paymentUrl}` | — (gửi email link; chi tiết ngay dưới bảng) |
 | POST | `/api/admin/payment-requests/{id}/confirm` | `{externalRef}` | `→ QUEUED` / `PAID_IN_FULL` |
 | POST | `/api/admin/payment-requests/{id}/cancel` | `{reason}` | — |
 | POST | `/api/admin/orders/{id}/start-production` | `{version}` | `QUEUED → IN_PRODUCTION` |
@@ -171,6 +171,14 @@ Chi tiết đã triển khai (T-013):
 | PATCH | `/api/admin/orders/{id}/note` | `{adminNote}` | — |
 
 `confirm` gọi 2 lần → lần 2 trả `200` với trạng thái hiện tại (idempotent), không tạo thay đổi mới.
+
+**Yêu cầu thanh toán (T-025)**
+- `POST /api/admin/orders/{id}/payment-requests` → `201 {id, orderId, type, amountCents, channel, paymentUrl, status:"PENDING", dueAt}`. `type` phải khớp trạng thái đơn: `DEPOSIT` (MADE_TO_ORDER, `AWAITING_DEPOSIT`), `FULL` (IN_STOCK, `AWAITING_PAYMENT`), `BALANCE` (MADE_TO_ORDER, `AWAITING_BALANCE`), sai → `409 INVALID_TRANSITION`; đã có yêu cầu `PENDING` cùng loại → `409 CONFLICT`; đơn không có → `404`.
+- Server tính số tiền, `amountCents` phải bằng đúng: `DEPOSIT = (subtotal+1)/2`; `FULL = subtotal + shippingCents`; `BALANCE = subtotal − deposit + shippingCents`. Sai → `400 VALIDATION_FAILED`, `errors[].field = "amountCents"`. `shippingCents` (mặc định 0) chỉ > 0 khi `channel = ARTISTREE` và `type` là `FULL`/`BALANCE`; được ghi vào `customer_order.shipping_cents` (version + 1). `dueAt` = +48 giờ (DEPOSIT, FULL) hoặc +30 ngày (BALANCE). Email `ORDER_PAYMENT_LINK` vào outbox cùng transaction.
+- `paymentUrl` sai hoặc ngoài `paymentAllowedDomains` → `400`, `errors[].field = "paymentUrl"` (quy tắc: SECURITY.md, T8).
+- Tạo yêu cầu **ghi đè** `customer_order.shipping_cents` bằng `shippingCents` của request (kể cả 0). Yêu cầu `PENDING` đã quá `dueAt` vẫn xác nhận được cho tới khi job hết hạn (T-027) đặt `EXPIRED` (chủ đích: tiền thật về muộn vẫn được tính).
+- `POST /api/admin/payment-requests/{id}/confirm` → `200 {id, orderId, type, status:"PAID", orderStatus, confirmedAt}`. `externalRef` 1–100 ký tự, không ký tự điều khiển. Gọi lại với cùng `externalRef` → 200 như cũ, không tác dụng phụ; `externalRef` khác, hoặc đã dùng cho yêu cầu khác cùng `channel` → `409 CONFLICT`; yêu cầu `EXPIRED`/`CANCELLED` hoặc đơn không còn ở trạng thái hợp lệ → `409 INVALID_TRANSITION`. `DEPOSIT` cấp slot hàng đợi cho từng order_item trong cùng transaction; hết slot → `409 QUEUE_FULL`, hoàn tác toàn bộ (yêu cầu vẫn `PENDING`). Client không cần gửi `version`.
+- `POST /api/admin/payment-requests/{id}/cancel` → `200` trả yêu cầu (`status:"CANCELLED"`). `reason` 1–500 ký tự. Chỉ `PENDING → CANCELLED`; đã `CANCELLED` → 200 idempotent; `PAID`/`EXPIRED` → `409 INVALID_TRANSITION`. Không đổi trạng thái đơn.
 
 ### Hàng đợi, dashboard, cài đặt, audit
 | Method | Path | Mô tả |

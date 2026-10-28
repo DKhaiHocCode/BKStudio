@@ -221,7 +221,12 @@ public class CheckoutService {
     }
 
     private static int deposit(boolean mto, int subtotalCents) {
-        return mto ? (int) (((long) subtotalCents + 1) / 2) : 0;
+        return mto ? depositCents(subtotalCents) : 0;
+    }
+
+    /** 50% deposit, rounded up to the next cent. Shared with the payment module so the rule lives in one place. */
+    public static int depositCents(int subtotalCents) {
+        return (int) (((long) subtotalCents + 1) / 2);
     }
 
     private static String blankToNull(String s) {

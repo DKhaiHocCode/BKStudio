@@ -288,7 +288,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Template email HTML hiển thị khác nhau giữa Gmail/Outlook. Từ T-022: checkout chỉ lưu hash của token nên email "Đã nhận đơn" (link `/orders/{token}`) PHẢI được dựng và đưa vào outbox ngay trong transaction checkout (hoặc outbox lưu token mã hoá, hết hạn khi gửi) — gửi lại cùng `Idempotency-Key` trả `orderUrl=null`, nếu khách mất phản hồi đầu thì email là đường duy nhất tới link đơn; payload outbox không được chứa token thô lâu dài.
 
 #### T-025 · Payment requests
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-021, T-023, T-024 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-021, T-023, T-024 · **Status:** done
 - **Phạm vi:** Tạo yêu cầu (kiểm tra tên miền cho phép, `https`), hạn 48 giờ; xác nhận idempotent (bắt buộc mã tham chiếu; cọc → cấp slot; FULL/BALANCE → PAID_IN_FULL); huỷ yêu cầu.
 - **File / module:** backend/.../payment/*
 - **Nghiệm thu:** Bấm xác nhận 2 lần chỉ có 1 hiệu ứng; mã invoice trùng → lỗi rõ ràng; link ngoài danh sách → 400.
