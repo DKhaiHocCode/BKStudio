@@ -33,11 +33,35 @@ public class AuditLogWriter {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void admin(String action, String entityType, long entityId, Map<String, ?> before, Map<String, ?> after) {
+        write("ADMIN", currentAdminId(), action, entityType, entityId, before, after);
+    }
+
+    /** For non-admin actors ({@code SYSTEM} jobs, {@code CUSTOMER}); actor id is recorded only for ADMIN. */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void by(
+            String actor,
+            String action,
+            String entityType,
+            long entityId,
+            Map<String, ?> before,
+            Map<String, ?> after) {
+        write(actor, "ADMIN".equals(actor) ? currentAdminId() : null, action, entityType, entityId, before, after);
+    }
+
+    private void write(
+            String actor,
+            Long actorId,
+            String action,
+            String entityType,
+            long entityId,
+            Map<String, ?> before,
+            Map<String, ?> after) {
         jdbc.update(
                 "INSERT INTO audit_log (occurred_at, actor, actor_id, action, entity_type, entity_id, before, after,"
-                        + " request_id) VALUES (?, 'ADMIN', ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?)",
+                        + " request_id) VALUES (?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?)",
                 OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC),
-                currentAdminId(),
+                actor,
+                actorId,
                 action,
                 entityType,
                 entityId,
