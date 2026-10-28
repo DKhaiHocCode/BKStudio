@@ -63,6 +63,9 @@ jobs:
       - run: npm run typecheck
       - run: npm run format:check
       - run: npm run build
+        env:
+          # Placeholder origin: the build guard in src/lib/site.ts requires one when CI is set.
+          NEXT_PUBLIC_SITE_URL: https://ci.invalid
 
   gitleaks:
     runs-on: ubuntu-latest
