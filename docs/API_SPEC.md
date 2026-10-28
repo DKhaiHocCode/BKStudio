@@ -101,6 +101,15 @@ Response `201`:
 ```
 Rate limit: 5 đơn / IP / giờ. (P1: Cloudflare Turnstile chống bot.)
 
+Chi tiết đã triển khai (T-022):
+- Header bắt buộc `Idempotency-Key: <uuid>` (thiếu/sai → `400 VALIDATION_FAILED`) và CSRF như mọi POST. Response thành công có `Cache-Control: no-store`.
+- Validate: 1–10 dòng, `quantity` 1–5, không trùng `variantId`; `name` ≤120 (khớp CHECK DB), `email` ≤254, `phone` ≤40, `line1/line2` ≤200, `city/region` ≤100, `postalCode` ≤20; `country` chỉ `SG` hoặc `AU`; từ chối ký tự điều khiển, định dạng (bidi override, zero-width) và dấu ngắt dòng/đoạn Unicode (kể cả NUL, xuống dòng, U+2028) ở mọi trường văn bản, email và `acceptedTermsVersion`. Server chỉ `trim` name/email/địa chỉ khi lưu.
+- Giá lấy từ DB. Variant không tồn tại / không active / sản phẩm DRAFT hoặc ARCHIVED → `404 NOT_FOUND`. Hết hàng (IN_STOCK), variant không bật làm theo đơn hoặc hết quota (MADE_TO_ORDER) → `409 OUT_OF_STOCK` (rollback cả đơn). Chưa cấp slot sản xuất ở bước này (T-025).
+- `acceptedTermsVersion` phải bằng bản điều khoản mới nhất, nếu không (hoặc chưa có bản nào) → `409 TERMS_OUTDATED`.
+- `status`: `AWAITING_PAYMENT` (IN_STOCK, `depositCents` = 0) / `AWAITING_DEPOSIT` (MADE_TO_ORDER, `depositCents` = `(subtotalCents + 1) / 2`). `orderUrl` = `${APP_BASE_URL}/orders/{token}`.
+- Idempotency: gửi lại cùng key, cùng `fulfillmentType` và email (không phân biệt hoa thường) → `200` với `{code, status, subtotalCents, depositCents}` và `orderUrl = null` (token chỉ lưu dạng hash nên không khôi phục được). Cùng key nhưng khác `fulfillmentType` hoặc email → `409 CONFLICT`; ngoài hai trường đó nội dung (kể cả `items`) không được so sánh: server trả lại đơn đã lưu. Request song song cùng key được tuần tự hoá, không có 500.
+- Rate limit theo IP (`getRemoteAddr`): mặc định 5 đơn/giờ (`app.checkout.rate-limit-max`, `app.checkout.rate-limit-window`); vượt → `429 RATE_LIMITED` + `Retry-After`. Replay không tiêu hao lượt, nhưng IP đã hết lượt bị chặn ngay ở controller (trước khi mở transaction/DB), kể cả với replay. IPv6 được gom theo prefix /64.
+
 `GET /api/orders/{token}` → trạng thái, sản phẩm, các `paymentRequests` đang mở (`type, amountCents, paymentUrl, dueAt`), tháng sản xuất, vận đơn, lịch sử trạng thái rút gọn. **Không** trả `admin_note`, IP.
 
 ## 3. API admin (`/api/admin/**`, yêu cầu đăng nhập + TOTP)
