@@ -91,7 +91,7 @@ dict(id="T-017", m="M1", t="Chế độ tối (shop + admin)", h=4, deps=["T-014
   test="Kiểm tra thủ công cả 2 chế độ ở 375px/1280px; script tính tương phản.", risk="Chữ đỏ (`red` #D63A1A) chỉ 3.8:1 trên nền tối → cần token chữ nhấn sáng hơn; bóng đổ citrus có thể quá chói."),
 
 # ---------------- M2 Orders, payments, queue ----------------
-dict(id="T-020", m="M2", t="Settings, điều khoản, link MXH", h=3, deps=["T-003"], p="P0", launch=True,
+dict(id="T-020", m="M2", t="Settings, điều khoản, link MXH", h=3, deps=["T-003"], p="P0", launch=True, status="done",
   scope="`app_setting` (sức chứa mặc định, tên miền link cho phép, link MXH…), `terms_document`; `GET /api/terms/current`, `GET /api/site-info`; admin GET/PUT settings, đăng điều khoản mới.",
   files="backend/.../shared/settings/*",
   ac="Đúng API_SPEC.", test="Integration test.", risk="—"),
@@ -119,7 +119,7 @@ dict(id="T-025", m="M2", t="Payment requests", h=5, deps=["T-021", "T-023", "T-0
   scope="Tạo yêu cầu (kiểm tra tên miền cho phép, `https`), hạn 48 giờ; xác nhận idempotent (bắt buộc mã tham chiếu; cọc → cấp slot; FULL/BALANCE → PAID_IN_FULL); huỷ yêu cầu.",
   files="backend/.../payment/*",
   ac="Bấm xác nhận 2 lần chỉ có 1 hiệu ứng; mã invoice trùng → lỗi rõ ràng; link ngoài danh sách → 400.",
-  test="Integration test.", risk="—"),
+  test="Integration test.", risk="Từ T-020: danh sách `payment_allowed_domains` có thể chứa public suffix (vd `com.sg`) nên khi kiểm link BẮT BUỘC parse bằng `java.net.URI`, yêu cầu https, không userinfo/cổng, host khác null, hạ chữ thường rồi so khớp host chính xác (hoặc `endsWith(\".\" + mục)`), không dùng contains/regex lỏng."),
 dict(id="T-026", m="M2", t="Admin API hành động đơn hàng", h=5, deps=["T-025"], p="P0", launch=True,
   scope="Danh sách/lọc/chi tiết (kèm `allowedActions`); start-production, mark-finished (tạo BALANCE), ship, complete, cancel-by-shop (+ trả slot/kho/quota), ghi chú.",
   files="backend/.../order/admin/*",
@@ -148,7 +148,7 @@ dict(id="T-031", m="M3", t="Trang trạng thái đơn + tra cứu", h=4, deps=["
 dict(id="T-032", m="M3", t="Trang tĩnh: Commission, Policy, FAQ", h=3, deps=["T-014", "T-020"], p="P0", launch=True,
   scope="Trang Commission (quy trình + link Reddit/FB/Instagram/X), Terms/Policy (lấy từ API), FAQ, footer có link MXH, trang Privacy.",
   files="frontend/app/(shop)/commission, policy, faq",
-  ac="Link MXH lấy từ settings, đổi trong admin là đổi trên web.", test="Kiểm tra thủ công.", risk="Nội dung điều khoản do chủ shop viết (O-2)."),
+  ac="Link MXH lấy từ settings, đổi trong admin là đổi trên web.", test="Kiểm tra thủ công.", risk="Nội dung điều khoản do chủ shop viết (O-2). Từ T-020: `contentMd` trả về markdown thô → bắt buộc dùng bộ render markdown có lọc (không HTML thô, không link `javascript:`, `rel=\"noopener noreferrer\"`), cấm `dangerouslySetInnerHTML` trên đầu ra thô."),
 dict(id="T-033", m="M3", t="Admin UI đơn hàng", h=8, deps=["T-015", "T-026"], p="P0", launch=True,
   scope="Danh sách + lọc + tìm; chi tiết đơn với lịch sử audit; nút hành động theo `allowedActions`; form tạo yêu cầu thanh toán, xác nhận (nhập mã), gửi hàng.",
   files="frontend/app/admin/orders/*",
