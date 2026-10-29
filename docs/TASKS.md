@@ -9,14 +9,14 @@
 |---|---|---|
 | M0 — Setup | 20 | T-001, T-002, T-003, T-004, T-005, T-007 |
 | M1 — Catalog & đăng nhập admin | 52 | T-006, T-010, T-011, T-012, T-013, T-014, T-015, T-016, T-017 |
-| M2 — Đơn hàng, thanh toán, hàng đợi | 42 | T-020, T-021, T-022, T-023, T-024, T-025, T-026, T-027, T-028 |
+| M2 — Đơn hàng, thanh toán, hàng đợi | 50 | T-020, T-021, T-022, T-023, T-024, T-025, T-026, T-027, T-028, T-029 |
 | M3 — Giao diện khách & admin | 31 | T-030, T-031, T-032, T-033, T-034, T-035 |
 | M4 — Bảo mật, deploy, launch | 30 | T-040, T-041, T-042, T-043, T-044, T-045, T-046 |
 | M5 — Làm ngay sau launch | 3 | T-050, T-051 |
 | P1 — Chỉ làm nếu còn thời gian | 13 | T-060, T-061, T-062, T-063 |
-| **Cần để launch** | **170** | M0–M4 |
+| **Cần để launch** | **178** | M0–M4 |
 
-**Critical path** (chuỗi phụ thuộc dài nhất, 66 giờ): T-001 → T-002 → T-003 → T-010 → T-022 → T-023 → T-025 → T-026 → T-033 → T-034 → T-035 → T-041 → T-046
+**Critical path** (chuỗi phụ thuộc dài nhất, 74 giờ): T-001 → T-002 → T-003 → T-010 → T-022 → T-023 → T-025 → T-026 → T-029 → T-033 → T-034 → T-035 → T-041 → T-046
 
 ## Sơ đồ phụ thuộc (task cần để launch)
 
@@ -44,6 +44,7 @@ flowchart LR
   T026["T-026<br/>Admin API hành động đơn hàng<br/>5h"]
   T027["T-027<br/>Job hết hạn / nhắc hạn / mất cọc<br/>4h"]
   T028["T-028<br/>API đơn hàng phía khách<br/>3h"]
+  T029["T-029<br/>Tiến trình sản xuất cho khách (backend)<br/>8h"]
   T030["T-030<br/>Giỏ hàng + checkout (frontend)<br/>7h"]
   T031["T-031<br/>Trang trạng thái đơn + tra cứu<br/>4h"]
   T032["T-032<br/>Trang tĩnh: Commission, Policy, FAQ<br/>3h"]
@@ -89,14 +90,19 @@ flowchart LR
   T026 --> T027
   T023 --> T028
   T024 --> T028
+  T011 --> T029
+  T026 --> T029
+  T028 --> T029
   T014 --> T030
   T022 --> T030
   T028 --> T031
+  T029 --> T031
   T030 --> T031
   T014 --> T032
   T020 --> T032
   T015 --> T033
   T026 --> T033
+  T029 --> T033
   T033 --> T034
   T027 --> T034
   T031 --> T035
@@ -115,7 +121,7 @@ flowchart LR
   T044 --> T046
   T045 --> T046
   classDef crit fill:#fde68a,stroke:#b45309,color:#111
-  class T001,T002,T003,T010,T022,T023,T025,T026,T033,T034,T035,T041,T046 crit
+  class T001,T002,T003,T010,T022,T023,T025,T026,T029,T033,T034,T035,T041,T046 crit
 ```
 Ô màu vàng = critical path. Vì chỉ có 1 người làm, các task **không** chạy song song thật sự; "song song được" nghĩa là **đổi thứ tự thoải mái** (vd đang kẹt backend thì chuyển sang task frontend không phụ thuộc).
 
@@ -305,7 +311,7 @@ flowchart LR
 
 #### T-027 · Job hết hạn / nhắc hạn / mất cọc
 - **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-026 · **Status:** todo
-- **Phạm vi:** Hết hạn thanh toán (nhả kho/quota/huỷ đơn), nhắc trả nốt 7 ngày & 1 ngày, FORFEITED sau 30 ngày; mỗi đơn 1 transaction; chạy lại an toàn.
+- **Phạm vi:** Hết hạn thanh toán (nhả kho/quota/huỷ đơn), nhắc trả nốt 7 ngày & 1 ngày, FORFEITED sau 30 ngày; mỗi đơn 1 transaction; chạy lại an toàn. Thêm endpoint `forfeited-to-stock` (stock_qty + 1, chống cộng 2 lần) chuyển từ T-026.
 - **File / module:** backend/.../order/jobs/*
 - **Nghiệm thu:** Chạy job 2 lần liên tiếp không tạo thay đổi/email trùng.
 - **Test:** Integration test với đồng hồ giả (`Clock` inject được).
@@ -319,6 +325,14 @@ flowchart LR
 - **Test:** Integration test.
 - **Rủi ro / câu hỏi:** —
 
+#### T-029 · Tiến trình sản xuất cho khách (backend)
+- **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-011, T-026, T-028 · **Status:** todo
+- **Phạm vi:** Chỉ đơn MADE_TO_ORDER. 6 giai đoạn: Chờ phê duyệt (AWAITING_DEPOSIT) → Tiếp nhận cọc (QUEUED) → Phôi thô → Xử lý phôi → Sơn (3 giai đoạn này nằm trong IN_PRODUCTION, admin duyệt từng cái) → Hoàn thiện sản phẩm (AWAITING_BALANCE, qua `mark-finished`). Migration bảng `order_progress` + `order_progress_image` (mỗi giai đoạn có dòng giải thích ngắn do server cấp sẵn, vd phôi thô = "Hoàn tất việc in 3D, chưa tiền xử lý", và tối đa 5 ảnh WIP, tái dùng `ImageService`). `POST /api/admin/orders/{id}/progress/{stage}` (duyệt giai đoạn theo thứ tự, không nhảy cóc, idempotent, kèm ảnh + ghi chú tuỳ chọn) và `GET /api/orders/{token}/progress` cho khách. Mỗi lần duyệt xếp email `ORDER_PROGRESS` (chỉ chứa link `/orders/{token}`, không đính ảnh) vào outbox trong cùng transaction.
+- **File / module:** backend/.../order/progress/*, db/migration/V*__order_progress.sql
+- **Nghiệm thu:** Duyệt giai đoạn sai thứ tự → 409; duyệt 2 lần chỉ 1 email; ảnh >5 → 400; đơn IN_STOCK → 409; khách chỉ thấy tiến trình của đơn mình (token sai → 404).
+- **Test:** Integration test (kể cả song song 2 admin duyệt cùng giai đoạn).
+- **Rủi ro / câu hỏi:** Ảnh WIP dùng khoá UUID không đoán được trong bucket công khai; Khai đã chốt (2026-10-29) ảnh chỉ chụp figure, không chứa thông tin khách nên chấp nhận — nhắc admin không chụp kèm thông tin khách (tên, địa chỉ, phiếu gửi). Luật cũ giữ nguyên: huỷ từ QUEUED trở đi không hoàn cọc — khách cần thấy cảnh báo này (T-031).
+
 ### M3 — Giao diện khách & admin
 
 #### T-030 · Giỏ hàng + checkout (frontend)
@@ -330,8 +344,8 @@ flowchart LR
 - **Rủi ro / câu hỏi:** —
 
 #### T-031 · Trang trạng thái đơn + tra cứu
-- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-028, T-030 · **Status:** todo
-- **Phạm vi:** Trang `/orders/{token}`: trạng thái, link thanh toán đang mở, tháng sản xuất, vận đơn, nút huỷ; trang tra cứu bằng mã + email.
+- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-028, T-029, T-030 · **Status:** todo
+- **Phạm vi:** Trang `/orders/{token}`: trạng thái, link thanh toán đang mở, tháng sản xuất, vận đơn, nút huỷ; trang tra cứu bằng mã + email. Đơn làm theo đơn hiển thị thanh tiến trình 6 ô nối nhau (T-029); bấm ô xem ảnh WIP + dòng giải thích.
 - **File / module:** frontend/app/(shop)/orders/*
 - **Nghiệm thu:** Khách thấy đúng link thanh toán và hạn; huỷ ở QUEUED có hộp xác nhận mất cọc.
 - **Test:** E2E ở T-041.
@@ -346,8 +360,8 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Nội dung điều khoản do chủ shop viết (O-2). Từ T-020: `contentMd` trả về markdown thô → bắt buộc dùng bộ render markdown có lọc (không HTML thô, không link `javascript:`, `rel="noopener noreferrer"`), cấm `dangerouslySetInnerHTML` trên đầu ra thô.
 
 #### T-033 · Admin UI đơn hàng
-- **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-015, T-026 · **Status:** todo
-- **Phạm vi:** Danh sách + lọc + tìm; chi tiết đơn với lịch sử audit; nút hành động theo `allowedActions`; form tạo yêu cầu thanh toán, xác nhận (nhập mã), gửi hàng.
+- **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-015, T-026, T-029 · **Status:** todo
+- **Phạm vi:** Danh sách + lọc + tìm; chi tiết đơn với lịch sử audit; nút hành động theo `allowedActions`; form tạo yêu cầu thanh toán, xác nhận (nhập mã), gửi hàng, duyệt giai đoạn tiến trình kèm tải ảnh (T-029).
 - **File / module:** frontend/app/admin/orders/*
 - **Nghiệm thu:** Đi hết vòng đời 1 đơn làm theo đơn chỉ bằng UI admin.
 - **Test:** E2E ở T-041.

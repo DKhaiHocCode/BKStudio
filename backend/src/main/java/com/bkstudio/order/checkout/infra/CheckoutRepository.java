@@ -114,6 +114,26 @@ public class CheckoutRepository {
                 qty);
     }
 
+    /** Gives back stock taken by checkout (cancelled order). */
+    public void restoreStock(long variantId, int qty, Instant now) {
+        jdbc.update(
+                "UPDATE product_variant SET stock_qty = stock_qty + ?, version = version + 1, updated_at = ?"
+                        + " WHERE id = ?",
+                qty,
+                utc(now),
+                variantId);
+    }
+
+    /** Gives back quota taken by checkout; unlimited (NULL quota) variants are left alone. */
+    public void restoreQuota(long variantId, int qty, Instant now) {
+        jdbc.update(
+                "UPDATE product_variant SET made_to_order_quota = made_to_order_quota + ?, version = version + 1,"
+                        + " updated_at = ? WHERE id = ? AND made_to_order_quota IS NOT NULL",
+                qty,
+                utc(now),
+                variantId);
+    }
+
     /** Empty when the public code is taken (ON CONFLICT on that one constraint only; any other conflict throws). */
     public Optional<Long> insertOrder(NewOrder o) {
         return jdbc

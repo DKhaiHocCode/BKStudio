@@ -37,7 +37,11 @@ public class OrderStateMachine {
     }
 
     /** Optional extra data; all fields nullable. Never written to the audit log or the outbox. */
-    public record Details(String trackingNumber, String cancelReason) {}
+    public record Details(String trackingNumber, String carrier, String cancelReason) {
+        public Details(String trackingNumber, String cancelReason) {
+            this(trackingNumber, null, cancelReason);
+        }
+    }
 
     public OrderStatus transition(long orderId, OrderAction action, int expectedVersion, OrderActor actor) {
         return transition(orderId, action, expectedVersion, actor, new Details(null, null));
@@ -79,6 +83,14 @@ public class OrderStateMachine {
                         "trackingNumber is required (max 100 characters, no control characters).");
             }
         }
+        String carrier = null;
+        if (action == OrderAction.SHIP && details != null && details.carrier() != null) {
+            carrier = details.carrier().trim();
+            if (carrier.isEmpty() || carrier.length() > 50 || hasControlChar(carrier)) {
+                throw new ApiException(
+                        ErrorCode.BAD_REQUEST, "carrier is invalid (max 50 characters, no control characters).");
+            }
+        }
         String reason = null;
         if (next.name().startsWith("CANCELLED") || next == OrderStatus.FORFEITED) {
             String r = details == null || details.cancelReason() == null
@@ -94,6 +106,7 @@ public class OrderStateMachine {
         int updated = jdbc.update(
                 "UPDATE customer_order SET status = ?, version = version + 1, updated_at = ?,"
                         + " tracking_number = COALESCE(?, tracking_number),"
+                        + " carrier = COALESCE(?, carrier),"
                         + " shipped_at = COALESCE(?::timestamptz, shipped_at),"
                         + " completed_at = COALESCE(?::timestamptz, completed_at),"
                         + " cancel_reason = COALESCE(?, cancel_reason)"
@@ -101,6 +114,7 @@ public class OrderStateMachine {
                 next.name(),
                 now,
                 tracking,
+                carrier,
                 action == OrderAction.SHIP ? now : null,
                 action == OrderAction.COMPLETE ? now : null,
                 reason,

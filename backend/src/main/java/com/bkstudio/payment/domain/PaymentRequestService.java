@@ -288,6 +288,50 @@ public class PaymentRequestService {
         return view(r.id());
     }
 
+    /**
+     * Cancels every PENDING request of an order (shop cancels the order). Locks all the order's requests in id order
+     * first, so callers must not hold the order row lock yet (lock order: payment_request, then customer_order).
+     * Returns how many were cancelled; no email.
+     */
+    public int cancelPendingForOrder(long orderId) {
+        List<long[]> locked = jdbc.query(
+                "SELECT id, status = 'PENDING' FROM payment_request WHERE order_id = ? ORDER BY id FOR UPDATE",
+                (rs, i) -> new long[] {rs.getLong(1), rs.getBoolean(2) ? 1 : 0},
+                orderId);
+        List<Long> ids = locked.stream().filter(r -> r[1] == 1).map(r -> r[0]).toList();
+        if (ids.isEmpty()) {
+            return 0;
+        }
+        jdbc.update(
+                "UPDATE payment_request SET status = 'CANCELLED', version = version + 1"
+                        + " WHERE order_id = ? AND status = 'PENDING'",
+                orderId);
+        audit.admin(
+                "PAYMENT_REQUESTS_CANCELLED_WITH_ORDER",
+                "CUSTOMER_ORDER",
+                orderId,
+                Map.of("status", "PENDING"),
+                Map.of("status", "CANCELLED", "requestIds", ids));
+        return ids.size();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentRequestView> listForOrder(long orderId) {
+        return jdbc.query(
+                "SELECT id, order_id, type, amount_cents, channel, payment_url, status, due_at FROM payment_request"
+                        + " WHERE order_id = ? ORDER BY id",
+                (rs, i) -> new PaymentRequestView(
+                        rs.getLong(1),
+                        rs.getLong(2),
+                        PaymentType.valueOf(rs.getString(3)),
+                        rs.getInt(4),
+                        PaymentChannel.valueOf(rs.getString(5)),
+                        rs.getString(6),
+                        rs.getString(7),
+                        rs.getTimestamp(8).toInstant()),
+                orderId);
+    }
+
     private RequestRow lockRequest(long id) {
         List<RequestRow> rows = jdbc.query(
                 "SELECT id, order_id, type, channel, status, external_ref, confirmed_at FROM payment_request"
