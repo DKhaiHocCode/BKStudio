@@ -477,11 +477,14 @@ class AdminOrderApiIT extends AdminOrderTestBase {
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
         assertThat(stock()).isEqualTo(5);
         assertThat(requestStatus(req)).isEqualTo("CANCELLED");
-        assertThat(auditAfter("ORDER_CANCELLED_BY_SHOP", id)).doesNotContain("ignored");
+        assertThat(auditAfter("ORDER_CANCELLED_BY_SHOP", id))
+                .doesNotContain("ignored")
+                .doesNotContain("out of stock")
+                .contains("\"reasonLength\": 12");
     }
 
     @Test
-    void cancelQueuedMto_needsRefundRef_restoresQuota() throws Exception {
+    void cancelQueuedMto_needsRefundRef_doesNotRestoreQuota() throws Exception {
         long id = order("MADE_TO_ORDER", "QUEUED", 2);
         jdbc.update("UPDATE product_variant SET made_to_order_quota = 1 WHERE id = ?", variant);
         expectField(act(id, "cancel-by-shop", "version", 0, "reason", "sorry"), "refundRef");
@@ -491,7 +494,7 @@ class AdminOrderApiIT extends AdminOrderTestBase {
         act(id, "cancel-by-shop", "version", 0, "reason", "sorry", "refundRef", "RF-1")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CANCELLED_REFUNDED"));
-        assertThat(quota(variant)).isEqualTo(3);
+        assertThat(quota(variant)).isEqualTo(1); // refund cancel: quota is adjusted by hand
         assertThat(auditAfter("ORDER_CANCELLED_BY_SHOP", id)).contains("RF-1");
     }
 
@@ -617,33 +620,43 @@ class AdminOrderApiIT extends AdminOrderTestBase {
 
     @Test
     void cancelInStock_restoresStock_andBumpsVariantVersion() throws Exception {
-        long id = order("IN_STOCK", "PAID_IN_FULL", 2);
+        long id = order("IN_STOCK", "AWAITING_PAYMENT", 2);
         jdbc.update("UPDATE product_variant SET stock_qty = 1 WHERE id = ?", variant);
         int versionBefore = variantVersion(variant);
-        act(id, "cancel-by-shop", "version", 0, "reason", "r", "refundRef", "RF")
-                .andExpect(status().isOk());
+        act(id, "cancel-by-shop", "version", 0, "reason", "r").andExpect(status().isOk());
         assertThat(stock()).isEqualTo(3);
         assertThat(variantVersion(variant)).isEqualTo(versionBefore + 1);
         assertThat(quota(variant)).isEqualTo(3); // in-stock orders never touch quota
     }
 
     @Test
-    void cancelInStock_itemsSharingOneVariant_restoreTheSum() throws Exception {
+    void refundCancelInStockPaidInFull_leavesStockAndVariantUnchanged() throws Exception {
         long id = order("IN_STOCK", "PAID_IN_FULL", 2);
+        jdbc.update("UPDATE product_variant SET stock_qty = 1 WHERE id = ?", variant);
+        int versionBefore = variantVersion(variant);
+        act(id, "cancel-by-shop", "version", 0, "reason", "r", "refundRef", "RF")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED_REFUNDED"));
+        assertThat(stock()).isEqualTo(1);
+        assertThat(variantVersion(variant)).isEqualTo(versionBefore);
+        assertThat(quota(variant)).isEqualTo(3);
+    }
+
+    @Test
+    void cancelInStock_itemsSharingOneVariant_restoreTheSum() throws Exception {
+        long id = order("IN_STOCK", "AWAITING_PAYMENT", 2);
         addItem(id, variant, 3);
         jdbc.update("UPDATE product_variant SET stock_qty = 0 WHERE id = ?", variant);
-        act(id, "cancel-by-shop", "version", 0, "reason", "r", "refundRef", "RF")
-                .andExpect(status().isOk());
+        act(id, "cancel-by-shop", "version", 0, "reason", "r").andExpect(status().isOk());
         assertThat(stock()).isEqualTo(5);
     }
 
     @Test
     void cancelInStock_itemsOnDifferentVariants_restoreEachOwn() throws Exception {
         long other = newVariant(1, null);
-        long id = order("IN_STOCK", "PAID_IN_FULL", 2);
+        long id = order("IN_STOCK", "AWAITING_PAYMENT", 2);
         addItem(id, other, 4);
-        act(id, "cancel-by-shop", "version", 0, "reason", "r", "refundRef", "RF")
-                .andExpect(status().isOk());
+        act(id, "cancel-by-shop", "version", 0, "reason", "r").andExpect(status().isOk());
         assertThat(stock(variant)).isEqualTo(7);
         assertThat(stock(other)).isEqualTo(5);
     }
@@ -698,7 +711,7 @@ class AdminOrderApiIT extends AdminOrderTestBase {
         assertThat(openEntries()).isZero();
         assertThat(count("SELECT count(*) FROM queue_entry WHERE status = 'CANCELLED'"))
                 .isEqualTo(5);
-        assertThat(quota(variant)).isEqualTo(3 + 5);
+        assertThat(quota(variant)).isEqualTo(3); // refund cancel: slots released, quota left for manual adjustment
     }
 
     private List<Integer> allocations() {
@@ -775,6 +788,9 @@ class AdminOrderApiIT extends AdminOrderTestBase {
                 .andExpect(jsonPath("$.adminNote").value("call buyer"));
         assertThat(version(id)).isEqualTo(v);
         assertThat(auditCount("ORDER_NOTE_UPDATED", id)).isEqualTo(1);
+        assertThat(auditAfter("ORDER_NOTE_UPDATED", id))
+                .doesNotContain("call buyer")
+                .contains("\"noteLength\": 10");
         expectProblem(note(UNKNOWN_ID, "x"), 404, "NOT_FOUND");
     }
 

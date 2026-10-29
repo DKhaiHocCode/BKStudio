@@ -74,7 +74,7 @@ sequenceDiagram
 ```
 - Sau khi khách đặt: **hoàn toàn giống hàng làm theo đơn** (cọc 50% → slot → làm → trả nốt → ship). Không cần code luồng riêng.
 - Sản phẩm `UNLISTED`: không hiện trong danh sách, tìm kiếm, sitemap; trang có `noindex`. Slug tự gắn hậu tố ngẫu nhiên để khó đoán.
-- `made_to_order_quota = 1` → khi khách đặt, quota về 0, người khác mở link sẽ thấy "Đã có người đặt". Đơn bị huỷ/hết hạn trước khi cọc → quota +1 trở lại.
+- `made_to_order_quota = 1` → khi khách đặt, quota về 0, người khác mở link sẽ thấy "Đã có người đặt". Đơn bị huỷ/hết hạn trước khi cọc → quota +1 trở lại. Đơn đã thanh toán bị shop huỷ kèm hoàn tiền (`CANCELLED_REFUNDED`) → quota và `stock_qty` **không** tự cộng lại (admin tự chỉnh); slot sản xuất vẫn được nhả.
 - Làm xong, admin có thể chuyển sản phẩm sang `ACTIVE` để khoe trong catalog (bỏ quota hoặc đặt quota mới), hoặc `ARCHIVED`.
 - Q10: commission chiếm slot như hàng làm theo đơn (mặc định).
 
@@ -111,7 +111,7 @@ sequenceDiagram
 - Admin giảm `capacity` của 1 tháng: không được nhỏ hơn `allocated` (DB chặn). Muốn dời đơn sang tháng sau → thao tác "Dời slot" riêng (P1).
 
 ## 5. Trả nốt, nhắc hạn, mất cọc
-1. Admin bấm "Hoàn thiện" (`IN_PRODUCTION → AWAITING_BALANCE`) và tạo yêu cầu `BALANCE` (50% + phí ship nếu kênh Artistree), `due_at = now + 30 ngày`.
+1. Admin bấm "Hoàn thiện" (`IN_PRODUCTION → AWAITING_BALANCE`; **không** tự tạo yêu cầu thanh toán), rồi tạo yêu cầu `BALANCE` qua `POST /orders/{id}/payment-requests` (50% + phí ship nếu kênh Artistree), `due_at = now + 30 ngày`.
 2. Email báo hoàn thiện kèm ảnh + link trả nốt.
 3. Job nhắc: **7 ngày** và **1 ngày** trước hạn (`dedupe_key` đảm bảo mỗi mốc gửi đúng 1 lần).
 4. Quá hạn → `FORFEITED`, email thông báo. Admin có nút **"Chuyển thành hàng sẵn"** → `stock_qty + 1` cho biến thể đó.

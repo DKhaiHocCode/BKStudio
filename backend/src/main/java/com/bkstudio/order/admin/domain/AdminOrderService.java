@@ -260,11 +260,11 @@ public class AdminOrderService {
                 version,
                 OrderActor.ADMIN,
                 new Details(null, null, reason));
-        releaseReservations(id, head.type());
+        releaseReservations(id, head.type(), refund);
 
         Map<String, Object> after = new HashMap<>();
         after.put("status", next.name());
-        after.put("reason", reason);
+        after.put("reasonLength", reason.length()); // audit never stores free text
         after.put("cancelledPaymentRequests", cancelledRequests);
         if (refundRef != null) {
             after.put("refundRef", refundRef); // audit only, never in a public DTO
@@ -278,8 +278,11 @@ public class AdminOrderService {
         return new ActionResult(id, next.name(), version + 1);
     }
 
-    /** Gives back what checkout took: stock (IN_STOCK) or quota (MADE_TO_ORDER) plus any production slots. */
-    private void releaseReservations(long orderId, FulfillmentType type) {
+    /**
+     * Gives back what checkout took. Production slots are always released. Stock (IN_STOCK) and quota
+     * (MADE_TO_ORDER) are restored only for a non-refund cancel; after a refund the admin adjusts them by hand.
+     */
+    private void releaseReservations(long orderId, FulfillmentType type, boolean refund) {
         Instant now = clock.instant();
         List<StockItem> items = jdbc.query(
                 "SELECT id, variant_id, quantity FROM order_item WHERE order_id = ? ORDER BY variant_id, id",
@@ -287,10 +290,16 @@ public class AdminOrderService {
                 orderId);
         for (StockItem item : items) {
             if (type == FulfillmentType.IN_STOCK) {
-                checkoutRepo.restoreStock(item.variantId(), item.quantity(), now);
+                // refund: a paid item may be damaged, so stock is not auto-restored
+                if (!refund) {
+                    checkoutRepo.restoreStock(item.variantId(), item.quantity(), now);
+                }
             } else {
                 queue.release(item.id()); // no entries before the deposit is confirmed: a no-op then
-                checkoutRepo.restoreQuota(item.variantId(), item.quantity(), now);
+                // refund: an unmakeable commission must not reopen for sale
+                if (!refund) {
+                    checkoutRepo.restoreQuota(item.variantId(), item.quantity(), now);
+                }
             }
         }
     }
@@ -310,7 +319,12 @@ public class AdminOrderService {
         if (updated == 0) {
             throw notFound();
         }
-        audit.admin("ORDER_NOTE_UPDATED", "ORDER", id, null, value == null ? Map.of() : Map.of("adminNote", value));
+        audit.admin(
+                "ORDER_NOTE_UPDATED",
+                "ORDER",
+                id,
+                null,
+                value == null ? Map.of() : Map.of("noteLength", value.length()));
         return new NoteView(id, value);
     }
 
