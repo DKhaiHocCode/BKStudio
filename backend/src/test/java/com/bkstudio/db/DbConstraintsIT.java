@@ -351,6 +351,33 @@ class DbConstraintsIT extends AbstractPostgresTest {
                 () -> jdbc.update("INSERT INTO admin_user(email, password_hash) VALUES ('a@X.com', 'hash')"));
     }
 
+    @Test
+    @DisplayName("extra-d restockedAt_onNonForfeitedOrder_isBlocked")
+    void restockedAt_onNonForfeitedOrder_isBlocked() {
+        long id = order("MADE_TO_ORDER", "CANCELLED_DEPOSIT_KEPT", UUID.randomUUID());
+
+        assertViolation(
+                CHECK_VIOLATION,
+                "chk_order_restocked_only_forfeited",
+                () -> jdbc.update("UPDATE customer_order SET restocked_at = now() WHERE id = ?", id));
+    }
+
+    @Test
+    @DisplayName("extra-e restockForfeitedOrder_twice_secondUpdateAffectsZeroRows")
+    void restockForfeitedOrder_twice_secondUpdateAffectsZeroRows() {
+        long id = order("MADE_TO_ORDER", "FORFEITED", UUID.randomUUID());
+        String restock = "UPDATE customer_order SET restocked_at = ? "
+                + "WHERE id = ? AND restocked_at IS NULL AND status = 'FORFEITED'";
+
+        assertThat(jdbc.update(restock, ts(T0), id)).isEqualTo(1);
+        assertThat(jdbc.update(restock, ts(T0), id)).isZero();
+        // leaving FORFEITED with restocked_at set is blocked too
+        assertViolation(
+                CHECK_VIOLATION,
+                "chk_order_restocked_only_forfeited",
+                () -> jdbc.update("UPDATE customer_order SET status = 'CANCELLED_DEPOSIT_KEPT' WHERE id = ?", id));
+    }
+
     // ---------------------------------------------------------------- helpers
 
     /** Slot allocation as in DATABASE.md section 4: lock the first month with room, skipping locked ones. */

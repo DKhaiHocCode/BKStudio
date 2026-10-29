@@ -16,7 +16,6 @@ import com.bkstudio.order.state.OrderStateMachine.Details;
 import com.bkstudio.order.state.OrderStatus;
 import com.bkstudio.order.state.OrderTransitions;
 import com.bkstudio.payment.domain.PaymentRequestService;
-import com.bkstudio.queue.domain.QueueService;
 import com.bkstudio.shared.audit.AuditLogWriter;
 import com.bkstudio.shared.web.ApiException;
 import com.bkstudio.shared.web.ErrorCode;
@@ -50,13 +49,15 @@ public class AdminOrderService {
 
     private record OrderHead(FulfillmentType type, OrderStatus status) {}
 
-    private record StockItem(long id, long variantId, int quantity) {}
+    private record ForfeitRow(int version, String status, String type, boolean restocked) {}
+
+    private record StockLine(long variantId, int quantity) {}
 
     private final JdbcTemplate jdbc;
     private final Clock clock;
     private final OrderStateMachine machine;
     private final PaymentRequestService payments;
-    private final QueueService queue;
+    private final OrderReservations reservations;
     private final CheckoutRepository checkoutRepo;
     private final AuditLogWriter audit;
 
@@ -65,14 +66,14 @@ public class AdminOrderService {
             Clock clock,
             OrderStateMachine machine,
             PaymentRequestService payments,
-            QueueService queue,
+            OrderReservations reservations,
             CheckoutRepository checkoutRepo,
             AuditLogWriter audit) {
         this.jdbc = jdbc;
         this.clock = clock;
         this.machine = machine;
         this.payments = payments;
-        this.queue = queue;
+        this.reservations = reservations;
         this.checkoutRepo = checkoutRepo;
         this.audit = audit;
     }
@@ -260,7 +261,8 @@ public class AdminOrderService {
                 version,
                 OrderActor.ADMIN,
                 new Details(null, null, reason));
-        releaseReservations(id, head.type(), refund);
+        // refund: a paid item may be damaged / an unmakeable commission must not reopen, so no restore
+        reservations.release(id, head.type(), !refund);
 
         Map<String, Object> after = new HashMap<>();
         after.put("status", next.name());
@@ -279,29 +281,58 @@ public class AdminOrderService {
     }
 
     /**
-     * Gives back what checkout took. Production slots are always released. Stock (IN_STOCK) and quota
-     * (MADE_TO_ORDER) are restored only for a non-refund cancel; after a refund the admin adjusts them by hand.
+     * Puts a forfeited made-to-order figure back on sale, at most once (restocked_at guards against a double add).
+     * Bumps the order version so a second admin tab with the old version gets VERSION_CONFLICT.
      */
-    private void releaseReservations(long orderId, FulfillmentType type, boolean refund) {
+    public ActionResult forfeitedToStock(long id, int version) {
+        List<ForfeitRow> rows = jdbc.query(
+                "SELECT version, status, fulfillment_type, restocked_at FROM customer_order WHERE id = ? FOR UPDATE",
+                (rs, i) -> new ForfeitRow(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getTimestamp(4) != null),
+                id);
+        if (rows.isEmpty()) {
+            throw notFound();
+        }
+        ForfeitRow o = rows.get(0);
+        if (!OrderStatus.FORFEITED.name().equals(o.status())
+                || !FulfillmentType.MADE_TO_ORDER.name().equals(o.type())) {
+            throw new ApiException(
+                    ErrorCode.INVALID_TRANSITION, "Only a forfeited made-to-order order can go back to stock.");
+        }
+        if (o.restocked()) {
+            throw new ApiException(ErrorCode.CONFLICT, "This order was already put back to stock.");
+        }
+        if (o.version() != version) {
+            throw new ApiException(ErrorCode.VERSION_CONFLICT, "Order was modified by someone else.");
+        }
         Instant now = clock.instant();
-        List<StockItem> items = jdbc.query(
-                "SELECT id, variant_id, quantity FROM order_item WHERE order_id = ? ORDER BY variant_id, id",
-                (rs, i) -> new StockItem(rs.getLong(1), rs.getLong(2), rs.getInt(3)),
-                orderId);
-        for (StockItem item : items) {
-            if (type == FulfillmentType.IN_STOCK) {
-                // refund: a paid item may be damaged, so stock is not auto-restored
-                if (!refund) {
-                    checkoutRepo.restoreStock(item.variantId(), item.quantity(), now);
-                }
-            } else {
-                queue.release(item.id()); // no entries before the deposit is confirmed: a no-op then
-                // refund: an unmakeable commission must not reopen for sale
-                if (!refund) {
-                    checkoutRepo.restoreQuota(item.variantId(), item.quantity(), now);
-                }
+        // The row is locked above, so this always hits one row; the guard is a second line of defence.
+        int updated = jdbc.update(
+                "UPDATE customer_order SET restocked_at = ?, updated_at = ?, version = version + 1"
+                        + " WHERE id = ? AND restocked_at IS NULL AND status = 'FORFEITED'",
+                Timestamp.from(now),
+                Timestamp.from(now),
+                id);
+        if (updated != 1) {
+            throw new ApiException(ErrorCode.CONFLICT, "This order was already put back to stock.");
+        }
+        List<StockLine> lines = jdbc.query(
+                "SELECT variant_id, quantity FROM order_item WHERE order_id = ? ORDER BY variant_id, id",
+                (rs, i) -> new StockLine(rs.getLong(1), rs.getInt(2)),
+                id);
+        for (StockLine l : lines) {
+            // Defensive: fk_order_item_variant makes a missing row impossible today. Throwing rolls back the whole
+            // transaction, so restocked_at does not stay set.
+            if (checkoutRepo.restoreStock(l.variantId(), l.quantity(), now) != 1) {
+                throw new ApiException(ErrorCode.CONFLICT, "A variant of this order no longer exists.");
             }
         }
+        audit.admin(
+                "ORDER_FORFEITED_TO_STOCK",
+                "ORDER",
+                id,
+                Map.of("status", "FORFEITED"),
+                Map.of("itemCount", lines.size()));
+        return new ActionResult(id, OrderStatus.FORFEITED.name(), version + 1);
     }
 
     public NoteView updateNote(long id, String noteRaw) {

@@ -167,7 +167,7 @@ Chi tiết đã triển khai (T-013):
 | POST | `/api/admin/orders/{id}/ship` | `{version, carrier, trackingNumber}` | `PAID_IN_FULL → SHIPPED` |
 | POST | `/api/admin/orders/{id}/complete` | `{version}` | `SHIPPED → COMPLETED` |
 | POST | `/api/admin/orders/{id}/cancel-by-shop` | `{version, reason, refundRef?}` | `→ CANCELLED / CANCELLED_REFUNDED` |
-| POST | `/api/admin/orders/{id}/forfeited-to-stock` | — | `stock_qty + 1` cho biến thể |
+| POST | `/api/admin/orders/{id}/forfeited-to-stock` | `{version}` | `FORFEITED` giữ nguyên; `stock_qty + quantity` cho từng biến thể (1 lần duy nhất) |
 | PATCH | `/api/admin/orders/{id}/note` | `{adminNote}` | — |
 
 `confirm` gọi 2 lần → lần 2 trả `200` với trạng thái hiện tại (idempotent), không tạo thay đổi mới.
@@ -189,8 +189,12 @@ Chi tiết đã triển khai (T-013):
   - `ship {version, carrier, trackingNumber}`: `PAID_IN_FULL → SHIPPED`; `carrier` 1–50, `trackingNumber` 1–100 ký tự, không ký tự điều khiển (sai → `400`, `errors[].field`).
   - `complete {version}`: `SHIPPED → COMPLETED`.
   - `cancel-by-shop {version, reason, refundRef?}`: `reason` 1–500 ký tự. `AWAITING_DEPOSIT`/`AWAITING_PAYMENT → CANCELLED` (`refundRef` bị bỏ qua). `QUEUED`/`IN_PRODUCTION` (làm theo đơn) và `PAID_IN_FULL` (hàng có sẵn) `→ CANCELLED_REFUNDED`, **bắt buộc** `refundRef` 1–100 ký tự (thiếu → `400`, `errors[].field = "refundRef"`). Trạng thái khác (kể cả `PAID_IN_FULL` làm theo đơn) → `409 INVALID_TRANSITION`. `CANCEL_KEEP_DEPOSIT` không dùng ở đây (khách tự huỷ: T-028). Trong cùng 1 transaction: huỷ mọi yêu cầu thanh toán `PENDING` của đơn (khoá `payment_request` trước `customer_order`), chuyển trạng thái, rồi nhả slot hàng đợi của từng item (làm theo đơn; chưa có slot trước khi cọc → bỏ qua). Hoàn kho chỉ khi huỷ **trước khi thanh toán** (`CANCELLED`): hàng có sẵn `stock_qty += quantity`, làm theo đơn `made_to_order_quota += quantity` nếu biến thể có quota. Huỷ kèm hoàn tiền (`CANCELLED_REFUNDED`) **không** tự cộng lại kho/quota (hàng đã trả có thể hỏng, commission không làm được không được mở bán lại): admin tự chỉnh qua `PUT /variants/{id}`. `refundRef` chỉ ghi vào `audit_log` (`ORDER_CANCELLED_BY_SHOP`), không trả ra DTO nào. Audit không lưu văn bản tự do: `after` chứa `reasonLength` (độ dài `reason`) thay vì nội dung; `reason` chỉ vào `customer_order.cancel_reason`. Email `ORDER_CANCELLED` vào outbox.
-  - Chưa làm: `forfeited-to-stock` (T-027).
+  - `forfeited-to-stock`: xem khối T-027 dưới.
 - `PATCH /api/admin/orders/{id}/note {adminNote}` → `200 {id, adminNote}`; ≤ 2000 ký tự, không ký tự điều khiển (xuống dòng được phép), rỗng = xoá ghi chú. Không cần `version`, không đổi `version` của đơn; ghi audit `ORDER_NOTE_UPDATED` với `after = {noteLength}` (không lưu nội dung ghi chú; xoá ghi chú → `after` rỗng).
+
+**Chi tiết đã triển khai (T-027)**
+- `POST /api/admin/orders/{id}/forfeited-to-stock {version}` → `200 {id, status:"FORFEITED", version}` (version + 1). Chỉ đơn `FORFEITED` làm theo đơn, sai → `409 INVALID_TRANSITION`; đã cộng kho rồi (`restocked_at` có giá trị) → `409 CONFLICT` (không cộng 2 lần); `version` cũ → `409 VERSION_CONFLICT`; không có → `404`. Cộng `stock_qty += quantity` cho từng item (biến thể `version + 1`), ghi `customer_order.restocked_at`, audit `ORDER_FORFEITED_TO_STOCK` (`after = {itemCount}`). Chưa có trong `allowedActions` (cần `restocked_at`).
+- Job (không phải endpoint, `OrderJobs`, mỗi lô 50, mỗi đơn 1 transaction, tắt bằng `app.jobs.enabled=false`): hết hạn thanh toán (10 phút: `DEPOSIT`/`FULL` `PENDING` quá `due_at` trên đơn `AWAITING_DEPOSIT`/`AWAITING_PAYMENT` → `EXPIRED`, đơn `CANCELLED` bởi `SYSTEM`, trả kho/quota/slot); nhắc trả nốt (1 giờ: `ORDER_REMINDER` mốc 7 ngày/1 ngày, `dedupe_key` `order:{id}:pr:{requestId}:balance-reminder-7d|1d` (theo từng yêu cầu thanh toán, yêu cầu thay thế được nhắc lại), kèm `paymentUrl`; mốc cũ bị bỏ qua nếu mốc 1 ngày đã tới, không nhắc khi quá hạn); mất cọc (1 giờ: `BALANCE` `PENDING` quá `due_at` → `EXPIRED`, đơn `FORFEITED`, email `ORDER_FORFEITED`). Đơn chưa có yêu cầu thanh toán không bao giờ bị hết hạn/mất cọc.
 
 ### Hàng đợi, dashboard, cài đặt, audit
 | Method | Path | Mô tả |

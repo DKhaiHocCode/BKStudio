@@ -114,7 +114,7 @@ sequenceDiagram
 1. Admin bấm "Hoàn thiện" (`IN_PRODUCTION → AWAITING_BALANCE`; **không** tự tạo yêu cầu thanh toán), rồi tạo yêu cầu `BALANCE` qua `POST /orders/{id}/payment-requests` (50% + phí ship nếu kênh Artistree), `due_at = now + 30 ngày`.
 2. Email báo hoàn thiện kèm ảnh + link trả nốt.
 3. Job nhắc: **7 ngày** và **1 ngày** trước hạn (`dedupe_key` đảm bảo mỗi mốc gửi đúng 1 lần).
-4. Quá hạn → `FORFEITED`, email thông báo. Admin có nút **"Chuyển thành hàng sẵn"** → `stock_qty + 1` cho biến thể đó.
+4. Quá hạn → `FORFEITED`, email thông báo. Admin có nút **"Chuyển thành hàng sẵn"** → `stock_qty + số lượng của từng dòng hàng` cho biến thể tương ứng.
 
 ## 6. Giao hàng
 - Admin nhập hãng + mã vận đơn (`PAID_IN_FULL → SHIPPED`) → email cho khách kèm link tra cứu (nếu biết mẫu URL của hãng).
