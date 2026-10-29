@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,10 +30,16 @@ public class CheckoutRateLimiter {
     private final Duration window;
     private volatile Instant nextPurge = Instant.MIN;
 
+    @Autowired
     CheckoutRateLimiter(Clock clock, CheckoutProperties props) {
+        this(clock, props.rateLimitMax(), props.rateLimitWindow());
+    }
+
+    /** For other limiters of the same kind (customer order API); keys are IPs or any string without a colon. */
+    public CheckoutRateLimiter(Clock clock, int max, Duration window) {
         this.clock = clock;
-        this.max = props.rateLimitMax();
-        this.window = props.rateLimitWindow();
+        this.max = max;
+        this.window = window;
     }
 
     /** Takes one attempt. Empty means granted; otherwise the time until the window ends. */

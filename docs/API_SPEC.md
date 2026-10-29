@@ -112,6 +112,16 @@ Chi tiết đã triển khai (T-022):
 
 `GET /api/orders/{token}` → trạng thái, sản phẩm, các `paymentRequests` đang mở (`type, amountCents, paymentUrl, dueAt`), tháng sản xuất, vận đơn, lịch sử trạng thái rút gọn. **Không** trả `admin_note`, IP.
 
+Chi tiết đã triển khai (T-028, API công khai, không cần đăng nhập; mọi POST vẫn cần CSRF):
+- `GET /api/orders/{token}` → `200` (header `Cache-Control: no-store`, `Referrer-Policy: no-referrer`):
+  `{publicCode, fulfillmentType, status, subtotalCents, depositCents, shippingCents, items[{productName, variantLabel, quantity, unitPriceCents}], paymentRequests[{type, amountCents, paymentUrl, dueAt}], estimatedProductionMonth, carrier, trackingNumber, history[{status, at}], createdAt, canCancel, cancelWarning}`.
+  `depositCents` = 0 với đơn IN_STOCK. `paymentRequests` chỉ gồm yêu cầu `PENDING`. `estimatedProductionMonth` ("YYYY-MM", tháng sớm nhất còn slot `QUEUED`/`IN_PRODUCTION`) chỉ có với MADE_TO_ORDER đã được cấp slot, ngược lại `null`. `carrier`/`trackingNumber` chỉ có khi `SHIPPED`/`COMPLETED`. `history` lấy từ audit `ORDER_TRANSITION` (chỉ trạng thái + thời điểm; đơn mới tạo có `history` rỗng, dùng `createdAt`). `canCancel` = trạng thái `AWAITING_PAYMENT`/`AWAITING_DEPOSIT`/`QUEUED`; `cancelWarning` = `true` khi huỷ sẽ mất cọc (`QUEUED`). **Không** trả: tên/email/SĐT/địa chỉ khách, `admin_note`, `cancel_reason`, IP, hash token, id nội bộ, `refundRef`. Chưa có ảnh bìa sản phẩm (để sau).
+  Token sai định dạng hoặc không tồn tại → cùng một `404 NOT_FOUND`. Đơn ở mọi trạng thái đều xem được.
+- `POST /api/orders/{token}/cancel`, body `{acknowledgeDepositLost?: boolean}` (có thể bỏ trống) → `200` cùng dạng `GET` (đơn đã huỷ). `AWAITING_PAYMENT`/`AWAITING_DEPOSIT` → `CANCELLED` (trả lại tồn kho/quota/slot, huỷ yêu cầu thanh toán đang mở). `QUEUED` → cần `acknowledgeDepositLost=true`, thiếu → `400 VALIDATION_FAILED` (`errors[].field = acknowledgeDepositLost`); đủ → `CANCELLED_DEPOSIT_KEPT`, nhả slot nhưng **không** trả quota. `IN_PRODUCTION` trở đi hoặc trạng thái khác → `409 INVALID_TRANSITION` ("liên hệ shop"). Phiên bản đơn đọc trong transaction (client không gửi), nên thao tác đồng thời của admin cho kết quả `409`, không mất cập nhật. Thứ tự khoá: `payment_request` rồi `customer_order`.
+- `POST /api/orders/lookup`, body `{code, email}` → **luôn** `202 {"message": "..."}` cùng nội dung dù khớp hay không (thiếu trường/JSON hỏng vẫn `400`). Khi khớp (email không phân biệt hoa thường): tạo token mới, thay `access_token_hash`, tăng `version`, xếp email `ORDER_LOOKUP_LINK` (ADR-0012); link cũ ngừng hoạt động. Vượt giới hạn vẫn `202` nhưng không làm gì.
+- Giới hạn (trong bộ nhớ, IPv6 gom /64): `GET` + `cancel` 60 lần/phút/IP → `429 RATE_LIMITED` + `Retry-After`; `lookup` 10 lần/giờ/IP; đổi token tối đa 3 lần/giờ/đơn và không đổi hai lần trong 2 phút (request gửi lại không làm hỏng link vừa gửi).
+- T-028: có 34+ IT (`CustomerOrder*IT`).
+
 ## 3. API admin (`/api/admin/**`, yêu cầu đăng nhập + TOTP)
 
 ### Xác thực

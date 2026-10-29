@@ -24,6 +24,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     static final String TYPE_BASE = "https://bkstudio.xxx/errors/";
 
+    /** Fixed on purpose: Spring would otherwise echo the request path, and /api/orders/{token} carries a secret. */
+    private static final URI NO_INSTANCE = URI.create("about:blank");
+
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ApiException.class)
@@ -83,6 +86,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         if (response != null && response.getBody() instanceof ProblemDetail problem) {
             ErrorCode code = ErrorCode.fromStatus(statusCode.value());
             problem.setType(URI.create(TYPE_BASE + code.slug()));
+            problem.setInstance(NO_INSTANCE);
             problem.setProperty("code", code.name());
             problem.setProperty("requestId", MDC.get(RequestIdFilter.MDC_KEY));
         }
@@ -92,6 +96,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     static ProblemDetail problem(ErrorCode code, String detail) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(code.status(), detail);
         problem.setType(URI.create(TYPE_BASE + code.slug()));
+        problem.setInstance(NO_INSTANCE);
         problem.setTitle(code.status().getReasonPhrase());
         problem.setProperty("code", code.name());
         problem.setProperty("requestId", MDC.get(RequestIdFilter.MDC_KEY));

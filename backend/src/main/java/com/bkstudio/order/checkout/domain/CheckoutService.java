@@ -57,6 +57,7 @@ public class CheckoutService {
     private final CheckoutProperties props;
     private final Clock clock;
     private final OutboxWriter outbox;
+    private static final SecureRandom TOKEN_RANDOM = new SecureRandom();
     private final SecureRandom random = new SecureRandom();
 
     CheckoutService(
@@ -241,9 +242,10 @@ public class CheckoutService {
         return sb.toString();
     }
 
-    private String newToken() {
+    /** 256-bit URL-safe token; the lookup flow (ADR-0012) uses the same generator. */
+    public static String newToken() {
         byte[] b = new byte[32];
-        random.nextBytes(b);
+        TOKEN_RANDOM.nextBytes(b);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(b);
     }
 
