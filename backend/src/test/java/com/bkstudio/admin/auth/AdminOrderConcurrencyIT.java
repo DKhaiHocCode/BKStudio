@@ -176,7 +176,7 @@ class AdminOrderConcurrencyIT extends AdminOrderTestBase {
                     .filter(x -> x.status() != 200)
                     .forEach(x -> assertThat(conflict(x)).as(x.toString()).isTrue());
             assertThat(orderStatus(order)).isEqualTo("CANCELLED_REFUNDED");
-            assertThat(quota(v)).isEqualTo(3);
+            assertThat(quota(v)).isZero(); // refund cancel: quota is adjusted by hand
             assertThat(openEntries(order)).isZero();
             assertThat(auditCount("ORDER_CANCELLED_BY_SHOP", order)).isEqualTo(1);
             assertThat(outbox("ORDER_CANCELLED", order)).isEqualTo(1);
@@ -187,10 +187,11 @@ class AdminOrderConcurrencyIT extends AdminOrderTestBase {
 
     @Test
     @Timeout(300)
-    void concurrentCancelByShop_inStock_oneWins_stockRestoredOnce() throws Exception {
+    void concurrentCancelByShop_inStock_oneWins_stockNotRestored() throws Exception {
         for (int round = 0; round < ROUNDS; round++) {
             long v = newVariant(0, null);
             long order = orderOn("IN_STOCK", "PAID_IN_FULL", v, 3);
+            int versionBefore = variantVersion(v);
 
             List<Res> r = concurrently(List.of(cancel(order, 0), cancel(order, 0)));
 
@@ -199,15 +200,15 @@ class AdminOrderConcurrencyIT extends AdminOrderTestBase {
                     .filter(x -> x.status() != 200)
                     .forEach(x -> assertThat(conflict(x)).as(x.toString()).isTrue());
             assertThat(orderStatus(order)).isEqualTo("CANCELLED_REFUNDED");
-            assertThat(stock(v)).isEqualTo(3);
-            assertThat(variantVersion(v)).isEqualTo(1);
+            assertThat(stock(v)).isZero();
+            assertThat(variantVersion(v)).isEqualTo(versionBefore);
             assertThat(auditCount("ORDER_CANCELLED_BY_SHOP", order)).isEqualTo(1);
         }
     }
 
     @Test
     @Timeout(300)
-    void concurrentShipAndCancel_exactlyOneWins_stockRestoredOnlyIfCancelled() throws Exception {
+    void concurrentShipAndCancel_exactlyOneWins_stockNotRestored() throws Exception {
         int shipWon = 0;
         for (int round = 0; round < ROUNDS; round++) {
             long v = newVariant(0, null);
@@ -231,7 +232,7 @@ class AdminOrderConcurrencyIT extends AdminOrderTestBase {
             } else {
                 assertThat(conflict(r.get(0))).isTrue();
                 assertThat(orderStatus(order)).isEqualTo("CANCELLED_REFUNDED");
-                assertThat(stock(v)).isEqualTo(2);
+                assertThat(stock(v)).isZero(); // refund cancel: stock is adjusted by hand
                 assertThat(jdbc.queryForObject(
                                 "SELECT shipped_at FROM customer_order WHERE id = ?", Object.class, order))
                         .isNull();
