@@ -293,6 +293,11 @@ public class PaymentRequestService {
      * Returns how many were cancelled; no email.
      */
     public int cancelPendingForOrder(long orderId) {
+        return cancelPendingForOrder(orderId, "ADMIN");
+    }
+
+    /** Same, with the audit actor ({@code ADMIN}, {@code SYSTEM} or {@code CUSTOMER}). */
+    public int cancelPendingForOrder(long orderId, String actor) {
         List<long[]> locked = jdbc.query(
                 "SELECT id, status = 'PENDING' FROM payment_request WHERE order_id = ? ORDER BY id FOR UPDATE",
                 (rs, i) -> new long[] {rs.getLong(1), rs.getBoolean(2) ? 1 : 0},
@@ -305,7 +310,8 @@ public class PaymentRequestService {
                 "UPDATE payment_request SET status = 'CANCELLED', version = version + 1"
                         + " WHERE order_id = ? AND status = 'PENDING'",
                 orderId);
-        audit.admin(
+        audit.by(
+                actor,
                 "PAYMENT_REQUESTS_CANCELLED_WITH_ORDER",
                 "ORDER",
                 orderId,
