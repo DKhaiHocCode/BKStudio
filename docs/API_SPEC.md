@@ -163,7 +163,7 @@ Chi tiết đã triển khai (T-013):
 | POST | `/api/admin/payment-requests/{id}/confirm` | `{externalRef}` | `→ QUEUED` / `PAID_IN_FULL` |
 | POST | `/api/admin/payment-requests/{id}/cancel` | `{reason}` | — |
 | POST | `/api/admin/orders/{id}/start-production` | `{version}` | `QUEUED → IN_PRODUCTION` |
-| POST | `/api/admin/orders/{id}/mark-finished` | `{version, photoImageIds?}` | `→ AWAITING_BALANCE` (kèm tạo yêu cầu BALANCE) |
+| POST | `/api/admin/orders/{id}/mark-finished` | `{version, photoImageIds?}` | `→ AWAITING_BALANCE` (không tự tạo yêu cầu BALANCE, xem T-026) |
 | POST | `/api/admin/orders/{id}/ship` | `{version, carrier, trackingNumber}` | `PAID_IN_FULL → SHIPPED` |
 | POST | `/api/admin/orders/{id}/complete` | `{version}` | `SHIPPED → COMPLETED` |
 | POST | `/api/admin/orders/{id}/cancel-by-shop` | `{version, reason, refundRef?}` | `→ CANCELLED / CANCELLED_REFUNDED` |
@@ -179,6 +179,18 @@ Chi tiết đã triển khai (T-013):
 - Tạo yêu cầu **ghi đè** `customer_order.shipping_cents` bằng `shippingCents` của request (kể cả 0). Yêu cầu `PENDING` đã quá `dueAt` vẫn xác nhận được cho tới khi job hết hạn (T-027) đặt `EXPIRED` (chủ đích: tiền thật về muộn vẫn được tính).
 - `POST /api/admin/payment-requests/{id}/confirm` → `200 {id, orderId, type, status:"PAID", orderStatus, confirmedAt}`. `externalRef` 1–100 ký tự, không ký tự điều khiển. Gọi lại với cùng `externalRef` → 200 như cũ, không tác dụng phụ; `externalRef` khác, hoặc đã dùng cho yêu cầu khác cùng `channel` → `409 CONFLICT`; yêu cầu `EXPIRED`/`CANCELLED` hoặc đơn không còn ở trạng thái hợp lệ → `409 INVALID_TRANSITION`. `DEPOSIT` cấp slot hàng đợi cho từng order_item trong cùng transaction; hết slot → `409 QUEUE_FULL`, hoàn tác toàn bộ (yêu cầu vẫn `PENDING`). Client không cần gửi `version`.
 - `POST /api/admin/payment-requests/{id}/cancel` → `200` trả yêu cầu (`status:"CANCELLED"`). `reason` 1–500 ký tự. Chỉ `PENDING → CANCELLED`; đã `CANCELLED` → 200 idempotent; `PAID`/`EXPIRED` → `409 INVALID_TRANSITION`. Không đổi trạng thái đơn.
+
+**Chi tiết đã triển khai (T-026)**
+- `GET /api/admin/orders?status=&q=&page=` → `200 {items:[{id, publicCode, status, fulfillmentType, subtotalCents, shippingCents, version, createdAt}], page, size:20, total}`. `page` bắt đầu từ 0 (ngoài 0..10000 → `400`); `status` sai giá trị → `400`; `q` khớp **chính xác** `publicCode`, không phân biệt hoa thường. Danh sách **không** có email/địa chỉ/tên khách. Mới nhất trước.
+- `GET /api/admin/orders/{id}` → `200` gồm `id, publicCode, status, fulfillmentType, version, subtotalCents, shippingCents, currency, customer{name,email,phone,line1,line2,city,region,postalCode,country}` (chỉ admin), `items[{id,variantId,productName,scale,unitPriceCents,quantity}]`, `paymentRequests[]` (cùng dạng `PaymentRequestView`), `carrier, trackingNumber, cancelReason, adminNote, createdAt, updatedAt, shippedAt, completedAt`, `allowedActions` (tính từ bảng chuyển trạng thái: `start-production`, `mark-finished`, `ship`, `complete`, `cancel-by-shop`, `create-payment-request`). Không bao giờ trả token/hash. Không có → `404 NOT_FOUND`.
+- Các hành động trả `200 {id, status, version}` (version mới). Body **bắt buộc** `version` (thiếu → `400 VALIDATION_FAILED`); version cũ → `409 VERSION_CONFLICT`; sai trạng thái → `409 INVALID_TRANSITION`; đơn không có → `404`.
+  - `start-production {version}`: `QUEUED → IN_PRODUCTION`.
+  - `mark-finished {version, photoImageIds?}`: `IN_PRODUCTION → AWAITING_BALANCE`. **Không** tự tạo yêu cầu BALANCE: admin tạo qua `POST /orders/{id}/payment-requests` (`type: BALANCE`). `photoImageIds` được nhận nhưng bỏ qua (chưa làm ảnh tiến độ).
+  - `ship {version, carrier, trackingNumber}`: `PAID_IN_FULL → SHIPPED`; `carrier` 1–50, `trackingNumber` 1–100 ký tự, không ký tự điều khiển (sai → `400`, `errors[].field`).
+  - `complete {version}`: `SHIPPED → COMPLETED`.
+  - `cancel-by-shop {version, reason, refundRef?}`: `reason` 1–500 ký tự. `AWAITING_DEPOSIT`/`AWAITING_PAYMENT → CANCELLED` (`refundRef` bị bỏ qua). `QUEUED`/`IN_PRODUCTION` (làm theo đơn) và `PAID_IN_FULL` (hàng có sẵn) `→ CANCELLED_REFUNDED`, **bắt buộc** `refundRef` 1–100 ký tự (thiếu → `400`, `errors[].field = "refundRef"`). Trạng thái khác (kể cả `PAID_IN_FULL` làm theo đơn) → `409 INVALID_TRANSITION`. `CANCEL_KEEP_DEPOSIT` không dùng ở đây (khách tự huỷ: T-028). Trong cùng 1 transaction: huỷ mọi yêu cầu thanh toán `PENDING` của đơn (khoá `payment_request` trước `customer_order`), chuyển trạng thái, rồi hoàn kho: hàng có sẵn `stock_qty += quantity`; làm theo đơn thì nhả slot hàng đợi của từng item (chưa có slot trước khi cọc → bỏ qua) và `made_to_order_quota += quantity` nếu biến thể có quota. `refundRef` chỉ ghi vào `audit_log` (`ORDER_CANCELLED_BY_SHOP`), không trả ra DTO nào. Email `ORDER_CANCELLED` vào outbox.
+  - Chưa làm: `forfeited-to-stock` (T-027).
+- `PATCH /api/admin/orders/{id}/note {adminNote}` → `200 {id, adminNote}`; ≤ 2000 ký tự, không ký tự điều khiển (xuống dòng được phép), rỗng = xoá ghi chú. Không cần `version`, không đổi `version` của đơn; ghi audit `ORDER_NOTE_UPDATED`.
 
 ### Hàng đợi, dashboard, cài đặt, audit
 | Method | Path | Mô tả |
