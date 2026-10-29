@@ -36,7 +36,8 @@ public class OrderStateMachine {
         this.audit = audit;
     }
 
-    /** Optional extra data; all fields nullable. Never written to the audit log or the outbox. */
+    /** Optional extra data; all fields nullable. Never in the outbox. Callers may audit the cancel reason (shop-written);
+     * refund references are audited by the caller only, never by the state machine. */
     public record Details(String trackingNumber, String carrier, String cancelReason) {
         public Details(String trackingNumber, String cancelReason) {
             this(trackingNumber, null, cancelReason);

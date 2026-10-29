@@ -818,11 +818,14 @@ class AdminOrderApiIT extends AdminOrderTestBase {
     }
 
     @Test
-    void note_doesNotChangeStatusOrVersion_andAuditsTheText() throws Exception {
+    void note_doesNotChangeStatusOrVersion_andAuditsLengthOnly() throws Exception {
         long id = order("IN_STOCK", "AWAITING_PAYMENT", 1);
         note(id, "remember").andExpect(status().isOk());
         assertThat(orderStatus(id)).isEqualTo("AWAITING_PAYMENT");
         assertThat(version(id)).isZero();
-        assertThat(auditAfter("ORDER_NOTE_UPDATED", id)).contains("remember");
+        assertThat(auditAfter("ORDER_NOTE_UPDATED", id))
+                .contains("\"adminNoteLength\"")
+                .contains("8")
+                .doesNotContain("remember");
     }
 }

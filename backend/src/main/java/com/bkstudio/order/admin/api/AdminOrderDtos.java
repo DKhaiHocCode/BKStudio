@@ -2,6 +2,7 @@ package com.bkstudio.order.admin.api;
 
 import com.bkstudio.payment.api.PaymentDtos.PaymentRequestView;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.List;
 
@@ -60,7 +61,8 @@ public final class AdminOrderDtos {
     public record VersionOnly(@NotNull Integer version) {}
 
     /** {@code photoImageIds} is accepted and ignored for now. */
-    public record MarkFinished(@NotNull Integer version, List<Long> photoImageIds) {}
+    public record MarkFinished(
+            @NotNull Integer version, @Size(max = 20) List<Long> photoImageIds) {}
 
     // Field limits are enforced in the service (authoritative, VALIDATION_FAILED per field).
     public record Ship(@NotNull Integer version, String carrier, String trackingNumber) {}

@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -246,6 +247,8 @@ public class AdminOrderService {
 
     public ActionResult cancelByShop(long id, int version, String reasonRaw, String refundRaw) {
         String reason = text("reason", reasonRaw, 500);
+        // Unlocked read: a stale status only picks the wrong action; machine.transition re-checks status and
+        // version (409) and the whole transaction rolls back.
         OrderHead head = head(id);
         // Made-to-order PAID_IN_FULL has no refund transition: CANCEL lets the state machine answer 409.
         boolean refund = REFUND_STATUSES.contains(head.status())
@@ -278,21 +281,31 @@ public class AdminOrderService {
         return new ActionResult(id, next.name(), version + 1);
     }
 
-    /** Gives back what checkout took: stock (IN_STOCK) or quota (MADE_TO_ORDER) plus any production slots. */
+    /**
+     * Gives back what checkout took: stock (IN_STOCK) or quota (MADE_TO_ORDER) plus any production slots.
+     * Lock order, to avoid deadlocks between concurrent cancels: payment_request -> customer_order ->
+     * production_month (phase 1) -> product_variant in ascending id (phase 2, one update per variant).
+     */
     private void releaseReservations(long orderId, FulfillmentType type) {
         Instant now = clock.instant();
         List<StockItem> items = jdbc.query(
-                "SELECT id, variant_id, quantity FROM order_item WHERE order_id = ? ORDER BY variant_id, id",
+                "SELECT id, variant_id, quantity FROM order_item WHERE order_id = ? ORDER BY id",
                 (rs, i) -> new StockItem(rs.getLong(1), rs.getLong(2), rs.getInt(3)),
                 orderId);
+        Map<Long, Integer> perVariant = new TreeMap<>();
         for (StockItem item : items) {
-            if (type == FulfillmentType.IN_STOCK) {
-                checkoutRepo.restoreStock(item.variantId(), item.quantity(), now);
-            } else {
+            if (type == FulfillmentType.MADE_TO_ORDER) {
                 queue.release(item.id()); // no entries before the deposit is confirmed: a no-op then
-                checkoutRepo.restoreQuota(item.variantId(), item.quantity(), now);
             }
+            perVariant.merge(item.variantId(), item.quantity(), Integer::sum);
         }
+        perVariant.forEach((variantId, qty) -> {
+            if (type == FulfillmentType.IN_STOCK) {
+                checkoutRepo.restoreStock(variantId, qty, now);
+            } else {
+                checkoutRepo.restoreQuota(variantId, qty, now);
+            }
+        });
     }
 
     public NoteView updateNote(long id, String noteRaw) {
@@ -302,15 +315,23 @@ public class AdminOrderService {
                     "adminNote", "adminNote must be at most 2000 characters without control characters.");
         }
         String value = note.isEmpty() ? null : note;
-        int updated = jdbc.update(
+        List<String> old = jdbc.query(
+                "SELECT coalesce(admin_note, '') FROM customer_order WHERE id = ?", (rs, i) -> rs.getString(1), id);
+        if (old.isEmpty()) {
+            throw notFound();
+        }
+        jdbc.update(
                 "UPDATE customer_order SET admin_note = ?, updated_at = ? WHERE id = ?",
                 value,
                 Timestamp.from(clock.instant()),
                 id);
-        if (updated == 0) {
-            throw notFound();
-        }
-        audit.admin("ORDER_NOTE_UPDATED", "ORDER", id, null, value == null ? Map.of() : Map.of("adminNote", value));
+        // Audit stores the length only: notes may hold customer details.
+        audit.admin(
+                "ORDER_NOTE_UPDATED",
+                "ORDER",
+                id,
+                null,
+                Map.of("adminNoteLength", note.length(), "changed", !old.get(0).equals(note)));
         return new NoteView(id, value);
     }
 

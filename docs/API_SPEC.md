@@ -190,7 +190,7 @@ Chi tiết đã triển khai (T-013):
   - `complete {version}`: `SHIPPED → COMPLETED`.
   - `cancel-by-shop {version, reason, refundRef?}`: `reason` 1–500 ký tự. `AWAITING_DEPOSIT`/`AWAITING_PAYMENT → CANCELLED` (`refundRef` bị bỏ qua). `QUEUED`/`IN_PRODUCTION` (làm theo đơn) và `PAID_IN_FULL` (hàng có sẵn) `→ CANCELLED_REFUNDED`, **bắt buộc** `refundRef` 1–100 ký tự (thiếu → `400`, `errors[].field = "refundRef"`). Trạng thái khác (kể cả `PAID_IN_FULL` làm theo đơn) → `409 INVALID_TRANSITION`. `CANCEL_KEEP_DEPOSIT` không dùng ở đây (khách tự huỷ: T-028). Trong cùng 1 transaction: huỷ mọi yêu cầu thanh toán `PENDING` của đơn (khoá `payment_request` trước `customer_order`), chuyển trạng thái, rồi hoàn kho: hàng có sẵn `stock_qty += quantity`; làm theo đơn thì nhả slot hàng đợi của từng item (chưa có slot trước khi cọc → bỏ qua) và `made_to_order_quota += quantity` nếu biến thể có quota. `refundRef` chỉ ghi vào `audit_log` (`ORDER_CANCELLED_BY_SHOP`), không trả ra DTO nào. Email `ORDER_CANCELLED` vào outbox.
   - Chưa làm: `forfeited-to-stock` (T-027).
-- `PATCH /api/admin/orders/{id}/note {adminNote}` → `200 {id, adminNote}`; ≤ 2000 ký tự, không ký tự điều khiển (xuống dòng được phép), rỗng = xoá ghi chú. Không cần `version`, không đổi `version` của đơn; ghi audit `ORDER_NOTE_UPDATED`.
+- `PATCH /api/admin/orders/{id}/note {adminNote}` → `200 {id, adminNote}`; ≤ 2000 ký tự, không ký tự điều khiển (xuống dòng được phép), rỗng = xoá ghi chú. Không cần `version`, không đổi `version` của đơn; ghi audit `ORDER_NOTE_UPDATED` chỉ lưu `{adminNoteLength, changed}`, không lưu nội dung ghi chú.
 
 ### Hàng đợi, dashboard, cài đặt, audit
 | Method | Path | Mô tả |
