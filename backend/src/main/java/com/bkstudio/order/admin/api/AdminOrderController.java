@@ -71,6 +71,11 @@ public class AdminOrderController {
         return orders.cancelByShop(id, req.version(), req.reason(), req.refundRef());
     }
 
+    @PostMapping("/{id}/forfeited-to-stock")
+    public ActionResult forfeitedToStock(@PathVariable long id, @Valid @RequestBody VersionOnly req) {
+        return orders.forfeitedToStock(id, req.version());
+    }
+
     @PatchMapping("/{id}/note")
     public NoteView note(@PathVariable long id, @Valid @RequestBody NoteRequest req) {
         return orders.updateNote(id, req.adminNote());

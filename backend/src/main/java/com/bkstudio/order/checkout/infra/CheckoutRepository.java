@@ -114,9 +114,9 @@ public class CheckoutRepository {
                 qty);
     }
 
-    /** Gives back stock taken by checkout (cancelled order). */
-    public void restoreStock(long variantId, int qty, Instant now) {
-        jdbc.update(
+    /** Gives back stock taken by checkout (cancelled order). Returns rows updated (0 = variant missing). */
+    public int restoreStock(long variantId, int qty, Instant now) {
+        return jdbc.update(
                 "UPDATE product_variant SET stock_qty = stock_qty + ?, version = version + 1, updated_at = ?"
                         + " WHERE id = ?",
                 qty,

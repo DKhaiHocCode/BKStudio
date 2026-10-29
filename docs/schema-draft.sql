@@ -109,13 +109,15 @@ CREATE TABLE customer_order (
     completed_at       timestamptz,
     cancel_reason      text,
     admin_note         text,
+    restocked_at       timestamptz,                   -- set once by forfeited-to-stock (V2); guards double stock_qty + 1
     created_at         timestamptz NOT NULL DEFAULT now(),
     updated_at         timestamptz NOT NULL DEFAULT now(),
     version            int NOT NULL DEFAULT 0,
     -- consistency rules
     CHECK ((fulfillment_type = 'IN_STOCK')      <= (status NOT IN ('AWAITING_DEPOSIT','QUEUED','IN_PRODUCTION','AWAITING_BALANCE','CANCELLED_DEPOSIT_KEPT','FORFEITED'))),
     CHECK ((fulfillment_type = 'MADE_TO_ORDER') <= (status <> 'AWAITING_PAYMENT')),
-    CHECK ((status IN ('SHIPPED','COMPLETED')) <= (tracking_number IS NOT NULL AND shipped_at IS NOT NULL))
+    CHECK ((status IN ('SHIPPED','COMPLETED')) <= (tracking_number IS NOT NULL AND shipped_at IS NOT NULL)),
+    CHECK ((restocked_at IS NOT NULL) <= (status = 'FORFEITED'))  -- chk_order_restocked_only_forfeited (V2)
 );
 CREATE INDEX customer_order_status_idx ON customer_order(status, created_at);
 CREATE INDEX customer_order_email_idx  ON customer_order(lower(customer_email));
@@ -174,7 +176,7 @@ CREATE INDEX payment_request_due_idx ON payment_request(due_at) WHERE status = '
 -- ============================================================
 CREATE TABLE email_outbox (
     id               bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    dedupe_key       text NOT NULL UNIQUE,     -- e.g. 'order:42:balance-reminder-7d' → a job re-run never sends twice
+    dedupe_key       text NOT NULL UNIQUE,     -- e.g. 'order:42:pr:7:balance-reminder-7d' → a job re-run never sends twice
     to_email         text NOT NULL,
     template         text NOT NULL,
     payload          jsonb NOT NULL,

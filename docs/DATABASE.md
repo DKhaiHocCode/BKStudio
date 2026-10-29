@@ -90,9 +90,9 @@ Bảng phụ không vẽ: `app_setting`, `email_outbox`, `audit_log`, `admin_use
 | Bảng | Vai trò | Điểm thiết kế đáng chú ý |
 |---|---|---|
 | `product` | Sản phẩm (nhân vật) | `slug` cho URL đẹp: `/products/pneuma`. Trạng thái `UNLISTED` = sản phẩm commission ẩn, chỉ vào bằng link (slug có hậu tố ngẫu nhiên, vd `alex-custom-ganyu-7k2m9x`) |
-| `product_variant` | Mỗi tỉ lệ 1 dòng | **Một biến thể có thể vừa có hàng sẵn (`stock_qty`) vừa nhận làm theo đơn** → figure bị bỏ cọc chỉ cần `stock_qty + 1` để bán lại. `CHECK (stock_qty >= 0)`. `made_to_order_quota` (NULL = không giới hạn, 1 = commission 1 suất) |
+| `product_variant` | Mỗi tỉ lệ 1 dòng | **Một biến thể có thể vừa có hàng sẵn (`stock_qty`) vừa nhận làm theo đơn** → figure bị bỏ cọc chỉ cần `stock_qty + số lượng từng dòng hàng` để bán lại. `CHECK (stock_qty >= 0)`. `made_to_order_quota` (NULL = không giới hạn, 1 = commission 1 suất) |
 | `production_month` | Sức chứa slot mỗi tháng | `CHECK (allocated <= capacity)` → **DB không cho phép overbook** |
-| `customer_order` | Đơn hàng | Không lưu token truy cập, chỉ lưu **hash SHA-256** (lộ DB cũng không dùng được link). `idempotency_key` chống tạo trùng đơn. Lưu `terms_version` + thời điểm + IP đồng ý điều khoản (bằng chứng khi tranh chấp) |
+| `customer_order` | Đơn hàng | Không lưu token truy cập, chỉ lưu **hash SHA-256** (lộ DB cũng không dùng được link). `idempotency_key` chống tạo trùng đơn. Lưu `terms_version` + thời điểm + IP đồng ý điều khoản (bằng chứng khi tranh chấp). `restocked_at` (V2): thời điểm đơn `FORFEITED` được đưa figure về kho |
 | `order_item` | Dòng sản phẩm trong đơn | Bản chụp tên/tỉ lệ/giá |
 | `queue_entry` | 1 dòng = 1 slot | Thứ tự trong tháng theo `queued_at` (lúc cọc được xác nhận) |
 | `payment_request` | Mỗi lần thu tiền | Partial unique index: tối đa 1 yêu cầu `PENDING` và 1 `PAID` mỗi loại mỗi đơn; **1 mã invoice ngoài chỉ dùng được 1 lần** |
@@ -112,6 +112,7 @@ Bảng phụ không vẽ: `app_setting`, `email_outbox`, `audit_log`, `admin_use
 | Không thể xác nhận đã trả tiền khi chưa ghi mã tham chiếu | CHECK `status='PAID' ⇔ external_ref & confirmed_at có giá trị` |
 | Không thể dùng 1 invoice Artistree cho 2 khoản | Partial unique `(channel, external_ref)` |
 | Link thanh toán phải là `https://` | CHECK (chặn `javascript:` …) |
+| Figure bị bỏ cọc chỉ được cộng lại vào kho 1 lần | `UPDATE customer_order SET restocked_at = ? WHERE id = ? AND restocked_at IS NULL AND status = 'FORFEITED'` (0 dòng = đã về kho, không cộng `stock_qty` lần nữa) + `chk_order_restocked_only_forfeited`: `restocked_at` chỉ có giá trị khi `status = 'FORFEITED'` |
 
 ## 5. Kết quả chạy thử (PostgreSQL 16.15)
 Các tình huống dưới đây đã chạy thật trên DB (test 15–17 thêm khi bổ sung commission); chúng sẽ được viết lại thành integration test (Testcontainers) ở Phase 4.
