@@ -145,14 +145,13 @@ public class PaymentRequestService {
             throw new ApiException(
                     ErrorCode.CONFLICT, "A pending " + type + " payment request already exists for this order.");
         }
-        if (shipping != o.shippingCents()) {
-            jdbc.update(
-                    "UPDATE customer_order SET shipping_cents = ?, version = version + 1, updated_at = ?"
-                            + " WHERE id = ?",
-                    shipping,
-                    Timestamp.from(now),
-                    orderId);
-        }
+        // Always bump version: a concurrent cancel cannot see this uncommitted PENDING request,
+        // so its optimistic "WHERE version = ?" update must fail with VERSION_CONFLICT.
+        jdbc.update(
+                "UPDATE customer_order SET shipping_cents = ?, version = version + 1, updated_at = ?" + " WHERE id = ?",
+                shipping,
+                Timestamp.from(now),
+                orderId);
         outbox.enqueue(
                 "payment:" + id + ":link",
                 o.email(),
@@ -308,7 +307,7 @@ public class PaymentRequestService {
                 orderId);
         audit.admin(
                 "PAYMENT_REQUESTS_CANCELLED_WITH_ORDER",
-                "CUSTOMER_ORDER",
+                "ORDER",
                 orderId,
                 Map.of("status", "PENDING"),
                 Map.of("status", "CANCELLED", "requestIds", ids));
