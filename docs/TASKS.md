@@ -310,12 +310,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Nợ: deadlock khi hủy đồng thời 2 đơn nhiều món MADE_TO_ORDER (khoá tháng theo từng item, không theo cả đơn); test race create↔cancel chưa phủ nhánh cancel thắng; MADE_TO_ORDER PAID_IN_FULL không có đường hủy hoàn tiền (409); list cố định 20/trang; photoImageIds bị bỏ qua tới T-029.
 
 #### T-027 · Job hết hạn / nhắc hạn / mất cọc
-- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-026 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-026 · **Status:** done
 - **Phạm vi:** Hết hạn thanh toán (nhả kho/quota/huỷ đơn), nhắc trả nốt 7 ngày & 1 ngày, FORFEITED sau 30 ngày; mỗi đơn 1 transaction; chạy lại an toàn. Thêm endpoint `forfeited-to-stock` (stock_qty + 1, chống cộng 2 lần) chuyển từ T-026.
 - **File / module:** backend/.../order/jobs/*
 - **Nghiệm thu:** Chạy job 2 lần liên tiếp không tạo thay đổi/email trùng.
 - **Test:** Integration test với đồng hồ giả (`Clock` inject được).
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Nợ: mỗi lượt tối đa 50 đơn, không phân trang (đơn lỗi vĩnh viễn ở đầu hàng làm đói các đơn sau; có WARN khi bỏ qua); đơn IN_STOCK chưa có link thanh toán và đơn AWAITING_BALANCE chưa có yêu cầu BALANCE không bao giờ hết hạn/nhắc/mất cọc → T-034 phải có dashboard liệt kê hai loại này; `allowedActions` chưa có `forfeited-to-stock` (cần thêm `restockedAt` vào chi tiết đơn, T-033/T-051); `queue_entry` chưa bao giờ sang DONE; `PaymentRequestService.cancel` ghi lý do nguyên văn vào audit (UI T-034 nhắc admin không ghi thông tin khách); job dùng chung 1 luồng scheduler với outbox.
 
 #### T-028 · API đơn hàng phía khách
 - **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-023, T-024 · **Status:** todo
@@ -453,8 +453,8 @@ flowchart LR
 
 #### T-051 · Nút "Chuyển thành hàng sẵn" cho đơn FORFEITED
 - **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 1 giờ · **Phụ thuộc:** T-033 · **Status:** todo
-- **Phạm vi:** Nút trên chi tiết đơn → `stock_qty + 1`.
-- **File / module:** backend + frontend admin
+- **Phạm vi:** Nút trên chi tiết đơn gọi `POST /api/admin/orders/{id}/forfeited-to-stock` (backend đã xong ở T-027; thêm `restockedAt` vào chi tiết đơn để ẩn nút khi đã cộng).
+- **File / module:** frontend admin (+ DTO chi tiết đơn)
 - **Nghiệm thu:** Hoạt động 1 lần duy nhất mỗi đơn.
 - **Test:** Integration test.
 - **Rủi ro / câu hỏi:** Không gấp: đơn FORFEITED đầu tiên xuất hiện sớm nhất ~1 tháng sau launch; tạm thời sửa tồn kho tay.
