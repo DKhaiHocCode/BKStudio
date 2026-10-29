@@ -302,12 +302,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Từ T-020: danh sách `payment_allowed_domains` có thể chứa public suffix (vd `com.sg`) nên khi kiểm link BẮT BUỘC parse bằng `java.net.URI`, yêu cầu https, không userinfo/cổng, host khác null, hạ chữ thường rồi so khớp host chính xác (hoặc `endsWith("." + mục)`), không dùng contains/regex lỏng.
 
 #### T-026 · Admin API hành động đơn hàng
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-025 · **Status:** todo
-- **Phạm vi:** Danh sách/lọc/chi tiết (kèm `allowedActions`); start-production, mark-finished (tạo BALANCE), ship, complete, cancel-by-shop (+ trả slot/kho/quota), ghi chú.
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-025 · **Status:** done
+- **Phạm vi:** Danh sách/lọc/chi tiết (kèm `allowedActions`); start-production, mark-finished (chỉ chuyển sang AWAITING_BALANCE, admin tạo BALANCE qua payment-requests), ship, complete, cancel-by-shop (đóng yêu cầu PENDING; trả slot luôn; trả kho/quota chỉ khi hủy chưa nhận tiền), ghi chú.
 - **File / module:** backend/.../order/admin/*
 - **Nghiệm thu:** Đúng API_SPEC §3 Đơn hàng.
 - **Test:** Integration test cho từng hành động.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Nợ: deadlock khi hủy đồng thời 2 đơn nhiều món MADE_TO_ORDER (khoá tháng theo từng item, không theo cả đơn); test race create↔cancel chưa phủ nhánh cancel thắng; MADE_TO_ORDER PAID_IN_FULL không có đường hủy hoàn tiền (409); list cố định 20/trang; photoImageIds bị bỏ qua tới T-029.
 
 #### T-027 · Job hết hạn / nhắc hạn / mất cọc
 - **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-026 · **Status:** todo
