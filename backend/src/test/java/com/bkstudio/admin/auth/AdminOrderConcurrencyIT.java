@@ -85,6 +85,8 @@ class AdminOrderConcurrencyIT extends AdminOrderTestBase {
     @Test
     @Timeout(300)
     void createPaymentRequestVsCancelByShop_neverLeavesPendingRequestOnCancelledOrder() throws Exception {
+        jdbc.update("INSERT INTO app_setting (key, value) VALUES ('payment_allowed_domains', 'artistree.io')"
+                + " ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value");
         int createWon = 0;
         for (int round = 0; round < ROUNDS; round++) {
             long v = newVariant(0, 0);

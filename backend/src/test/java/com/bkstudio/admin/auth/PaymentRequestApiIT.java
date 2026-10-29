@@ -521,7 +521,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
         assertThat(jdbc.queryForObject(
                         "SELECT template FROM email_outbox WHERE dedupe_key = ?",
                         String.class,
-                        "order:" + orderId + ":CONFIRM_DEPOSIT:1"))
+                        "order:" + orderId + ":CONFIRM_DEPOSIT:2"))
                 .isEqualTo("ORDER_DEPOSIT_CONFIRMED");
         assertThat(outboxRows()).isEqualTo(2); // payment link + deposit confirmed
     }
@@ -542,7 +542,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
         assertThat(jdbc.queryForObject(
                         "SELECT template FROM email_outbox WHERE dedupe_key = ?",
                         String.class,
-                        "order:" + orderId + ":CONFIRM_PAYMENT:1"))
+                        "order:" + orderId + ":CONFIRM_PAYMENT:2"))
                 .isEqualTo("ORDER_PAID");
     }
 
