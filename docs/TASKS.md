@@ -318,12 +318,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Nợ: mỗi lượt tối đa 50 đơn, không phân trang (đơn lỗi vĩnh viễn ở đầu hàng làm đói các đơn sau; có WARN khi bỏ qua); đơn IN_STOCK chưa có link thanh toán và đơn AWAITING_BALANCE chưa có yêu cầu BALANCE không bao giờ hết hạn/nhắc/mất cọc → T-034 phải có dashboard liệt kê hai loại này; `allowedActions` chưa có `forfeited-to-stock` (cần thêm `restockedAt` vào chi tiết đơn, T-033/T-051); `queue_entry` chưa bao giờ sang DONE; `PaymentRequestService.cancel` ghi lý do nguyên văn vào audit (UI T-034 nhắc admin không ghi thông tin khách); job dùng chung 1 luồng scheduler với outbox.
 
 #### T-028 · API đơn hàng phía khách
-- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-023, T-024 · **Status:** todo
-- **Phạm vi:** `GET /api/orders/{token}`, `POST …/cancel` theo quy tắc, `POST /api/orders/lookup` (luôn 202, gửi link qua email).
+- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-023, T-024 · **Status:** done
+- **Phạm vi:** `GET /api/orders/{token}`, `POST …/cancel` theo quy tắc, `POST /api/orders/lookup` (luôn 202; khớp thì ĐỔI token mới và gửi link mới qua email, ADR-0012).
 - **File / module:** backend/.../order/customer/*
 - **Nghiệm thu:** Token sai → 404; lookup không bao giờ trả dữ liệu đơn trực tiếp.
 - **Test:** Integration test.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Nợ: giới hạn IP (GET/cancel 60/phút, lookup 10/giờ) thấy IP của Caddy nên một kẻ xấu khoá lookup của mọi khách → T-043 phải sửa cả các limiter này; lookup khớp chênh nhẹ thời gian so với trượt (chấp nhận); đổi token tăng `version` đơn (admin đang mở trang gặp VERSION_CONFLICT); ảnh bìa chưa có trong `OrderView`; `CheckoutRateLimiter` nên đổi tên chung; thiếu test: lookup ↔ cancel song song, IPv6 /64 cho limiter mới.
 
 #### T-029 · Tiến trình sản xuất cho khách (backend)
 - **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-011, T-026, T-028 · **Status:** todo
@@ -349,7 +349,7 @@ flowchart LR
 - **File / module:** frontend/app/(shop)/orders/*
 - **Nghiệm thu:** Khách thấy đúng link thanh toán và hạn; huỷ ở QUEUED có hộp xác nhận mất cọc.
 - **Test:** E2E ở T-041.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Từ T-028: chỉ gửi `acknowledgeDepositLost: true` khi `cancelWarning` đang là true; trang `/orders/{token}` đặt `Referrer-Policy: no-referrer`, link thanh toán `rel="noreferrer noopener"`; 404 gợi ý dùng form tra cứu (link cũ chết sau khi tra cứu); hiển thị 409 `CONFLICT` 'order was just updated' bằng nút tải lại; ảnh bìa chưa có trong API.
 
 #### T-032 · Trang tĩnh: Commission, Policy, FAQ
 - **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-014, T-020 · **Status:** todo
@@ -415,7 +415,7 @@ flowchart LR
 - **File / module:** docs/DEPLOYMENT.md
 - **Nghiệm thu:** HTTPS hoạt động; mail-tester ≥ 9/10; port 5432 không truy cập được từ ngoài.
 - **Test:** Kiểm tra thủ công.
-- **Rủi ro / câu hỏi:** Hetzner từ chối xác minh (R9); giá Singapore vượt ngân sách. CHẶN CỨNG trước khi mở public (từ T-022): `server.forward-headers-strategy`/RemoteIpValve chỉ tin Caddy (hoặc Caddy ghi đè một header duy nhất), nếu không mọi khách dùng chung IP của Caddy → 5 đơn/giờ cho cả thế giới và attacker khoá được checkout + login; thêm IT gửi `X-Forwarded-For` giả phải bị bỏ qua; `APP_BASE_URL` https; Caddy không log header `Idempotency-Key`.
+- **Rủi ro / câu hỏi:** Hetzner từ chối xác minh (R9); giá Singapore vượt ngân sách. CHẶN CỨNG trước khi mở public (từ T-022): `server.forward-headers-strategy`/RemoteIpValve chỉ tin Caddy (hoặc Caddy ghi đè một header duy nhất), nếu không mọi khách dùng chung IP của Caddy → 5 đơn/giờ cho cả thế giới và attacker khoá được checkout + login; thêm IT gửi `X-Forwarded-For` giả phải bị bỏ qua (áp dụng cả limiter của `/api/orders/*` ở T-028); Caddy không log URI của `/api/orders/*` và `/orders/*` (đường dẫn chính là bí mật); `APP_BASE_URL` https; Caddy không log header `Idempotency-Key`.
 
 #### T-044 · Backup + diễn tập khôi phục
 - **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-043 · **Status:** todo
