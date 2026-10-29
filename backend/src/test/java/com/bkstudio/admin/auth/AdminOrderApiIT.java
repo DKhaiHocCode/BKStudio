@@ -196,7 +196,7 @@ class AdminOrderApiIT extends AdminOrderTestBase {
         order("IN_STOCK", "PAID_IN_FULL", 1);
         String code = jdbc.queryForObject("SELECT public_code FROM customer_order WHERE id = ?", String.class, id);
         for (String q : List.of(code, code.toLowerCase(), "  " + code + " ")) {
-            fetch("/api/admin/orders?q=" + q.replace(" ", "%20"))
+            fetch("/api/admin/orders?q=" + q)
                     .andExpect(jsonPath("$.total").value(1))
                     .andExpect(jsonPath("$.items[0].id").value(id));
         }
@@ -442,7 +442,7 @@ class AdminOrderApiIT extends AdminOrderTestBase {
                 Arguments.of("DHL", "", "trackingNumber"),
                 Arguments.of("DHL", "   ", "trackingNumber"),
                 Arguments.of("DHL", "t".repeat(101), "trackingNumber"),
-                Arguments.of("DHL", "T\u0000", "trackingNumber"),
+                Arguments.of("DHL", "T\u00001", "trackingNumber"),
                 Arguments.of("DHL", "T\n1", "trackingNumber"));
     }
 

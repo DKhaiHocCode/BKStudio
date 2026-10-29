@@ -80,21 +80,23 @@ abstract class AdminOrderTestBase extends AdminProductTestBase {
 
     long orderOn(String type, String status, long variantId, int qty) {
         String tag = UUID.randomUUID().toString().substring(0, 8);
+        // chk_order_shipped_needs_tracking: SHIPPED/COMPLETED rows need tracking and shipped_at at INSERT time.
+        boolean shipped = status.equals("SHIPPED") || status.equals("COMPLETED");
         long id = jdbc.queryForObject(
                 "INSERT INTO customer_order (public_code, access_token_hash, idempotency_key, fulfillment_type,"
                         + " status, customer_name, customer_email, ship_line1, ship_city, ship_country,"
-                        + " subtotal_cents, terms_version, terms_accepted_at)"
+                        + " subtotal_cents, terms_version, terms_accepted_at, tracking_number, shipped_at)"
                         + " VALUES (?, decode(md5(random()::text) || md5(random()::text), 'hex'), gen_random_uuid(),"
-                        + " ?, ?, 'Buyer', ?, ?, 'Singapore', 'SG', 2000, 'v1', now()) RETURNING id",
+                        + " ?, ?, 'Buyer', ?, ?, 'Singapore', 'SG', 2000, 'v1', now(), ?,"
+                        + " CASE WHEN ? THEN now() END) RETURNING id",
                 Long.class,
                 "BK-" + tag.toUpperCase(),
                 type,
                 status,
                 SECRET_EMAIL,
-                SECRET_STREET);
-        if (status.equals("SHIPPED") || status.equals("COMPLETED")) {
-            jdbc.update("UPDATE customer_order SET tracking_number = 'T0', shipped_at = now() WHERE id = ?", id);
-        }
+                SECRET_STREET,
+                shipped ? "T0" : null,
+                shipped);
         addItem(id, variantId, qty);
         return id;
     }
