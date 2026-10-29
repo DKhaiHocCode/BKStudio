@@ -230,7 +230,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
         assertThat(readInstant(r, "$.dueAt")).isEqualTo(expectedDue);
         assertThat(dueAt(id)).isEqualTo(expectedDue);
         assertThat(requestStatus(id)).isEqualTo("PENDING");
-        assertThat(orderVersion(orderId)).isZero();
+        assertThat(orderVersion(orderId)).isEqualTo(1);
         assertThat(orderStatus(orderId)).isEqualTo("AWAITING_DEPOSIT");
 
         Map<String, Object> mail =
@@ -287,14 +287,14 @@ class PaymentRequestApiIT extends AdminProductTestBase {
     }
 
     @Test
-    void create_full_noShipping_amountIsSubtotal_orderVersionUnchanged() throws Exception {
+    void create_full_noShipping_amountIsSubtotal_orderVersionBumped() throws Exception {
         long orderId = inStock(7000);
 
         create(orderId, "FULL", 7000, null, "SHOPEE_PROXY", "https://shopee.sg/order/9")
                 .andExpect(status().isCreated());
 
         assertThat(shippingCents(orderId)).isZero();
-        assertThat(orderVersion(orderId)).isZero();
+        assertThat(orderVersion(orderId)).isEqualTo(1);
     }
 
     @Test
@@ -505,7 +505,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
         assertThat(row.get("external_ref")).isEqualTo("INV-1001");
         assertThat(((Timestamp) row.get("confirmed_at")).toInstant()).isEqualTo(START.plus(Duration.ofHours(1)));
         assertThat(orderStatus(orderId)).isEqualTo("QUEUED");
-        assertThat(orderVersion(orderId)).isEqualTo(1);
+        assertThat(orderVersion(orderId)).isEqualTo(2);
 
         assertThat(queueEntries()).isEqualTo(6);
         assertThat(jdbc.queryForList(
@@ -682,7 +682,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
         assertThat(request(id).get("external_ref")).isNull();
         assertThat(request(id).get("confirmed_at")).isNull();
         assertThat(orderStatus(orderId)).isEqualTo("AWAITING_DEPOSIT");
-        assertThat(orderVersion(orderId)).isZero();
+        assertThat(orderVersion(orderId)).isEqualTo(1);
         assertThat(queueEntries()).isZero();
         assertThat(count("SELECT coalesce(sum(allocated), 0) FROM production_month"))
                 .isZero();
@@ -727,7 +727,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
         assertThat(auditCount("ORDER_TRANSITION", "ORDER", orderId)).isEqualTo(1);
         assertThat(auditRows()).isEqualTo(auditBefore + 2);
         assertThat(outboxRows()).isEqualTo(outboxBefore + 1);
-        assertThat(orderVersion(orderId)).isEqualTo(1);
+        assertThat(orderVersion(orderId)).isEqualTo(2);
         assertThat(orderStatus(orderId)).isEqualTo("QUEUED");
         assertThat(requestStatus(id)).isEqualTo("PAID");
     }
@@ -747,7 +747,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
         assertThat(statuses).containsExactlyInAnyOrder(200, 409);
         assertThat(queueEntries()).isEqualTo(2);
         assertThat(auditCount("PAYMENT_CONFIRMED", "PAYMENT_REQUEST", id)).isEqualTo(1);
-        assertThat(orderVersion(orderId)).isEqualTo(1);
+        assertThat(orderVersion(orderId)).isEqualTo(2);
         assertThat(refs).contains((String) request(id).get("external_ref"));
     }
 
@@ -794,7 +794,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
     // ================= cancel =================
 
     @Test
-    void cancel_pending_becomesCancelled_orderUnchanged_audited() throws Exception {
+    void cancel_pending_becomesCancelled_orderStatusUnchanged_audited() throws Exception {
         long orderId = mtoDeposit(10001);
         long id = createOk(orderId, "DEPOSIT", 5001);
 
@@ -805,7 +805,7 @@ class PaymentRequestApiIT extends AdminProductTestBase {
 
         assertThat(requestStatus(id)).isEqualTo("CANCELLED");
         assertThat(orderStatus(orderId)).isEqualTo("AWAITING_DEPOSIT");
-        assertThat(orderVersion(orderId)).isZero();
+        assertThat(orderVersion(orderId)).isEqualTo(1);
         assertThat(queueEntries()).isZero();
         var cancels = audits("PAYMENT_REQUEST", id).stream()
                 .filter(a -> a.action().equals("PAYMENT_REQUEST_CANCELLED"))

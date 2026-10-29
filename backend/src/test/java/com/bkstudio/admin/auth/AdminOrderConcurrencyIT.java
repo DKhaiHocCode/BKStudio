@@ -84,6 +84,59 @@ class AdminOrderConcurrencyIT extends AdminOrderTestBase {
 
     @Test
     @Timeout(300)
+    void createPaymentRequestVsCancelByShop_neverLeavesPendingRequestOnCancelledOrder() throws Exception {
+        int createWon = 0;
+        for (int round = 0; round < ROUNDS; round++) {
+            long v = newVariant(0, 0);
+            long order = orderOn("MADE_TO_ORDER", "AWAITING_DEPOSIT", v, 2);
+
+            List<Callable<Res>> calls = new ArrayList<>();
+            calls.add(() -> res(post(
+                    "/api/admin/orders/" + order + "/payment-requests",
+                    j(
+                            "type",
+                            "DEPOSIT",
+                            "amountCents",
+                            1000,
+                            "channel",
+                            "ARTISTREE",
+                            "paymentUrl",
+                            "https://artistree.io/p"))));
+            calls.add(cancel(order, 0));
+            List<Res> r = concurrently(calls);
+            Res createRes = r.get(0);
+            Res cancelRes = r.get(1);
+
+            int pending =
+                    count("SELECT count(*) FROM payment_request WHERE order_id = ? AND status = 'PENDING'", order);
+            assertThat(orderStatus(order).startsWith("CANCELLED") && pending > 0)
+                    .as("round %d: cancelled order with PENDING request: %s", round, r)
+                    .isFalse();
+            if (createRes.status() == 201) {
+                createWon++;
+                assertThat(cancelRes.status()).as(r.toString()).isEqualTo(409);
+                assertThat(cancelRes.code()).isEqualTo("VERSION_CONFLICT");
+                assertThat(orderStatus(order)).isEqualTo("AWAITING_DEPOSIT");
+                assertThat(pending).isEqualTo(1);
+            } else {
+                assertThat(cancelRes.status()).as(r.toString()).isEqualTo(200);
+                assertThat(createRes.status()).isEqualTo(409);
+                assertThat(createRes.code()).isEqualTo("INVALID_TRANSITION");
+                assertThat(orderStatus(order)).startsWith("CANCELLED");
+                assertThat(pending).isZero();
+            }
+            // no payment link email may exist for a request that is not PENDING (or never committed)
+            assertThat(count("SELECT count(*) FROM email_outbox e WHERE e.template = 'ORDER_PAYMENT_LINK'"
+                            + " AND NOT EXISTS (SELECT 1 FROM payment_request p"
+                            + " WHERE e.dedupe_key = 'payment:' || p.id || ':link' AND p.status = 'PENDING')"))
+                    .as("round %d: orphan payment link email", round)
+                    .isZero();
+        }
+        System.out.println("create-vs-cancel: create won " + createWon + " of " + ROUNDS);
+    }
+
+    @Test
+    @Timeout(300)
     void cancelVsConfirmPendingFull_inStock_exactlyOneWinner_stockRestoredOnlyIfCancelled() throws Exception {
         for (int round = 0; round < ROUNDS; round++) {
             long v = newVariant(0, null);
