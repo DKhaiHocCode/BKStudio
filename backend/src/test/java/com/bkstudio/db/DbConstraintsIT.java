@@ -38,6 +38,7 @@ class DbConstraintsIT extends AbstractPostgresTest {
 
     private static final String CHECK_VIOLATION = "23514";
     private static final String UNIQUE_VIOLATION = "23505";
+    private static final String FK_VIOLATION = "23503";
     private static final Instant T0 = Instant.parse("2027-01-01T00:00:00Z");
     private static final LocalDate NOV = LocalDate.of(2027, 11, 1);
     private static final LocalDate DEC = LocalDate.of(2027, 12, 1);
@@ -378,7 +379,121 @@ class DbConstraintsIT extends AbstractPostgresTest {
                 () -> jdbc.update("UPDATE customer_order SET status = 'CANCELLED_DEPOSIT_KEPT' WHERE id = ?", id));
     }
 
+    // ---------------------------------------------------------------- T-029 order progress (V3)
+
+    @Test
+    @DisplayName("progress-a unknownStage_isBlocked")
+    void progress_unknownStage_isBlocked() {
+        long orderId = order("MADE_TO_ORDER", "IN_PRODUCTION", UUID.randomUUID());
+
+        assertViolation(CHECK_VIOLATION, "chk_order_progress_stage", () -> progress(orderId, "QUEUED", ""));
+    }
+
+    @Test
+    @DisplayName("progress-b approveSameStageTwice_isBlocked_orNoOpWithOnConflict")
+    void progress_approveSameStageTwice_isBlocked() {
+        long orderId = order("MADE_TO_ORDER", "IN_PRODUCTION", UUID.randomUUID());
+        progress(orderId, "RAW_PRINT", "");
+
+        // the approve as the app will write it: second call is a no-op
+        assertThat(jdbc.update(
+                        "INSERT INTO order_progress(order_id, stage, approved_by) VALUES (?, 'RAW_PRINT', ?) "
+                                + "ON CONFLICT (order_id, stage) DO NOTHING",
+                        orderId,
+                        adminId()))
+                .isZero();
+        assertViolation(UNIQUE_VIOLATION, "pk_order_progress", () -> progress(orderId, "RAW_PRINT", ""));
+    }
+
+    @Test
+    @DisplayName("progress-c noteOver500Chars_isBlocked")
+    void progress_noteOver500Chars_isBlocked() {
+        long orderId = order("MADE_TO_ORDER", "IN_PRODUCTION", UUID.randomUUID());
+        progress(orderId, "RAW_PRINT", "x".repeat(500));
+
+        assertViolation(
+                CHECK_VIOLATION, "chk_order_progress_note_length", () -> progress(orderId, "PREP", "x".repeat(501)));
+    }
+
+    @Test
+    @DisplayName("progress-d sixthImageForStage_isBlocked")
+    void progress_sixthImageForStage_isBlocked() {
+        long orderId = order("MADE_TO_ORDER", "IN_PRODUCTION", UUID.randomUUID());
+        progress(orderId, "PAINT", "");
+        for (int i = 0; i < 5; i++) {
+            progressImage(orderId, "PAINT", "wip/" + UUID.randomUUID(), i);
+        }
+
+        assertViolation(
+                CHECK_VIOLATION,
+                "chk_order_progress_image_sort_order",
+                () -> progressImage(orderId, "PAINT", "wip/" + UUID.randomUUID(), 5));
+        assertViolation(
+                UNIQUE_VIOLATION,
+                "uq_order_progress_image_slot",
+                () -> progressImage(orderId, "PAINT", "wip/" + UUID.randomUUID(), 0));
+    }
+
+    @Test
+    @DisplayName("progress-e duplicateImageStorageKey_isBlocked")
+    void progress_duplicateImageStorageKey_isBlocked() {
+        long orderId = order("MADE_TO_ORDER", "IN_PRODUCTION", UUID.randomUUID());
+        progress(orderId, "RAW_PRINT", "");
+        progressImage(orderId, "RAW_PRINT", "wip/same", 0);
+
+        assertViolation(
+                UNIQUE_VIOLATION,
+                "uq_order_progress_image_storage_key",
+                () -> progressImage(orderId, "RAW_PRINT", "wip/same", 1));
+    }
+
+    @Test
+    @DisplayName("progress-f deleteOrder_isBlocked_deleteProgress_cascadesImages")
+    void progress_deleteOrder_isBlocked_deleteProgress_cascadesImages() {
+        long orderId = order("MADE_TO_ORDER", "IN_PRODUCTION", UUID.randomUUID());
+        progress(orderId, "RAW_PRINT", "");
+        progressImage(orderId, "RAW_PRINT", "wip/" + UUID.randomUUID(), 0);
+
+        // orders are never deleted: same RESTRICT convention as order_item / payment_request
+        assertViolation(
+                FK_VIOLATION,
+                "fk_order_progress_order",
+                () -> jdbc.update("DELETE FROM customer_order WHERE id = ?", orderId));
+
+        jdbc.update("DELETE FROM order_progress WHERE order_id = ?", orderId);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM order_progress_image", Integer.class))
+                .isZero();
+    }
+
     // ---------------------------------------------------------------- helpers
+
+    private long adminId() {
+        List<Long> ids = jdbc.queryForList("SELECT id FROM admin_user ORDER BY id LIMIT 1", Long.class);
+        if (!ids.isEmpty()) {
+            return ids.get(0);
+        }
+        return jdbc.queryForObject(
+                "INSERT INTO admin_user(email, password_hash) VALUES ('admin@x.com', 'hash') RETURNING id", Long.class);
+    }
+
+    private void progress(long orderId, String stage, String note) {
+        jdbc.update(
+                "INSERT INTO order_progress(order_id, stage, note, approved_by) VALUES (?, ?, ?, ?)",
+                orderId,
+                stage,
+                note,
+                adminId());
+    }
+
+    private void progressImage(long orderId, String stage, String storageKey, int sortOrder) {
+        jdbc.update(
+                "INSERT INTO order_progress_image(order_id, stage, storage_key, width, height, sort_order) "
+                        + "VALUES (?, ?, ?, 800, 600, ?)",
+                orderId,
+                stage,
+                storageKey,
+                sortOrder);
+    }
 
     /** Slot allocation as in DATABASE.md section 4: lock the first month with room, skipping locked ones. */
     private LocalDate allocateSlot(long orderItemId) {

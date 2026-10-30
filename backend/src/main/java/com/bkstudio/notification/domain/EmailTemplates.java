@@ -116,6 +116,20 @@ public class EmailTemplates {
                 linkKey = "orderUrl";
                 linkLabel = "View your order";
             }
+            case "ORDER_PROGRESS" -> {
+                // No link: the raw order token is not stored (ADR-0012), so it cannot be put in a later email.
+                String raw = clean(payload.get("stage"), 30);
+                String stage = switch (raw) {
+                    case "RAW_PRINT" -> "Raw print";
+                    case "PREP" -> "Preparation";
+                    case "PAINT" -> "Painting";
+                    default -> raw.isEmpty() ? "update" : raw.replace('_', ' ').toLowerCase(Locale.ENGLISH);
+                };
+                subject = "Progress update for " + order;
+                lines.add("Stage " + stage + " of your order" + (code.isEmpty() ? "" : " " + code) + " is done.");
+                lines.add("Open the order link from your order confirmation email to see photos.");
+                lines.add("If that link no longer works, use the order lookup page with your order code and email.");
+            }
             default -> throw new IllegalArgumentException("Unknown email template " + clean(template, 60));
         }
         String url = linkKey == null ? null : safeUrl(payload.get(linkKey));
