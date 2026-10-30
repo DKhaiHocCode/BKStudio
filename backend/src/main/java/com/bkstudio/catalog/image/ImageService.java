@@ -16,7 +16,7 @@ public class ImageService {
 
     private static final Logger log = LoggerFactory.getLogger(ImageService.class);
     private static final Pattern KEY =
-            Pattern.compile("^products/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+            Pattern.compile("^(products|progress)/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
 
     private final ImageProcessor processor;
     private final ImageStorage storage;
@@ -28,8 +28,17 @@ public class ImageService {
 
     /** The caller owns and closes {@code in}. */
     public StoredImage store(InputStream in) {
+        return store("products", in);
+    }
+
+    /** Same as {@link #store(InputStream)} but under the {@code progress/} key prefix (order progress photos). */
+    public StoredImage storeProgress(InputStream in) {
+        return store("progress", in);
+    }
+
+    private StoredImage store(String prefix, InputStream in) {
         ProcessedImage image = processor.process(in);
-        String storageKey = "products/" + UUID.randomUUID();
+        String storageKey = prefix + "/" + UUID.randomUUID();
         try {
             for (Map.Entry<Integer, byte[]> e : image.renditions().entrySet()) {
                 storage.put(storageKey, e.getKey(), e.getValue());

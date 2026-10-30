@@ -99,6 +99,8 @@ Bảng phụ không vẽ: `app_setting`, `email_outbox`, `audit_log`, `admin_use
 | `email_outbox` | Hàng đợi email | `dedupe_key` UNIQUE → job chạy lại cũng không gửi email nhắc 2 lần |
 | `audit_log` | Ai làm gì, lúc nào | Lưu giá trị trước/sau dạng `jsonb` |
 | `terms_document` | Các phiên bản điều khoản | Biết chính xác khách đã đồng ý nội dung nào |
+| `order_progress` | Giai đoạn sản xuất đã duyệt (V3, T-029) | PK `(order_id, stage)` = mỗi giai đoạn duyệt một lần: `INSERT … ON CONFLICT (order_id, stage) DO NOTHING`. `chk_order_progress_stage` (`RAW_PRINT`/`PREP`/`PAINT`), `chk_order_progress_note_length` (≤ 500), `fk_order_progress_order` (RESTRICT), `fk_order_progress_admin` → `admin_user` (RESTRICT). **DB không ép**: chỉ đơn MADE_TO_ORDER và duyệt đúng thứ tự (CHECK không nhìn được bảng khác, không dùng trigger): service `AdminProgressService` kiểm tra |
+| `order_progress_image` | Ảnh tiến độ (V3) | `fk_order_progress_image_progress` → `order_progress(order_id, stage)` ON DELETE CASCADE; `uq_order_progress_image_storage_key`; `uq_order_progress_image_slot (order_id, stage, sort_order)` + `chk_order_progress_image_sort_order` (0–4) = tối đa 5 ảnh/giai đoạn; `chk_order_progress_image_width_positive` / `_height_positive`. `storage_key` dạng `progress/{uuid}` |
 
 ## 4. Các ràng buộc nghiệp vụ ở tầng DB
 | Luật | Cách DB đảm bảo |

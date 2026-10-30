@@ -110,6 +110,21 @@ sequenceDiagram
 - Huỷ đơn đang `QUEUED` → `allocated - 1`, slot trả lại tháng đó.
 - Admin giảm `capacity` của 1 tháng: không được nhỏ hơn `allocated` (DB chặn). Muốn dời đơn sang tháng sau → thao tác "Dời slot" riêng (P1).
 
+## 4b. Tiến độ sản xuất cho khách (T-029, chỉ `MADE_TO_ORDER`)
+Khách thấy 6 giai đoạn theo thứ tự. Ba giai đoạn giữa do admin duyệt thủ công (kèm ghi chú và tối đa 5 ảnh), ba giai đoạn còn lại suy ra từ trạng thái đơn:
+
+| # | Giai đoạn | Nguồn | CURRENT khi | DONE khi |
+|---|---|---|---|---|
+| 1 | `AWAITING_APPROVAL` | suy ra | `AWAITING_DEPOSIT` | cọc đã nhận (`QUEUED` trở đi, gồm đơn huỷ/mất cọc đã qua bước cọc) |
+| 2 | `DEPOSIT_RECEIVED` | suy ra | `QUEUED` | `IN_PRODUCTION` trở đi (và đơn huỷ/mất cọc đã qua bước cọc) |
+| 3-5 | `RAW_PRINT`, `PREP`, `PAINT` | lưu ở `order_progress` | đơn `IN_PRODUCTION` và là giai đoạn đầu tiên chưa duyệt | đã duyệt, hoặc đơn đã `AWAITING_BALANCE` trở đi (giai đoạn bị bỏ qua cũng DONE, không có ảnh) |
+| 6 | `FINISHED` | suy ra | không bao giờ (chuyển thẳng sang DONE khi admin `mark-finished`) | `AWAITING_BALANCE` trở đi (gồm `FORFEITED`) |
+
+- Duyệt giai đoạn chỉ khi đơn `IN_PRODUCTION`, đúng thứ tự `RAW_PRINT` → `PREP` → `PAINT`; duyệt lại giai đoạn đã duyệt là idempotent (không ảnh mới, không email, không audit).
+- Đủ 3 giai đoạn đã duyệt mà chưa `mark-finished` thì không giai đoạn nào CURRENT. `mark-finished` **không** đòi các giai đoạn đã duyệt.
+- Đơn huỷ hoặc `FORFEITED`: giữ nguyên những gì đã có, không giai đoạn nào CURRENT.
+- Mỗi lần duyệt gửi email `ORDER_PROGRESS` (không có link và không kèm ảnh; token gốc không được lưu, ADR-0012). Duyệt giai đoạn không đổi `status` hay `version` của đơn.
+
 ## 5. Trả nốt, nhắc hạn, mất cọc
 1. Admin bấm "Hoàn thiện" (`IN_PRODUCTION → AWAITING_BALANCE`; **không** tự tạo yêu cầu thanh toán), rồi tạo yêu cầu `BALANCE` qua `POST /orders/{id}/payment-requests` (50% + phí ship nếu kênh Artistree), `due_at = now + 30 ngày`.
 2. Email báo hoàn thiện kèm ảnh + link trả nốt.

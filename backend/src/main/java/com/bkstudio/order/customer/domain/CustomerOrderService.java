@@ -196,7 +196,8 @@ public class CustomerOrderService {
         };
     }
 
-    private long idByToken(String token) {
+    /** Order id for a customer token; the same 404 for a malformed or unknown token. */
+    public long idByToken(String token) {
         if (token == null || !TOKEN_SHAPE.matcher(token).matches()) {
             throw notFound();
         }

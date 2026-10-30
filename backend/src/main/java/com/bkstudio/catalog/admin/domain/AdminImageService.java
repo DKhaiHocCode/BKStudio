@@ -53,23 +53,40 @@ public class AdminImageService {
         deleteQuietly(key);
     }
 
+    /** Order progress photo: same concurrency guard, key prefix {@code progress/}. */
+    public StoredImage storeProgress(InputStream file) {
+        return store(file, true);
+    }
+
+    /** Best-effort delete of stored files by key (logs a WARN without PII on failure). */
+    public void deleteFiles(String key) {
+        deleteQuietly(key);
+    }
+
     private StoredImage store(InputStream file) {
-        boolean acquired;
-        try {
-            acquired = processing.tryAcquire(wait.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw busy();
-        }
-        if (!acquired) {
-            throw busy();
-        }
+        return store(file, false);
+    }
+
+    private StoredImage store(InputStream file, boolean progress) {
+        // try (file) wraps the acquire too, so a busy 429 also closes the upload stream.
         try (file) {
-            return images.store(file);
+            boolean acquired;
+            try {
+                acquired = processing.tryAcquire(wait.toMillis(), TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw busy();
+            }
+            if (!acquired) {
+                throw busy();
+            }
+            try {
+                return progress ? images.storeProgress(file) : images.store(file);
+            } finally {
+                processing.release();
+            }
         } catch (IOException e) {
             throw new ApiException(ErrorCode.VALIDATION_FAILED, "Unreadable upload.");
-        } finally {
-            processing.release();
         }
     }
 
