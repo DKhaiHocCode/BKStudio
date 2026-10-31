@@ -3,7 +3,7 @@ import { Logo } from "./Logo";
 
 // Policy pages do not exist yet; the links are placeholders.
 const FOOTER_LINKS = [
-  { href: "/track", label: "Track my order" },
+  { href: "/orders/lookup", label: "Track my order" },
   { href: "#", label: "Shipping & deposits" },
   { href: "#", label: "FAQ" },
   { href: "#", label: "Privacy" },
