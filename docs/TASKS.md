@@ -336,12 +336,12 @@ flowchart LR
 ### M3 — Giao diện khách & admin
 
 #### T-030 · Giỏ hàng + checkout (frontend)
-- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-014, T-022 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 7 giờ · **Phụ thuộc:** T-014, T-022 · **Status:** done
 - **Phạm vi:** Giỏ hàng lưu localStorage; tách giỏ trộn 2 loại; form khách + địa chỉ (chọn quốc gia); checkbox điều khoản (hiện rõ cọc không hoàn); idempotency key; màn hình thành công.
 - **File / module:** frontend/app/(shop)/cart, checkout
 - **Nghiệm thu:** Đặt được đơn hàng sẵn và đơn làm theo đơn; bấm "Đặt hàng" 2 lần chỉ tạo 1 đơn.
 - **Test:** E2E ở T-041.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** CHƯA kiểm runtime: chưa ai đặt đơn thật qua UI, chưa thử bấm đặt 2 lần, chưa xem 375px/dark mode; T-041 PHẢI phủ: đặt đơn IN_STOCK và MADE_TO_ORDER, double-click, mất phản hồi rồi thử lại, CONFLICT. Nợ T-030: server nên lưu hash toàn bộ body theo Idempotency-Key (replay hiện bỏ qua thông tin đã sửa → đơn giữ địa chỉ cũ); slug UNLISTED nằm lại trong localStorage của giỏ; cookie CSRF của khách lấy qua `GET /api/admin/auth/me` (nếu Caddy khoá `/api/admin/*` theo IP thì checkout hỏng → ghi vào DEPLOYMENT.md hoặc làm endpoint khởi tạo CSRF trung tính); trần 10 dòng áp cho cả giỏ (server giới hạn theo đơn); `orderUrl` ở màn hình thành công là chữ, chưa là link vì trang `/orders/{token}` thuộc T-031; không có test đơn vị frontend cho cart/idempotency/schema.
 
 #### T-031 · Trang trạng thái đơn + tra cứu
 - **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-028, T-029, T-030 · **Status:** todo
