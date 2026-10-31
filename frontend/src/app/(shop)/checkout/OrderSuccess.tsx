@@ -5,12 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { Notice } from "@/components/shop/Notice";
 import { focusRing, inputField, panel, secondaryButton } from "@/components/ui";
 import { formatUsd } from "@/lib/money";
+import { orderPathOf, statusLabel } from "@/lib/orders";
 import type { OrderCreated } from "./schema";
-
-const STATUS_LABEL: Record<string, string> = {
-  AWAITING_PAYMENT: "Awaiting payment",
-  AWAITING_DEPOSIT: "Awaiting deposit",
-};
 
 /** Never log or send `order.code` / `order.orderUrl` anywhere: the URL is the customer's only key. */
 export function OrderSuccess({ order }: { order: OrderCreated }) {
@@ -29,6 +25,8 @@ export function OrderSuccess({ order }: { order: OrderCreated }) {
     }
   }
 
+  const orderPath = order.orderUrl ? orderPathOf(order.orderUrl) : null;
+
   return (
     <div className={`${panel} mx-auto flex w-full max-w-2xl flex-col gap-5`}>
       <h1
@@ -46,7 +44,7 @@ export function OrderSuccess({ order }: { order: OrderCreated }) {
         </div>
         <div className="flex flex-wrap justify-between gap-x-4">
           <dt>Status</dt>
-          <dd className="m-0 font-bold">{STATUS_LABEL[order.status] ?? order.status}</dd>
+          <dd className="m-0 font-bold">{statusLabel(order.status)}</dd>
         </div>
         <div className="flex flex-wrap justify-between gap-x-4">
           <dt>Subtotal</dt>
@@ -67,8 +65,11 @@ export function OrderSuccess({ order }: { order: OrderCreated }) {
             <p className="m-0">
               Keep this link safe: anyone with it can view your order. It is shown just once here,
               and a confirmation email with the same link is on its way. If you lose it, you can
-              request a new link with your order code and email (the order lookup page is coming
-              later).
+              request a new link with your order code and email on the{" "}
+              <Link href="/orders/lookup" className={`font-bold underline ${focusRing}`}>
+                order lookup page
+              </Link>
+              .
             </p>
           </Notice>
           <label htmlFor="order-url" className="font-bold">
@@ -81,6 +82,15 @@ export function OrderSuccess({ order }: { order: OrderCreated }) {
             onFocus={(e) => e.currentTarget.select()}
             className={`${inputField} font-mono text-sm`}
           />
+          {orderPath && (
+            <Link
+              href={orderPath}
+              prefetch={false}
+              className={`self-start font-bold underline ${focusRing}`}
+            >
+              Open my order page
+            </Link>
+          )}
           <div className="flex flex-wrap items-center gap-3">
             <button type="button" onClick={() => void copyLink()} className={secondaryButton}>
               Copy link
