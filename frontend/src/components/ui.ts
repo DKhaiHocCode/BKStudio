@@ -28,3 +28,8 @@ export const chipActive = `${pill} bg-inverse text-on-inverse`;
 export const badge =
   "rounded-full border-2 border-border px-2.5 py-0.5 text-xs font-bold sm:text-[13px]";
 // Tinted badges keep ink text in every theme (the tints stay light): add text-ink next to bg-tint-*.
+
+export const panel = "rounded-[26px] border-[3px] border-border bg-card p-5 shadow-sticker sm:p-6";
+export const inputField =
+  "min-h-11 w-full min-w-0 rounded-xl border-2 border-border bg-card px-3.5 py-3 font-normal text-fg aria-[invalid=true]:border-danger aria-[invalid=true]:border-[3px] " +
+  focusRing;

@@ -117,7 +117,14 @@ async function ProductContent({ params }: { params: PageProps<"/products/[slug]"
             </h1>
           </div>
 
-          <BuyBox variants={product.variants} />
+          <BuyBox
+            variants={product.variants}
+            product={{
+              slug: product.slug,
+              name: product.name,
+              imageUrl: product.images[0]?.srcset["400"] ?? product.images[0]?.url,
+            }}
+          />
 
           <div className="flex items-start gap-3 rounded-[18px] border-[3px] border-border bg-card px-[18px] py-4">
             <svg

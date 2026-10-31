@@ -1,22 +1,40 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { chip, chipActive, focusRing, primaryButton } from "@/components/ui";
+import {
+  addToCart,
+  depositOf,
+  MAX_LINES,
+  MAX_QUANTITY,
+  type AddResult,
+  type CartMode,
+} from "@/lib/cart";
 import type { Variant } from "@/lib/catalog";
 import { formatUsd } from "@/lib/money";
-
-type Mode = "stock" | "mto";
-
-/** 50% of the price in cents, rounded half up. Display estimate only; the server decides real amounts. */
-const depositCents = (priceCents: number) => Math.floor((priceCents + 1) / 2);
 
 const option =
   "flex items-start gap-3.5 rounded-[18px] border-[3px] border-border px-[18px] py-4 has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus";
 
-export function BuyBox({ variants }: { variants: Variant[] }) {
+export interface BuyBoxProduct {
+  slug: string;
+  name: string;
+  imageUrl?: string;
+}
+
+const ADD_MESSAGE: Record<AddResult, string> = {
+  added: "Added to your cart.",
+  capped: `Quantity capped at ${MAX_QUANTITY} per item.`,
+  invalid: "Sorry, this item could not be added. Please reload the page.",
+  full: `Your cart is full (${MAX_LINES} different items max). Check out or remove something first.`,
+};
+
+export function BuyBox({ variants, product }: { variants: Variant[]; product: BuyBoxProduct }) {
   const [variantId, setVariantId] = useState(variants[0]?.id);
-  const [pickedMode, setPickedMode] = useState<Mode | null>(null);
+  const [pickedMode, setPickedMode] = useState<CartMode | null>(null);
   const [qty, setQty] = useState(1);
+  const [added, setAdded] = useState<AddResult | null>(null);
 
   const variant = variants.find((v) => v.id === variantId) ?? variants[0];
   if (!variant) {
@@ -26,7 +44,7 @@ export function BuyBox({ variants }: { variants: Variant[] }) {
   const stockOk = variant.inStock.available;
   const mtoOk = variant.madeToOrder.available;
   // Fall back to whatever is available when the picked mode is not offered for this scale.
-  const mode: Mode | null =
+  const mode: CartMode | null =
     pickedMode === "stock" && stockOk
       ? "stock"
       : pickedMode === "mto" && mtoOk
@@ -120,7 +138,7 @@ export function BuyBox({ variants }: { variants: Variant[] }) {
               )}
             </span>
             <span className="text-[15px] leading-normal">
-              Pay a 50% deposit (about {formatUsd(depositCents(variant.priceCents))}) now.{" "}
+              Pay a 50% deposit (about {formatUsd(depositOf(variant.priceCents))}) now.{" "}
               {month
                 ? `Estimated start: ${month}. We confirm the exact month when your deposit is in.`
                 : "We confirm the start month when your deposit is in."}
@@ -144,11 +162,41 @@ export function BuyBox({ variants }: { variants: Variant[] }) {
           }
           className={`min-h-11 w-[72px] rounded-xl border-[3px] border-border bg-card p-3 font-bold ${focusRing}`}
         />
-        {/* Cart arrives with T-030. */}
-        <button type="button" disabled className={`${primaryButton} flex-[1_1_220px] text-lg`}>
-          Coming soon
+        <button
+          type="button"
+          disabled={!mode}
+          onClick={() => {
+            if (!mode) return;
+            setAdded(
+              addToCart({
+                variantId: variant.id,
+                productSlug: product.slug,
+                productName: product.name,
+                scale: variant.scale,
+                mode,
+                quantity: qty,
+                priceCents: variant.priceCents,
+                imageUrl: product.imageUrl,
+              }),
+            );
+          }}
+          className={`${primaryButton} flex-[1_1_220px] text-lg`}
+        >
+          {mode ? "Add to cart" : "Unavailable"}
         </button>
       </div>
+      <p role="status" className="m-0 font-bold">
+        {added && (
+          <>
+            {ADD_MESSAGE[added]}{" "}
+            {added !== "full" && (
+              <Link href="/cart" className={`underline ${focusRing}`}>
+                View cart
+              </Link>
+            )}
+          </>
+        )}
+      </p>
     </div>
   );
 }
