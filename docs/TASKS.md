@@ -360,12 +360,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Nội dung điều khoản do chủ shop viết (O-2). Từ T-020: `contentMd` trả về markdown thô → bắt buộc dùng bộ render markdown có lọc (không HTML thô, không link `javascript:`, `rel="noopener noreferrer"`), cấm `dangerouslySetInnerHTML` trên đầu ra thô.
 
 #### T-033 · Admin UI đơn hàng
-- **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-015, T-026, T-029 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-015, T-026, T-029 · **Status:** done
 - **Phạm vi:** Danh sách + lọc + tìm; chi tiết đơn với lịch sử audit; nút hành động theo `allowedActions`; form tạo yêu cầu thanh toán, xác nhận (nhập mã), gửi hàng, duyệt giai đoạn tiến trình kèm tải ảnh (T-029).
 - **File / module:** frontend/app/admin/orders/*
 - **Nghiệm thu:** Đi hết vòng đời 1 đơn làm theo đơn chỉ bằng UI admin.
 - **Test:** E2E ở T-041.
-- **Rủi ro / câu hỏi:** Màn hình phức tạp nhất phía frontend.
+- **Rủi ro / câu hỏi:** Xong KHÔNG có bằng chứng chạy thật: chưa ai đi hết vòng đời đơn bằng UI (Khai chưa đăng nhập admin được vì thiếu `TOTP_ENCRYPTION_KEY` trong terminal chạy backend); T-041 phải phủ. Cổng review: bản sửa sau review chưa được reviewer xem lại. Phạm vi mở rộng (Khai duyệt): backend `GET /api/admin/orders/{id}` thêm `history` (audit đã lọc cột), `progress`, `restockedAt`, `forfeited-to-stock` trong `allowedActions` (gồm cả T-051). Nợ: tìm đơn chỉ khớp đúng mã đơn; `mark-finished` không có hộp xác nhận; giữa lúc tải lại nút của đơn cũ vẫn bật (server chặn bằng version); test thứ tự giai đoạn không phân biệt thứ tự duyệt với thứ tự enum; lịch sử không có dòng 'tạo đơn' (UI dùng `createdAt`); lý do huỷ yêu cầu thanh toán lưu nguyên văn trong audit; bố cục 375px, focus/Esc của hộp thoại chưa xem.
 
 #### T-034 · Admin UI dashboard, hàng đợi, cài đặt
 - **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-033, T-027 · **Status:** todo
@@ -452,7 +452,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Không gấp: dữ liệu cần ẩn danh sớm nhất sau 2 năm.
 
 #### T-051 · Nút "Chuyển thành hàng sẵn" cho đơn FORFEITED
-- **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 1 giờ · **Phụ thuộc:** T-033 · **Status:** todo
+- **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 1 giờ · **Phụ thuộc:** T-033 · **Status:** done
 - **Phạm vi:** Nút trên chi tiết đơn gọi `POST /api/admin/orders/{id}/forfeited-to-stock` (backend đã xong ở T-027; thêm `restockedAt` vào chi tiết đơn để ẩn nút khi đã cộng).
 - **File / module:** frontend admin (+ DTO chi tiết đơn)
 - **Nghiệm thu:** Hoạt động 1 lần duy nhất mỗi đơn.

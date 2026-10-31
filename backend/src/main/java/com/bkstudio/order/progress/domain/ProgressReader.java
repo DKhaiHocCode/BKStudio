@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 
 /** Reads approved stages and their photos of one order. */
 @Component
-class ProgressReader {
+public class ProgressReader {
 
     /** Photo URLs use the 1000 px rendition. */
     static final int PHOTO_WIDTH = 1000;
 
-    record Row(String note, Instant approvedAt, List<Photo> images) {}
+    public record Row(String note, Instant approvedAt, List<Photo> images) {}
 
     private final JdbcTemplate jdbc;
     private final CatalogProperties props;
@@ -28,7 +28,7 @@ class ProgressReader {
     }
 
     /** Keyed by stage name. */
-    Map<String, Row> load(long orderId) {
+    public Map<String, Row> load(long orderId) {
         Map<String, List<Photo>> photos = new HashMap<>();
         jdbc.query(
                 "SELECT stage, storage_key, width, height FROM order_progress_image WHERE order_id = ?"

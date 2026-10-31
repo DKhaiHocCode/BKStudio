@@ -101,7 +101,8 @@ class AdminOrderApiIT extends AdminOrderTestBase {
                         read(fetch("/api/admin/orders/" + id).andExpect(status().isOk()), "$.allowedActions");
                 assertThat(actual).as("%s %s", type, st).containsExactlyInAnyOrderElementsOf(expectedActions(type, st));
                 if (st.isTerminal()) {
-                    assertThat(actual).as("terminal %s %s", type, st).isEmpty();
+                    // T-033: a forfeited made-to-order order may still go back to stock
+                    assertThat(actual).as("terminal %s %s", type, st).isSubsetOf("forfeited-to-stock");
                 }
                 checked++;
             }
@@ -141,6 +142,9 @@ class AdminOrderApiIT extends AdminOrderTestBase {
 
     private static List<String> expectedActions(FulfillmentType type, OrderStatus st) {
         List<String> out = new ArrayList<>();
+        if (st == OrderStatus.FORFEITED && type == FulfillmentType.MADE_TO_ORDER) {
+            out.add("forfeited-to-stock"); // fixtures never set restocked_at
+        }
         addIf(out, "start-production", type, st, OrderAction.START_PRODUCTION);
         addIf(out, "mark-finished", type, st, OrderAction.COMPLETE_PRODUCTION);
         addIf(out, "ship", type, st, OrderAction.SHIP);

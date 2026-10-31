@@ -3,12 +3,16 @@ package com.bkstudio.order.admin.domain;
 import com.bkstudio.order.admin.api.AdminOrderDtos.ActionResult;
 import com.bkstudio.order.admin.api.AdminOrderDtos.Customer;
 import com.bkstudio.order.admin.api.AdminOrderDtos.Detail;
+import com.bkstudio.order.admin.api.AdminOrderDtos.HistoryEntry;
 import com.bkstudio.order.admin.api.AdminOrderDtos.Item;
 import com.bkstudio.order.admin.api.AdminOrderDtos.ListItem;
 import com.bkstudio.order.admin.api.AdminOrderDtos.NoteView;
 import com.bkstudio.order.admin.api.AdminOrderDtos.OrderPage;
+import com.bkstudio.order.admin.api.AdminOrderDtos.ProgressEntry;
 import com.bkstudio.order.checkout.api.CheckoutDtos.FulfillmentType;
 import com.bkstudio.order.checkout.infra.CheckoutRepository;
+import com.bkstudio.order.progress.domain.ProgressReader;
+import com.bkstudio.order.progress.domain.ProgressStage;
 import com.bkstudio.order.state.OrderAction;
 import com.bkstudio.order.state.OrderActor;
 import com.bkstudio.order.state.OrderStateMachine;
@@ -60,6 +64,7 @@ public class AdminOrderService {
     private final OrderReservations reservations;
     private final CheckoutRepository checkoutRepo;
     private final AuditLogWriter audit;
+    private final ProgressReader progressReader;
 
     AdminOrderService(
             JdbcTemplate jdbc,
@@ -68,7 +73,9 @@ public class AdminOrderService {
             PaymentRequestService payments,
             OrderReservations reservations,
             CheckoutRepository checkoutRepo,
-            AuditLogWriter audit) {
+            AuditLogWriter audit,
+            ProgressReader progressReader) {
+        this.progressReader = progressReader;
         this.jdbc = jdbc;
         this.clock = clock;
         this.machine = machine;
@@ -121,7 +128,8 @@ public class AdminOrderService {
                 "SELECT id, public_code, status, fulfillment_type, version, subtotal_cents, shipping_cents, currency,"
                         + " customer_name, customer_email, phone, ship_line1, ship_line2, ship_city, ship_region,"
                         + " ship_postal_code, ship_country, carrier, tracking_number, cancel_reason, admin_note,"
-                        + " created_at, updated_at, shipped_at, completed_at FROM customer_order WHERE id = ?",
+                        + " created_at, updated_at, shipped_at, completed_at, restocked_at FROM customer_order"
+                        + " WHERE id = ?",
                 (rs, i) -> {
                     OrderStatus status = OrderStatus.valueOf(rs.getString(3));
                     FulfillmentType type = FulfillmentType.valueOf(rs.getString(4));
@@ -154,7 +162,10 @@ public class AdminOrderService {
                             instant(rs, 23),
                             instant(rs, 24),
                             instant(rs, 25),
-                            allowedActions(type, status));
+                            instant(rs, 26),
+                            null,
+                            null,
+                            allowedActions(type, status, rs.getTimestamp(26) != null));
                 },
                 id);
         if (found.isEmpty()) {
@@ -187,11 +198,54 @@ public class AdminOrderService {
                 d.updatedAt(),
                 d.shippedAt(),
                 d.completedAt(),
+                d.restockedAt(),
+                history(id),
+                // Only made-to-order orders have progress rows; an IN_STOCK order simply has none.
+                progress(id),
                 d.allowedActions());
     }
 
-    static List<String> allowedActions(FulfillmentType type, OrderStatus status) {
+    /** Order lifecycle from audit_log. Reads only whitelisted columns/JSON keys: never actor_id, request_id or free text. */
+    private List<HistoryEntry> history(long id) {
+        return jdbc.query(
+                "SELECT occurred_at, action, actor, before->>'status', after->>'status', after->>'action'"
+                        + " FROM audit_log WHERE entity_type = 'ORDER' AND entity_id = ?"
+                        + " AND action IN ('ORDER_TRANSITION', 'ORDER_FORFEITED_TO_STOCK')"
+                        + " ORDER BY occurred_at, id",
+                (rs, i) -> new HistoryEntry(
+                        rs.getTimestamp(1).toInstant(),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getString(4),
+                        rs.getString(5),
+                        rs.getString(6)),
+                id);
+    }
+
+    private List<ProgressEntry> progress(long id) {
+        Map<String, ProgressReader.Row> stored = progressReader.load(id);
+        List<ProgressEntry> out = new ArrayList<>();
+        for (ProgressStage s : ProgressStage.values()) {
+            ProgressReader.Row r = stored.get(s.name());
+            if (r != null) {
+                out.add(new ProgressEntry(s.name(), r.approvedAt(), r.note(), r.images()));
+            }
+        }
+        return out;
+    }
+
+    /** Single predicate for "may go back to stock", shared with {@link #forfeitedToStock}. */
+    static boolean restockable(String status, String type, boolean restocked) {
+        return OrderStatus.FORFEITED.name().equals(status)
+                && FulfillmentType.MADE_TO_ORDER.name().equals(type)
+                && !restocked;
+    }
+
+    static List<String> allowedActions(FulfillmentType type, OrderStatus status, boolean restocked) {
         List<String> out = new ArrayList<>();
+        if (restockable(status.name(), type.name(), restocked)) {
+            out.add("forfeited-to-stock");
+        }
         if (can(type, status, OrderAction.START_PRODUCTION)) {
             out.add("start-production");
         }
@@ -293,8 +347,7 @@ public class AdminOrderService {
             throw notFound();
         }
         ForfeitRow o = rows.get(0);
-        if (!OrderStatus.FORFEITED.name().equals(o.status())
-                || !FulfillmentType.MADE_TO_ORDER.name().equals(o.type())) {
+        if (!restockable(o.status(), o.type(), false)) {
             throw new ApiException(
                     ErrorCode.INVALID_TRANSITION, "Only a forfeited made-to-order order can go back to stock.");
         }
