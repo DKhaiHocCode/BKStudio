@@ -5,6 +5,8 @@ const backendUrl = process.env.BACKEND_URL ?? "http://localhost:8080";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Dev only: lets the dev server serve /_next/* to a Cloudflare quick tunnel (otherwise the page never hydrates).
+  allowedDevOrigins: ["*.trycloudflare.com"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

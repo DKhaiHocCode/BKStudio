@@ -75,6 +75,12 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
           >
             Products
           </Link>
+          <Link
+            href="/admin/orders"
+            className="inline-flex min-h-11 items-center font-bold underline"
+          >
+            Orders
+          </Link>
         </span>
         <span className="flex items-center gap-3">
           <span className="hidden text-sm sm:inline">{email}</span>

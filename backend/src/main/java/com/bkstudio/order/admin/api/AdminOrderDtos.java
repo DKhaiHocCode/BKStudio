@@ -1,5 +1,6 @@
 package com.bkstudio.order.admin.api;
 
+import com.bkstudio.order.progress.api.ProgressDtos.Photo;
 import com.bkstudio.payment.api.PaymentDtos.PaymentRequestView;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
@@ -35,6 +36,13 @@ public final class AdminOrderDtos {
 
     public record Item(long id, long variantId, String productName, String scale, int unitPriceCents, int quantity) {}
 
+    /** Whitelisted audit view: actorType only (no actor id, IP, request id or free text). */
+    public record HistoryEntry(
+            Instant at, String action, String actorType, String fromStatus, String toStatus, String transition) {}
+
+    /** One approved production stage; images use the 1000 px rendition. */
+    public record ProgressEntry(String stage, Instant approvedAt, String note, List<Photo> images) {}
+
     public record Detail(
             long id,
             String publicCode,
@@ -55,6 +63,9 @@ public final class AdminOrderDtos {
             Instant updatedAt,
             Instant shippedAt,
             Instant completedAt,
+            Instant restockedAt,
+            List<HistoryEntry> history,
+            List<ProgressEntry> progress,
             List<String> allowedActions) {}
 
     public record VersionOnly(@NotNull Integer version) {}
