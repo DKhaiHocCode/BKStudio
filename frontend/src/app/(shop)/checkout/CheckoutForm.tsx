@@ -18,7 +18,7 @@ import {
   type OrderCreated,
 } from "./schema";
 import { TextField } from "./TextField";
-import { useTerms } from "./useTerms";
+import { useTerms } from "@/lib/useTerms";
 
 interface Problem {
   text: string;
