@@ -83,4 +83,12 @@ public final class AdminOrderDtos {
     public record NoteView(long id, String adminNote) {}
 
     public record ActionResult(long id, String status, int version) {}
+
+    /** One dashboard row; no customer data. For EMAIL_FAILED, {@code status} is the template and the rest is null. */
+    public record DashboardItem(
+            long id, String publicCode, String status, String fulfillmentType, Instant dueAt, Instant createdAt) {}
+
+    public record DashboardGroup(String key, long count, List<DashboardItem> items) {}
+
+    public record Dashboard(Instant generatedAt, List<DashboardGroup> groups) {}
 }

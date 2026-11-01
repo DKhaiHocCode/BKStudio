@@ -66,9 +66,18 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
 
   return (
     <AdminContext value={{ email }}>
-      <div className="flex items-center justify-between gap-3 border-b-[3px] border-border bg-card px-4 py-2">
-        <span className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b-[3px] border-border bg-card px-4 py-2">
+        <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="font-extrabold">BKStudio Admin</span>
+          <Link href="/admin" className="inline-flex min-h-11 items-center font-bold underline">
+            Dashboard
+          </Link>
+          <Link
+            href="/admin/queue"
+            className="inline-flex min-h-11 items-center font-bold underline"
+          >
+            Queue
+          </Link>
           <Link
             href="/admin/products"
             className="inline-flex min-h-11 items-center font-bold underline"
@@ -80,6 +89,12 @@ export default function ConsoleLayout({ children }: { children: ReactNode }) {
             className="inline-flex min-h-11 items-center font-bold underline"
           >
             Orders
+          </Link>
+          <Link
+            href="/admin/settings"
+            className="inline-flex min-h-11 items-center font-bold underline"
+          >
+            Settings
           </Link>
         </span>
         <span className="flex items-center gap-3">

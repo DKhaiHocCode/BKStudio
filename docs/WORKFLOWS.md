@@ -143,7 +143,7 @@ Khách thấy 6 giai đoạn theo thứ tự. Ba giai đoạn giữa do admin du
 ## 8. Quản trị
 | Việc | Màn hình |
 |---|---|
-| Việc cần làm hôm nay | Dashboard: đơn chờ gửi link, chờ xác nhận tiền, sắp quá hạn, slot tháng này |
+| Việc cần làm hôm nay | Dashboard: đơn chờ gửi link, chờ xác nhận tiền, sắp quá hạn (slot tháng này xem ở trang `/admin/queue`, không nằm trên dashboard) |
 | Sản phẩm | Danh sách / tạo / sửa / ẩn; biến thể tỉ lệ (giá, tồn kho, bật làm theo đơn); ảnh (upload, sắp xếp, alt text) |
 | Đơn hàng | Lọc theo trạng thái, tìm theo mã/email; chi tiết đơn + lịch sử (audit) + các nút hành động hợp lệ với trạng thái hiện tại |
 | Hàng đợi | Theo tháng: sức chứa, đã dùng, danh sách slot |
@@ -160,7 +160,7 @@ Khách thấy 6 giai đoạn theo thứ tự. Ba giai đoạn giữa do admin du
 ## 10. Job định kỳ (`@Scheduled`, 1 instance)
 | Job | Tần suất | Việc |
 |---|---|---|
-| Gửi email outbox | 1 phút | Lấy tối đa 20 hàng `PENDING` đến hạn; lỗi tạm thời (mạng, 429, 5xx, 401/403) → thử lại backoff 1, 2, 4, 8, 16, 32, 64 phút, tối đa 8 lần rồi `FAILED` (hiện chỉ thấy trong log; dashboard là task sau). Hàng `FAILED` vẫn giữ link tối đa 7 ngày (có thể đặt lại `status=PENDING, attempts=0` để gửi lại); sau 7 ngày link bị xoá khỏi payload |
+| Gửi email outbox | 1 phút | Lấy tối đa 20 hàng `PENDING` đến hạn; lỗi tạm thời (mạng, 429, 5xx, 401/403) → thử lại backoff 1, 2, 4, 8, 16, 32, 64 phút, tối đa 8 lần rồi `FAILED` (hiện hiện ở nhóm `EMAIL_FAILED` của dashboard, chỉ gồm id, template, createdAt; chưa có nút gửi lại). Hàng `FAILED` vẫn giữ link tối đa 7 ngày (có thể đặt lại `status=PENDING, attempts=0` để gửi lại); sau 7 ngày link bị xoá khỏi payload |
 | Hết hạn thanh toán | 10 phút | `PENDING` quá `due_at` → `EXPIRED`; huỷ đơn chờ thanh toán/cọc; nhả kho |
 | Nhắc trả nốt | 1 giờ | Mốc 7 ngày / 1 ngày |
 | Mất cọc | 1 giờ | `AWAITING_BALANCE` quá hạn → `FORFEITED` |

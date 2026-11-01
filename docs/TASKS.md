@@ -368,12 +368,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** Xong KHÔNG có bằng chứng chạy thật: chưa ai đi hết vòng đời đơn bằng UI (Khai chưa đăng nhập admin được vì thiếu `TOTP_ENCRYPTION_KEY` trong terminal chạy backend); T-041 phải phủ. Cổng review: bản sửa sau review chưa được reviewer xem lại. Phạm vi mở rộng (Khai duyệt): backend `GET /api/admin/orders/{id}` thêm `history` (audit đã lọc cột), `progress`, `restockedAt`, `forfeited-to-stock` trong `allowedActions` (gồm cả T-051). Nợ: tìm đơn chỉ khớp đúng mã đơn; `mark-finished` không có hộp xác nhận; giữa lúc tải lại nút của đơn cũ vẫn bật (server chặn bằng version); test thứ tự giai đoạn không phân biệt thứ tự duyệt với thứ tự enum; lịch sử không có dòng 'tạo đơn' (UI dùng `createdAt`); lý do huỷ yêu cầu thanh toán lưu nguyên văn trong audit; bố cục 375px, focus/Esc của hộp thoại chưa xem.
 
 #### T-034 · Admin UI dashboard, hàng đợi, cài đặt
-- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-033, T-027 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-033, T-027 · **Status:** done
 - **Phạm vi:** Dashboard việc cần làm (chờ gửi link, chờ xác nhận, sắp quá hạn, email lỗi); trang hàng đợi theo tháng + sửa sức chứa; trang cài đặt (link MXH, tên miền cho phép, điều khoản).
 - **File / module:** frontend/app/admin/(dashboard|queue|settings)
 - **Nghiệm thu:** Mọi đơn cần hành động đều xuất hiện trên dashboard.
 - **Test:** Kiểm tra thủ công.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Xong KHÔNG có bằng chứng chạy thật trên trình duyệt (test thủ công chưa làm; tiêu chí được chứng minh bằng `AdminDashboardIT`, phủ mọi cặp loại x trạng thái có `allowedActions`). Phạm vi mở rộng (Khai duyệt): backend `GET /api/admin/dashboard` (10 nhóm, đếm chính xác, tối đa 20 mục, không PII) + `OutboxFailures` (notification, chỉ id/template/createdAt). Nợ: email lỗi chỉ xem được, chưa có nút gửi lại; `email_outbox` chưa có chỉ mục cho FAILED; public suffix (vd `com.sg`) vẫn nhập được làm tên miền thanh toán, chỉ có cảnh báo UI (SECURITY T8; nên chặn trên server); nút thử lại khi lỗi tải điều khoản dùng bản có cache 60s (cần `cache: no-store` trong `useApiGet`); hàng tên miền dùng chỉ số làm khoá; bấm nhanh Next tháng tạo trùng lịch sử; nhóm PAYMENT_EXPIRING gồm cả yêu cầu đã quá hạn chưa bị job quét. Giữ 'không có tài khoản khách' (Khai xác nhận hướng, 2026-11-01). Build frontend phụ thuộc mạng tới Google Fonts (CI từng lỗi thoáng qua): nên chuyển sang `next/font/local`.
 
 #### T-035 · Responsive + accessibility cơ bản
 - **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-031, T-032, T-034 · **Status:** todo
