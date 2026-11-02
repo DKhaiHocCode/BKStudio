@@ -121,9 +121,20 @@ class CustomerOrderConcurrencyIT extends CustomerOrderTestBase {
                     .as("round %d: cancelled order with PENDING request: %s", round, r)
                     .isFalse();
             if (create.status() == 201) {
-                assertThat(cancel.status()).as(r.toString()).isEqualTo(409);
-                assertThat(orderStatus(order)).isEqualTo("AWAITING_DEPOSIT");
-                assertThat(pending).isEqualTo(1);
+                // Two valid outcomes: overlap -> cancel refused (409); or create fully committed before cancel started
+                // -> cancel sweeps the new request and cancels the order (200). Both keep the invariant.
+                if (cancel.status() == 409) {
+                    assertThat(orderStatus(order)).isEqualTo("AWAITING_DEPOSIT");
+                    assertThat(pending).isEqualTo(1);
+                } else {
+                    assertThat(cancel.status()).as(r.toString()).isEqualTo(200);
+                    assertThat(orderStatus(order)).startsWith("CANCELLED");
+                    assertThat(pending).isZero();
+                    assertThat(count(
+                                    "SELECT count(*) FROM payment_request WHERE order_id = ? AND status = 'CANCELLED'",
+                                    order))
+                            .isEqualTo(1);
+                }
             } else {
                 assertThat(cancel.status()).as(r.toString()).isEqualTo(200);
                 assertThat(create.status()).isEqualTo(409);
@@ -131,9 +142,11 @@ class CustomerOrderConcurrencyIT extends CustomerOrderTestBase {
                 assertThat(orderStatus(order)).startsWith("CANCELLED");
                 assertThat(pending).isZero();
             }
-            assertThat(count("SELECT count(*) FROM email_outbox e WHERE e.template = 'ORDER_PAYMENT_LINK'"
-                            + " AND NOT EXISTS (SELECT 1 FROM payment_request p"
-                            + " WHERE e.dedupe_key = 'payment:' || p.id || ':link' AND p.status = 'PENDING')"))
+            assertThat(
+                            count(
+                                    "SELECT count(*) FROM email_outbox e WHERE e.template = 'ORDER_PAYMENT_LINK'"
+                                            + " AND NOT EXISTS (SELECT 1 FROM payment_request p"
+                                            + " WHERE e.dedupe_key = 'payment:' || p.id || ':link' AND p.status IN ('PENDING', 'CANCELLED'))"))
                     .as("round %d: orphan payment link email", round)
                     .isZero();
         }
