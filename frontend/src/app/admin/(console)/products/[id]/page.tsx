@@ -34,7 +34,7 @@ export default function EditProductPage({ params }: PageProps<"/admin/products/[
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
+    <main id="main" className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
       <Link href="/admin/products" className={`${linkButtonClass} self-start py-2`}>
         Back to products
       </Link>

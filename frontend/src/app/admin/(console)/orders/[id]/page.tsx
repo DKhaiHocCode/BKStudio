@@ -117,7 +117,7 @@ function OrderDetail({
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-8">
+    <main id="main" className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-8">
       <Link
         href="/admin/orders"
         className={`${linkButtonClass} inline-flex items-center self-start`}

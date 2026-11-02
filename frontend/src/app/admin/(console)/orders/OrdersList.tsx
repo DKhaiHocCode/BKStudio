@@ -59,7 +59,7 @@ export function OrdersList() {
   const lastPage = list ? Math.max(Math.ceil(list.total / ORDER_PAGE_SIZE) - 1, 0) : 0;
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8">
+    <main id="main" className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8">
       <h1 className="text-2xl font-extrabold">Orders</h1>
       {/* key remounts the form so its defaults follow the URL (back/forward) */}
       <form key={`${status}|${q}`} onSubmit={onFilter} className="flex flex-wrap items-end gap-3">
