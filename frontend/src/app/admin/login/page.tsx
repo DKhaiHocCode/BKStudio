@@ -78,7 +78,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="relative flex flex-1 items-center justify-center px-4 py-12">
+    <main id="main" className="relative flex flex-1 items-center justify-center px-4 py-12">
       <ThemeToggle className="absolute top-3 right-3" />
       <div className={cardClass}>
         <h1 className="mb-4 text-2xl font-extrabold">Admin sign in</h1>

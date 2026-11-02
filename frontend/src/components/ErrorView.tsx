@@ -24,7 +24,10 @@ export function ErrorView({
   const reference = referenceOf(error);
 
   return (
-    <main className="mx-auto flex max-w-xl flex-1 flex-col items-center justify-center gap-4 px-4 py-16 text-center">
+    <main
+      id="main"
+      className="mx-auto flex max-w-xl flex-1 flex-col items-center justify-center gap-4 px-4 py-16 text-center"
+    >
       <h1 className="text-3xl font-extrabold">{title}</h1>
       <p className="text-muted">
         Sorry about that. Please try again, and if it keeps happening, contact us and quote the

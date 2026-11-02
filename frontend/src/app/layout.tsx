@@ -23,7 +23,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script>{THEME_INIT}</script>
       </head>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <a
+          href="#main"
+          className="sr-only rounded-button border-[3px] border-border bg-card font-bold text-fg focus:not-sr-only focus:fixed focus:px-4 focus:py-3 focus:top-2 focus:left-2 focus:z-50 focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-focus"
+        >
+          Skip to content
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

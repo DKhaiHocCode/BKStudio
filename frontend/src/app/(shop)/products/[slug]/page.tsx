@@ -63,7 +63,7 @@ export async function generateMetadata({
 
 export default function ProductPage({ params }: PageProps<"/products/[slug]">) {
   return (
-    <main className="flex-1">
+    <main id="main" className="flex-1">
       <Suspense fallback={<p className="mx-auto max-w-[1200px] px-4 py-10 md:px-6">Loading…</p>}>
         <ProductContent params={params} />
       </Suspense>
@@ -146,9 +146,9 @@ async function ProductContent({ params }: { params: PageProps<"/products/[slug]"
             <p className="m-0 text-[15px] leading-relaxed">
               The deposit is <strong>non-refundable</strong> if you cancel after your slot is
               confirmed. The balance + shipping is due within 30 days of us sending finished photos.{" "}
-              <a href="#" className={`underline ${focusRing}`}>
+              <Link href="/policy" className={`underline ${focusRing}`}>
                 Read the full policy
-              </a>
+              </Link>
             </p>
           </div>
 

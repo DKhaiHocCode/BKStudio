@@ -47,7 +47,7 @@ const heroBadge = `${badge} md:px-3 md:py-1.5 md:text-sm`;
 
 export default function HomePage({ searchParams }: PageProps<"/">) {
   return (
-    <main className="flex-1">
+    <main id="main" className="flex-1">
       <section
         className={`${section} flex flex-wrap items-center gap-10 pt-8 pb-6 md:pt-14 md:pb-10`}
       >

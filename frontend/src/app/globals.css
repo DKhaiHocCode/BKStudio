@@ -118,3 +118,11 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
 }
+
+/* Fallback focus ring for any interactive element that sets none (e.g. plain admin links). */
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+}

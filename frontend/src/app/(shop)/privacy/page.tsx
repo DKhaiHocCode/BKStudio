@@ -32,7 +32,10 @@ const SECTIONS: { title: string; body: string }[] = [
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 pt-8 pb-16 md:px-6 md:pt-10">
+    <main
+      id="main"
+      className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 pt-8 pb-16 md:px-6 md:pt-10"
+    >
       <h1 className="m-0 text-3xl font-extrabold md:text-[40px]">Privacy</h1>
       {SECTIONS.map(({ title, body }) => (
         <section key={title} className="flex flex-col gap-1">

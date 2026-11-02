@@ -32,7 +32,7 @@ export default function ProductsPage() {
   const lastPage = data ? Math.max(Math.ceil(data.total / data.size) - 1, 0) : 0;
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8">
+    <main id="main" className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold">Products</h1>
         <Link href="/admin/products/new" className={`${buttonClass} inline-flex items-center`}>

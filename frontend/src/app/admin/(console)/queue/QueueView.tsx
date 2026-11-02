@@ -92,7 +92,7 @@ export function QueueView() {
   const allocatedOf = rows?.find((r) => r.month === editing)?.allocated;
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8">
+    <main id="main" className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8">
       <h1 className="text-2xl font-extrabold">Production queue</h1>
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex max-w-xs flex-col gap-1 font-medium">

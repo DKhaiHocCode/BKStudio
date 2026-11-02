@@ -9,7 +9,10 @@ export const metadata: Metadata = {
 
 export default function LookupPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 pt-8 pb-16 md:px-6 md:pt-10">
+    <main
+      id="main"
+      className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 pt-8 pb-16 md:px-6 md:pt-10"
+    >
       <div className="flex flex-col gap-2">
         <h1 className="m-0 text-3xl font-extrabold md:text-[40px]">Find your order</h1>
         <p className="m-0 text-muted">

@@ -32,7 +32,7 @@ export function SettingsView() {
   const currentTerms = published ?? (t?.success ? t.data : null);
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-8">
+    <main id="main" className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-8">
       <h1 className="text-2xl font-extrabold">Settings</h1>
       <p role="status" className="min-h-6 font-medium">
         {flashMsg}
