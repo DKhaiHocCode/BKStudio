@@ -83,6 +83,9 @@ class OutboxSenderIT extends AbstractPostgresTest {
     @AfterEach
     void tearDown() {
         jdbc.execute("TRUNCATE email_outbox");
+        jdbc.execute(
+                "DELETE FROM payment_request WHERE order_id IN (SELECT id FROM customer_order WHERE public_code = 'BK-OUTBOX')");
+        jdbc.execute("DELETE FROM customer_order WHERE public_code = 'BK-OUTBOX'");
     }
 
     private long row(String dedupe, String to, String template, String payload, Instant due) {
@@ -346,6 +349,57 @@ class OutboxSenderIT extends AbstractPostgresTest {
 
         assertThat(str(id, "status")).isEqualTo("SENT");
         assertThat(payloadKeys(id)).isEqualTo("amountCents,publicCode");
+    }
+
+    private long paymentRequest(String status) {
+        long orderId = jdbc.queryForObject(
+                "INSERT INTO customer_order(public_code, access_token_hash, idempotency_key, fulfillment_type, status,"
+                        + " customer_name, customer_email, ship_line1, ship_city, ship_country, subtotal_cents,"
+                        + " terms_version, terms_accepted_at) VALUES ('BK-OUTBOX', decode(repeat('ab', 32), 'hex'),"
+                        + " gen_random_uuid(), 'IN_STOCK', 'AWAITING_PAYMENT', 'Test Buyer', 'buyer@example.com',"
+                        + " '1 Test St', 'Singapore', 'SG', 10000, 'v1', now()) RETURNING id",
+                Long.class);
+        return jdbc.queryForObject(
+                "INSERT INTO payment_request (order_id, type, amount_cents, channel, payment_url, status, due_at)"
+                        + " VALUES (?, 'FULL', 10000, 'OTHER', 'https://pay.example/x', ?, now()) RETURNING id",
+                Long.class,
+                orderId,
+                status);
+    }
+
+    private long paymentLinkRow(long paymentId) {
+        return row(
+                "payment:" + paymentId + ":link",
+                "a@example.com",
+                "ORDER_PAYMENT_LINK",
+                "{\"publicCode\":\"BK-1\",\"paymentUrl\":\"https://pay.example/x\",\"amountCents\":100}",
+                clock.instant());
+    }
+
+    @Test
+    void runOnce_paymentLinkOfPendingRequest_isStillSent() {
+        long mail = paymentLinkRow(paymentRequest("PENDING"));
+
+        outbox.runOnce();
+
+        assertThat(fake.calls).hasSize(1);
+        assertThat(str(mail, "status")).isEqualTo("SENT");
+        assertThat(instant(mail, "sent_at")).isNotNull();
+    }
+
+    @Test
+    void runOnce_paymentLinkOfCancelledRequest_isSkippedNotSentNotRetried() {
+        long mail = paymentLinkRow(paymentRequest("CANCELLED"));
+
+        outbox.runOnce();
+
+        assertThat(fake.calls).isEmpty();
+        assertThat(str(mail, "status")).isEqualTo("SENT");
+        assertThat(str(mail, "last_error")).startsWith("Skipped");
+        assertThat(instant(mail, "sent_at")).isNull();
+        assertThat(attempts(mail)).isZero();
+        assertThat(payloadKeys(mail)).isEqualTo("amountCents,publicCode");
+        assertThat(outbox.runOnce()).isZero();
     }
 
     @Test
