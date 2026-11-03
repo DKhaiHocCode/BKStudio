@@ -5,6 +5,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,6 +29,8 @@ public class OutboxSender {
     static final int BATCH = 20;
     static final int MAX_ATTEMPTS = 8;
     static final int RETENTION_DAYS = 7;
+
+    private static final Pattern PAYMENT_LINK_KEY = Pattern.compile("payment:(\\d+):link");
 
     private static final Logger log = LoggerFactory.getLogger(OutboxSender.class);
 
@@ -99,7 +103,29 @@ public class OutboxSender {
         return rows.size();
     }
 
+    /** Payment link of a request that is no longer PENDING (cancelled, expired, paid) is dead: do not mail it. */
+    private boolean paymentLinkIsDead(Row r) {
+        Matcher m = PAYMENT_LINK_KEY.matcher(r.dedupeKey());
+        if (!"ORDER_PAYMENT_LINK".equals(r.template()) || !m.matches()) {
+            return false;
+        }
+        List<String> status = jdbc.queryForList(
+                "SELECT status FROM payment_request WHERE id = ?", String.class, Long.parseLong(m.group(1)));
+        return !status.isEmpty() && !"PENDING".equals(status.get(0));
+    }
+
     private void process(Row r) {
+        if (paymentLinkIsDead(r)) {
+            // No SKIPPED status in the CHECK constraint: terminal SENT with sent_at NULL and a reason marks "not sent".
+            jdbc.update(
+                    "UPDATE email_outbox SET status = 'SENT', last_error = ?,"
+                            + " payload = payload - 'orderUrl' - 'paymentUrl' WHERE id = ?",
+                    "Skipped: payment request no longer pending",
+                    r.id());
+            log.info(
+                    "Outbox email skipped id={} template={} (payment request no longer pending)", r.id(), r.template());
+            return;
+        }
         EmailMessage msg;
         try {
             Map<String, Object> payload = json.readValue(r.payload(), new TypeReference<Map<String, Object>>() {});
