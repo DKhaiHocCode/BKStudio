@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
  * never refused, or an attacker with many addresses could lock the admin out; the cost is that a flood can reset
  * old budgets). The eviction scan is O(n) and the cap can be overshot slightly under races. Expired windows are
  * purged at most once a minute.
- * The client IP is request.getRemoteAddr() only (X-Forwarded-For is spoofable); behind Caddy that is the proxy's IP,
- * so T-043 must configure trusted forwarded-header handling before this limit means anything per client. Upgrade
+ * The client IP is request.getRemoteAddr(). Behind Caddy, Tomcat's RemoteIpValve rewrites it from X-Forwarded-For
+ * only when the direct peer matches TRUSTED_PROXIES (see application.yml); otherwise the header is ignored. Upgrade
  * to a DB or Redis counter if we ever run several instances.
  */
 @Component

@@ -1,4 +1,11 @@
 server:
+  # Client IP behind a reverse proxy (rate limits key on request.getRemoteAddr()). Default none = every forwarded
+  # header is ignored. Prod sets FORWARD_HEADERS_STRATEGY=native and TRUSTED_PROXIES=<regex of the proxy's IP>, so
+  # Tomcat honours X-Forwarded-For only when the direct peer matches (a client cannot spoof its IP).
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
+  tomcat:
+    remoteip:
+      internal-proxies: ${TRUSTED_PROXIES:}
   servlet:
     session:
       tracking-modes: cookie
