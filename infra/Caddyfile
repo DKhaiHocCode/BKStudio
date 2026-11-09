@@ -1,0 +1,91 @@
+# BKStudio reverse proxy (ADR-0001: one origin; /api/* -> Spring Boot, the rest -> Next.js).
+# Env: SITE_ADDRESS (domain in prod, ":80" locally),
+#      CDN_ORIGIN (origin of R2_PUBLIC_BASE_URL; MUST be set in prod, empty means CSP blocks all R2 images),
+#      BACKEND_UPSTREAM / FRONTEND_UPSTREAM (override only for local tests).
+
+# Order tokens are secrets that live in URLs (/orders/<token>, /api/orders/<token>). Both the default logger
+# (errors, e.g. 502 lines carry the raw URI) and the access logger must redact them and log no request headers
+# (Next sends Next-Url / Next-Router-State-Tree / Referer containing the token).
+(redacted_log) {
+	format filter {
+		wrap json
+		fields {
+			request>uri regexp ^(/(?:api/)?orders/)[^/?"\s]+ ${1}redacted
+			request>headers delete
+			resp_headers>Set-Cookie delete
+		}
+	}
+}
+
+(security_headers) {
+	# script-src needs 'unsafe-inline': Next emits inline hydration scripts and the layout has an inline theme
+	# script. A nonce would force dynamic rendering (breaks cacheComponents/PPR); Next's SRI does not allow inline
+	# scripts. Mitigation: no unsafe-eval, no remote script origins, React escapes output, object-src/base-uri closed.
+	header {
+		X-Content-Type-Options "nosniff"
+		?Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: {$CDN_ORIGIN}; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+	}
+	header -Server
+}
+
+{
+	log default {
+		output stdout
+		import redacted_log
+	}
+}
+
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	log {
+		output stdout
+		import redacted_log
+	}
+
+	# HSTS only over TLS. No "preload" until the domain is stable.
+	@https protocol https
+	header @https Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+	import security_headers
+
+	# Order pages/API carry the secret token: never cache, never leak via Referer, never index. ">" = set after upstream.
+	@orders path /orders/* /api/orders/*
+	header @orders >Cache-Control "private, no-store"
+	header @orders >Referrer-Policy "no-referrer"
+	header @orders >X-Robots-Tag "noindex"
+
+	# Progress-photo upload: 5 x 10 MiB (backend max-request-size is binary MiB, Caddy "MB" is SI, so use MiB).
+	@progress path /api/admin/orders/*/progress/*
+	handle @progress {
+		request_body {
+			max_size 52MiB
+		}
+		reverse_proxy {$BACKEND_UPSTREAM:backend:8080}
+	}
+
+	# Caddy overwrites X-Forwarded-For with the real peer unless the peer is in trusted_proxies (not set here).
+	# If Cloudflare is put in front later, add trusted_proxies cloudflare + client_ip_headers, otherwise all
+	# users share one IP (and the backend rate limits/lockouts).
+	handle /api/* {
+		request_body {
+			max_size 11MiB
+		}
+		reverse_proxy {$BACKEND_UPSTREAM:backend:8080}
+	}
+
+	handle {
+		request_body {
+			max_size 1MiB
+		}
+		reverse_proxy {$FRONTEND_UPSTREAM:frontend:3000}
+	}
+
+	# Caddy-generated errors (413, 502) skip the headers above; re-apply them.
+	handle_errors {
+		import security_headers
+		respond "{err.status_code} {err.status_text}"
+	}
+}

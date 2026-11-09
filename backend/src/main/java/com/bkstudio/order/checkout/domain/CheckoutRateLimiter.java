@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 /**
  * Per-client cap on order creations (default 5 per hour). A window starts at the first counted attempt and resets
  * after the window length; the attempt is reserved atomically. Same limits as {@code LoginAttemptLimiter}: in memory
- * (reset on restart, not shared between instances), keyed by request.getRemoteAddr() (T-043 must fix proxy headers),
+ * (reset on restart, not shared between instances), keyed by request.getRemoteAddr() (real client IP via the
+ * trusted-proxy setup in application.yml),
  * IPv6 keyed by its /64 prefix. Map capped at {@link #MAX_TRACKED}: expired entries are swept at most once a minute,
  * and if still full an arbitrary entry is evicted (the cap can be overshot slightly under races).
  * shortcut: arbitrary eviction lets an attacker with 10k+ addresses reset others' windows; upgrade with a real cache.
