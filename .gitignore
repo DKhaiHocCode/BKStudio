@@ -28,3 +28,8 @@ Thumbs.db
 # Claude Code — local only
 .claude/worktrees/
 .claude/settings.local.json
+
+# E2E (Playwright) artifacts and the saved admin session
+e2e/.auth/
+e2e/test-results/
+e2e/playwright-report/
