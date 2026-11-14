@@ -28,3 +28,7 @@ Thumbs.db
 # Claude Code — local only
 .claude/worktrees/
 .claude/settings.local.json
+
+# Owner photos for the UI experiment (large, not for git)
+figureImage/
+frontend/public/frontend-test/real/

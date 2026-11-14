@@ -10,6 +10,7 @@ import {
 } from "react";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { focusRing } from "@/components/ui";
+import { photoStyle } from "../../_components/data";
 import { SLIDES } from "./slides";
 
 const AUTOPLAY_MS = 5000;
@@ -123,7 +124,7 @@ export function HeroSlider() {
           const active = offset === 0;
           return (
             <div
-              key={slide.src}
+              key={slide.photo.src}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} of ${COUNT}`}
@@ -134,17 +135,23 @@ export function HeroSlider() {
                 opacity: active ? 1 : Math.abs(offset) === 1 ? 0.45 : 0,
               }}
             >
-              <ProductImage
-                src={slide.src}
-                alt={slide.alt}
-                width={1600}
-                height={700}
-                draggable={false}
-                loading={i === 0 ? "eager" : "lazy"}
-                className="absolute inset-0 size-full object-cover"
-              />
+              <div className="absolute inset-y-0 right-0 w-[46%] overflow-hidden border-l-[3px] border-border sm:w-1/2">
+                <ProductImage
+                  src={slide.photo.src}
+                  srcSet={slide.photo.srcSet}
+                  sizes="(min-width: 640px) 410px, 40vw"
+                  alt={slide.photo.alt}
+                  width={700}
+                  height={613}
+                  draggable={false}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchPriority={i === 0 ? "high" : undefined}
+                  style={photoStyle(slide.photo)}
+                  className="size-full object-cover"
+                />
+              </div>
               {/* Sizes in cqw: the text scales with the slide like art baked into the banner. */}
-              <div className="absolute inset-y-0 left-0 flex w-[54%] flex-col sm:w-1/2 items-start justify-center gap-[max(4px,1.6cqw)] pl-[max(32px,5cqw)] text-ink">
+              <div className="absolute inset-y-0 left-0 flex w-[54%] flex-col sm:w-1/2 items-start justify-center gap-[max(4px,1.6cqw)] pr-[2cqw] pl-[max(32px,5cqw)] text-ink">
                 <p className="m-0 rounded-full border-2 border-ink bg-cream px-[1.6cqw] py-[0.3cqw] text-[length:max(10px,1.9cqw)] font-bold">
                   {slide.kicker}
                 </p>
@@ -198,7 +205,7 @@ export function HeroSlider() {
         <div role="group" aria-label="Choose slide" className="flex items-center">
           {SLIDES.map((slide, i) => (
             <button
-              key={slide.src}
+              key={slide.photo.src}
               type="button"
               aria-label={`Slide ${i + 1} of ${COUNT}: ${slide.title}`}
               aria-current={i === index ? "true" : undefined}

@@ -27,7 +27,7 @@ export default function FrontendTestPage() {
       </section>
 
       <section id="shelf" aria-label="Figures" className={`${section} scroll-mt-4`}>
-        <TestShelf />
+        <TestShelf priority />
       </section>
 
       <section className={`${section} mt-20 md:mt-32`}>

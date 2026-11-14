@@ -1,31 +1,28 @@
-// PROTOTYPE data. Banners are 16:7 placeholder SVGs in public/frontend-test/slides/; swap real
-// art in here only. Keep the left half of a banner calm: the text is laid over it in HTML.
+// PROTOTYPE data. Each banner is a flat colour on the left (the HTML text sits there) and a real
+// photo cropped into the right half. The old placeholder SVGs stay in public/frontend-test/slides/.
+import { photo, type Photo } from "../../_components/data";
+
 export type Slide = {
-  src: string;
-  alt: string;
+  photo: Photo;
   kicker: string;
   title: string;
   cta: string;
   href: string;
-  /** Tailwind backdrop class shown while the banner loads. */
+  /** Tailwind backdrop class of the text half. */
   tone: string;
 };
 
-const banner = (name: string) => `/frontend-test/slides/${name}.svg`;
-
 export const SLIDES: Slide[] = [
   {
-    src: banner("slide-1-new"),
-    alt: "Placeholder banner: the Ember Blade figure in front of a yellow circle",
+    photo: photo("chisa", 2, "Chisa figure in a black jacket and sailor uniform", "50% 10%"),
     kicker: "New figure",
-    title: "Ember Blade has landed",
+    title: "Chisa has landed",
     cta: "See it on the shelf",
     href: "#shelf",
     tone: "bg-tint-pink",
   },
   {
-    src: banner("slide-2-mto"),
-    alt: "Placeholder banner: two made-to-order figures under a row of eight slots, six still open",
+    photo: photo("pneuma", 4, "Pneuma figure with translucent emerald wings", "100% 20%", 1.15),
     kicker: "Made to order",
     title: "December slots are open",
     cta: "Reserve a slot",
@@ -33,8 +30,7 @@ export const SLIDES: Slide[] = [
     tone: "bg-tint-mto",
   },
   {
-    src: banner("slide-3-commission"),
-    alt: "Placeholder banner: a dashed outline with a question mark turning into a painted figure",
+    photo: photo("reze", 1, "Reze figure sitting on a cafe counter diorama", "50% 25%"),
     kicker: "Commission",
     title: "Your character, on your desk",
     cta: "Start a commission",
@@ -42,8 +38,7 @@ export const SLIDES: Slide[] = [
     tone: "bg-tint-commission",
   },
   {
-    src: banner("slide-4-process"),
-    alt: "Placeholder banner: one figure as a raw print, primed in grey, then fully painted",
+    photo: photo("chisa", 1, "Close-up of a hand-painted pond base with pink petals", "50% 0%"),
     kicker: "How we paint",
     title: "From raw print to final coat",
     cta: "See the three stages",
@@ -51,10 +46,9 @@ export const SLIDES: Slide[] = [
     tone: "bg-tint-neutral",
   },
   {
-    src: banner("slide-5-restock"),
-    alt: "Placeholder banner: three Twin Comet figures lined up on a shelf",
+    photo: photo("changli", 3, "Changli figure in a pink dress holding a white dove", "50% 15%"),
     kicker: "Restock",
-    title: "Twin Comet is back",
+    title: "Changli is back",
     cta: "Grab one",
     href: "#shelf",
     tone: "bg-tint-stock",
