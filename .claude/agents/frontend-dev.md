@@ -12,6 +12,7 @@ Rules:
 - Call the backend only through `src/lib/api.ts`; validate forms with zod. No `any`, no `dangerouslySetInnerHTML`.
 - Follow the design tokens: Rubik, 3px ink borders, hard shadows, radius 14/22/30, touch targets of at least 44px, light theme only. Check the layout at 375px.
 - Never trust prices or totals computed on the client.
+- Look at what you build. For any visual change, take screenshots at 375, 768 and 1280px with Chrome (`C:\Program Files\Google\Chrome\Application\chrome.exe`) through `puppeteer-core`, then open the PNGs with the Read tool and fix what you see (spacing, alignment, overflow, contrast, hierarchy). You are allowed to do this without asking. Install `puppeteer-core` and any scripts only in the session scratchpad, never in the repo. Save screenshots only in the scratchpad. Never screenshot real customer or admin data. Report the viewport sizes you checked and what you changed after looking.
 - Before reporting run `npm run lint && npm run typecheck && npm run format:check && npm run build` in `frontend/`.
 
 ## Ground rules (all BKStudio agents)
