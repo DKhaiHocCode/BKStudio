@@ -117,7 +117,7 @@ async function ProductContent({ params }: { params: Props["params"] }) {
         className={`${section} mt-2 grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_360px] xl:gap-x-14`}
       >
         {/* First in the DOM (name and price before the photos on a phone), right column on desktop. */}
-        <div className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+        <div className="max-lg:order-2 lg:col-start-2 lg:row-span-2 lg:row-start-1">
           <div className={`${panel} flex flex-col gap-4 lg:sticky lg:top-6`}>
             <p className="m-0 flex flex-wrap items-center gap-2">
               <span className={`${badge} ${STATUS_TINT[product.status]} text-ink`}>
@@ -145,11 +145,14 @@ async function ProductContent({ params }: { params: Props["params"] }) {
           </div>
         </div>
 
-        <section aria-label="Photos" className="min-w-0 lg:col-start-1 lg:row-start-1">
+        <section
+          aria-label="Photos"
+          className="min-w-0 max-lg:order-1 lg:col-start-1 lg:row-start-1"
+        >
           <PhotoGallery photos={product.photos} name={product.name} />
         </section>
 
-        <section aria-label="Product information" className="min-w-0 lg:col-start-1">
+        <section aria-label="Product information" className="min-w-0 max-lg:order-3 lg:col-start-1">
           <div className="border-t-2 border-line">
             <Fold title="Details" open>
               <p className="m-0">{product.description}</p>
