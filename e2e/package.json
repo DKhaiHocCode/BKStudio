@@ -12,7 +12,7 @@
   "devDependencies": {
     "@playwright/test": "1.65.0",
     "@types/node": "^22",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.0",
     "typescript": "^5"
   }
 }
