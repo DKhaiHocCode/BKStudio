@@ -1,0 +1,18 @@
+{
+  "name": "bkstudio-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "e2e": "playwright test",
+    "e2e:list": "playwright test --list",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "^22",
+    "prettier": "^3.9.10",
+    "typescript": "^5"
+  }
+}
