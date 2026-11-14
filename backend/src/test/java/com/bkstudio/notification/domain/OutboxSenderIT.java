@@ -76,6 +76,7 @@ class OutboxSenderIT extends AbstractPostgresTest {
     void setUp() {
         clock.set(Instant.parse("2030-01-01T00:00:10Z"));
         jdbc.execute("TRUNCATE email_outbox");
+        jdbc.update("INSERT INTO terms_document (version, content_md) VALUES ('v1', 'x') ON CONFLICT DO NOTHING");
         fake.calls.clear();
         fake.behaviour = (m, k) -> {};
     }
@@ -86,6 +87,8 @@ class OutboxSenderIT extends AbstractPostgresTest {
         jdbc.execute(
                 "DELETE FROM payment_request WHERE order_id IN (SELECT id FROM customer_order WHERE public_code = 'BK-OUTBOX')");
         jdbc.execute("DELETE FROM customer_order WHERE public_code = 'BK-OUTBOX'");
+        // Other IT classes plain-INSERT v1 in their setup, so do not leave ours behind.
+        jdbc.execute("DELETE FROM terms_document WHERE version = 'v1'");
     }
 
     private long row(String dedupe, String to, String template, String payload, Instant due) {
