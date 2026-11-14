@@ -1,9 +1,10 @@
 import type { CSSProperties } from "react";
+import type { DemoPhoto, DemoStatus } from "./products.generated";
 
 // PROTOTYPE data. Real photos are optimised copies in public/frontend-test/real/ (gitignored).
+// Products live in products.generated.ts (npm run demo:photos); `photo()` below is only for the
+// hand-picked hero slides.
 // The "How we paint" stages still use the placeholder SVGs in public/frontend-test/.
-export type Kind = "stock" | "mto" | "commission";
-
 export type Photo = {
   src: string;
   srcSet: string;
@@ -12,18 +13,6 @@ export type Photo = {
   position: string;
   /** Scale around `position`; above 1 it pushes a phone-camera watermark or desk clutter out of frame. */
   zoom: number;
-};
-
-export type Figure = {
-  slug: string;
-  name: string;
-  descriptor: string;
-  priceCents: number;
-  kind: Kind;
-  isNew?: boolean;
-  cover: Photo;
-  /** Second angle; the card has no swap button without it. */
-  alt?: Photo;
 };
 
 export function photo(slug: string, n: number, alt: string, position = "50% 50%", zoom = 1): Photo {
@@ -46,109 +35,22 @@ export function photoStyle(p: Photo): CSSProperties {
   };
 }
 
-export const KIND_LABEL: Record<Kind, string> = {
-  stock: "In stock",
-  mto: "Made to order",
-  commission: "Commission",
+export const STATUS_LABEL: Record<DemoStatus, string> = {
+  IN_STOCK: "In stock",
+  MADE_TO_ORDER: "Made to order",
+  COMMISSION: "Commission",
 };
 
-export const KIND_TINT: Record<Kind, string> = {
-  stock: "bg-tint-stock",
-  mto: "bg-tint-mto",
-  commission: "bg-tint-commission",
+export const STATUS_TINT: Record<DemoStatus, string> = {
+  IN_STOCK: "bg-tint-stock",
+  MADE_TO_ORDER: "bg-tint-mto",
+  COMMISSION: "bg-tint-commission",
 };
 
-export const FIGURES: Figure[] = [
-  {
-    slug: "hiyuki",
-    name: "Hiyuki",
-    descriptor: "30 cm, flowing red hakama",
-    priceCents: 16900,
-    kind: "stock",
-    cover: photo(
-      "hiyuki",
-      3,
-      "Hiyuki figure, front view: white ponytail, white top and a red hakama swept by the wind",
-      "100% 30%",
-      1.2,
-    ),
-    alt: photo("hiyuki", 2, "Hiyuki figure, back view", "70% 20%", 1.25),
-  },
-  {
-    slug: "chisa",
-    name: "Chisa",
-    descriptor: "26 cm, black sailor uniform",
-    priceCents: 13900,
-    kind: "mto",
-    isNew: true,
-    cover: photo(
-      "chisa",
-      2,
-      "Chisa figure, front view: long black hair, black jacket over a sailor uniform, red blade",
-      "55% 50%",
-    ),
-    alt: photo("chisa", 4, "Chisa figure, back view", "45% 50%"),
-  },
-  {
-    slug: "changli",
-    name: "Changli",
-    descriptor: "18 cm, seated on a stone base",
-    priceCents: 11900,
-    kind: "stock",
-    cover: photo(
-      "changli",
-      1,
-      "Changli figure, front view: pink hair, pink dress, a white dove on her red glove",
-      "50% 30%",
-    ),
-    alt: photo("changli", 2, "Changli figure, back view", "50% 40%"),
-  },
-  {
-    slug: "herta",
-    name: "Herta",
-    descriptor: "28 cm, witch hat and staff",
-    priceCents: 15900,
-    kind: "mto",
-    isNew: true,
-    cover: photo(
-      "herta",
-      2,
-      "Herta figure, front view: wide witch hat, black and white dress, tall staff, glowing base",
-      "50% 0%",
-      1.06,
-    ),
-    alt: photo("herta", 1, "Herta figure, back view", "40% 0%", 1.15),
-  },
-  {
-    slug: "pneuma",
-    name: "Pneuma",
-    descriptor: "32 cm, clear emerald wings",
-    priceCents: 24000,
-    kind: "commission",
-    cover: photo(
-      "pneuma",
-      2,
-      "Pneuma figure, front view: green hair, white armour, translucent emerald wings",
-      "66% 40%",
-      1.1,
-    ),
-    alt: photo("pneuma", 1, "Pneuma figure, side view", "35% 0%", 1.15),
-  },
-  {
-    slug: "reze",
-    name: "Reze",
-    descriptor: "24 cm, cafe diorama base",
-    priceCents: 14900,
-    kind: "mto",
-    cover: photo(
-      "reze",
-      1,
-      "Reze figure sitting on a cafe counter next to a small table, a menu board and a plant",
-      "50% 0%",
-      1.05,
-    ),
-  },
-];
+/** Real file widths, so the browser can pick the 700px copy for small tiles. */
+export function srcSetOf(p: DemoPhoto): string {
+  return `${p.src700} ${p.width700}w, ${p.src} ${p.width}w`;
+}
 
 export const STAGES = [
   {

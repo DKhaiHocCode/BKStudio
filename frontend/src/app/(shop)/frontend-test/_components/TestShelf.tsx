@@ -1,13 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { badge, chip, chipActive, focusRing } from "@/components/ui";
 import { formatUsd } from "@/lib/money";
-import { FIGURES, KIND_LABEL, KIND_TINT, photoStyle, type Figure, type Kind } from "./data";
+import { STATUS_LABEL, STATUS_TINT, srcSetOf } from "./data";
+import { PRODUCTS, type DemoProduct, type DemoStatus } from "./products.generated";
 
-type Filter = "all" | Kind;
-const FILTERS: Filter[] = ["all", "stock", "mto", "commission"];
+type Filter = "all" | DemoStatus;
+const FILTERS: Filter[] = ["all", "IN_STOCK", "MADE_TO_ORDER", "COMMISSION"];
 
 const fade = "absolute inset-0 size-full object-cover transition-opacity duration-200";
 // Tile width per breakpoint (2 / 3 / 4 columns), so the browser picks the 700w file on most screens.
@@ -18,8 +20,10 @@ const PEEK_HIDE =
 const PEEK_SHOW =
   "[@media(hover:hover)]:group-hover:opacity-100 group-has-[a:focus-visible]:opacity-100";
 
-function FigureCard({ figure, priority }: { figure: Figure; priority: boolean }) {
+function FigureCard({ figure, priority }: { figure: DemoProduct; priority: boolean }) {
   const [swapped, setSwapped] = useState(false);
+  const cover = figure.photos[figure.cover];
+  const hover = figure.hover === null ? undefined : figure.photos[figure.hover];
   return (
     <li className="group relative flex min-w-0 flex-col gap-3 sm:gap-4">
       {/* No transform on this tile: it would trap the z-10 swap button under the stretched link. */}
@@ -27,34 +31,34 @@ function FigureCard({ figure, priority }: { figure: Figure; priority: boolean })
         className={`relative aspect-[4/5] overflow-hidden bg-tint-neutral rounded-[18px] border-[3px] border-border shadow-sticker-sm group-has-[a:focus-visible]:outline-[3px] group-has-[a:focus-visible]:outline-offset-2 group-has-[a:focus-visible]:outline-focus sm:rounded-card sm:shadow-sticker`}
       >
         <ProductImage
-          src={figure.cover.src}
-          srcSet={figure.cover.srcSet}
+          src={cover.src}
+          srcSet={srcSetOf(cover)}
           sizes={SIZES}
-          alt={figure.cover.alt}
+          alt={cover.alt}
           width={700}
           height={875}
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : undefined}
-          style={photoStyle(figure.cover)}
-          className={`${fade} ${!figure.alt ? "" : swapped ? "opacity-0" : `opacity-100 ${PEEK_HIDE}`}`}
+          style={{ objectPosition: cover.objectPosition }}
+          className={`${fade} ${!hover ? "" : swapped ? "opacity-0" : `opacity-100 ${PEEK_HIDE}`}`}
         />
-        {figure.alt && (
+        {hover && (
           <ProductImage
-            src={figure.alt.src}
-            srcSet={figure.alt.srcSet}
+            src={hover.src}
+            srcSet={srcSetOf(hover)}
             sizes={SIZES}
             alt=""
             aria-hidden="true"
             width={700}
             height={875}
             loading="lazy"
-            style={photoStyle(figure.alt)}
+            style={{ objectPosition: hover.objectPosition }}
             className={`${fade} ${swapped ? "opacity-100" : `opacity-0 ${PEEK_SHOW}`}`}
           />
         )}
         <span className="absolute top-2 left-2 sm:top-3 sm:left-3">
-          <span className={`${badge} inline-block ${KIND_TINT[figure.kind]} text-ink`}>
-            {KIND_LABEL[figure.kind]}
+          <span className={`${badge} inline-block ${STATUS_TINT[figure.status]} text-ink`}>
+            {STATUS_LABEL[figure.status]}
           </span>
         </span>
         {figure.isNew && (
@@ -62,7 +66,7 @@ function FigureCard({ figure, priority }: { figure: Figure; priority: boolean })
             New
           </span>
         )}
-        {figure.alt && (
+        {hover && (
           <button
             type="button"
             aria-pressed={swapped}
@@ -87,17 +91,16 @@ function FigureCard({ figure, priority }: { figure: Figure; priority: boolean })
       </div>
       <div className="flex flex-col gap-0.5">
         <h3 className="m-0 text-[17px] leading-snug font-extrabold sm:text-[22px]">
-          {/* shortcut: prototype has no product pages, link stays on the shelf; point at /products/[slug] when real. */}
-          <a
-            href="#shelf"
+          <Link
+            href={`/frontend-test/${figure.slug}`}
             className="text-fg no-underline after:absolute after:inset-0 focus-visible:outline-none"
           >
             {figure.name}
-          </a>
+          </Link>
         </h3>
         <p className="m-0 text-sm text-muted sm:text-base">{figure.descriptor}</p>
         <p className="m-0 mt-1 font-bold sm:text-lg">
-          {figure.kind === "commission" && (
+          {figure.status === "COMMISSION" && (
             <span className="text-sm font-medium text-muted">From </span>
           )}
           {formatUsd(figure.priceCents)}
@@ -110,7 +113,7 @@ function FigureCard({ figure, priority }: { figure: Figure; priority: boolean })
 /** `priority`: load the first row eagerly; set it only where the shelf is on the first screen. */
 export function TestShelf({ priority = false }: { priority?: boolean }) {
   const [filter, setFilter] = useState<Filter>("all");
-  const shown = FIGURES.filter((f) => filter === "all" || f.kind === filter);
+  const shown = PRODUCTS.filter((f) => filter === "all" || f.status === filter);
 
   return (
     <>
@@ -131,7 +134,7 @@ export function TestShelf({ priority = false }: { priority?: boolean }) {
               onClick={() => setFilter(f)}
               className={`flex-none text-sm sm:text-base ${filter === f ? chipActive : chip}`}
             >
-              {f === "all" ? "All" : KIND_LABEL[f]}
+              {f === "all" ? "All" : STATUS_LABEL[f]}
             </button>
           ))}
         </div>
