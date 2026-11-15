@@ -18,6 +18,7 @@ Không sửa nội dung ADR đã `Accepted`; muốn đổi thì viết ADR mới
 | [0010](0010-ops-logging-monitoring-backup.md) | Vận hành: log, giám sát, backup | Accepted |
 | [0011](0011-java-25-lts.md) | Java 25 (LTS) thay Java 21 | Accepted |
 | [0012](0012-order-lookup-rotates-token.md) | Tra cứu đơn gửi link mới bằng cách đổi token | Accepted |
+| [0013](0013-backup-alerting-healthchecks.md) | Backup: cảnh báo bằng ping healthchecks.io, khoá R2 theo bucket + bucket lock (bổ sung 0010) | Accepted |
 
 ## Mẫu
 ```markdown

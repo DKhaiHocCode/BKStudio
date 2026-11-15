@@ -27,7 +27,7 @@ services:
     depends_on: [minio]
     environment:
       MC_HOST_local: http://${R2_ACCESS_KEY_ID}:${R2_SECRET_ACCESS_KEY}@minio:9000
-    command: ["mb", "--ignore-existing", "local/${R2_BUCKET}"]
+    command: ["mb", "--ignore-existing", "local/${R2_BUCKET}", "local/${R2_BACKUP_BUCKET}"]
     restart: on-failure
     networks: [internal]
 
@@ -89,6 +89,18 @@ services:
       truststore:
         condition: service_completed_successfully
       minio-public:
+        condition: service_completed_successfully
+
+  # Backups go to the private MinIO bucket R2_BACKUP_BUCKET (not made public above). Plain http inside the network:
+  # backup.sh accepts a non-https endpoint only with LOCAL_TEST_ONLY=1. The local key is the MinIO root key, so the
+  # bucket scoping and bucket lock of the real R2 setup are NOT exercised here.
+  backup:
+    environment:
+      LOCAL_TEST_ONLY: ${LOCAL_TEST_ONLY:?local-test only, never on the VPS}
+      R2_ENDPOINT: http://minio:9000
+    networks: [internal]
+    depends_on:
+      minio-init:
         condition: service_completed_successfully
 
 volumes:

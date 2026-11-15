@@ -30,7 +30,7 @@
 | T14 | Thư viện có lỗ hổng | Dependabot cho Maven + npm + GitHub Actions (quét hằng tuần, gom minor/patch); xem PR hằng tuần, gộp hằng tháng | P1 |
 | T15 | Email giả mạo shop (phishing khách) | SPF + DKIM + DMARC cho domain | P0 |
 | T16 | Lộ dữ liệu qua log | Không log email, địa chỉ, token, mật khẩu; log chỉ có mã đơn + requestId | P0 |
-| T17 | Mất dữ liệu (lỗi, ransomware, xoá nhầm) | Backup hằng ngày ra R2 (bucket riêng, khoá riêng chỉ có quyền ghi), mã hoá; diễn tập khôi phục | P0 |
+| T17 | Mất dữ liệu (lỗi, ransomware, xoá nhầm) | Backup hằng ngày ra R2, mã hoá gpg AES256 (T-044). Bucket riêng, private; khoá riêng Object Read & Write **chỉ cho bucket đó** (R2 không có token chỉ-ghi) + bucket lock để khoá trên VPS không xoá/ghi đè được bản gần đây (ADR-0013); diễn tập khôi phục | P0 |
 | T19 | Người lạ đoán được link sản phẩm commission | Slug có hậu tố ngẫu nhiên; không hiện ở đâu công khai; `noindex`. Trang chỉ chứa ảnh/mô tả do admin đăng — **không** chứa thông tin cá nhân của khách commission | P0 |
 | T18 | DoS | Cloudflare proxy trước domain (tuỳ chọn); rate limit ở Caddy/app | P1 |
 
@@ -56,3 +56,4 @@
 - [ ] Upload file `.php` đổi tên thành `.jpg` bị từ chối
 - [ ] SPF/DKIM/DMARC đạt (kiểm bằng mail-tester)
 - [ ] Đã khôi phục thử 1 bản backup thành công
+- [ ] Dùng chính khoá backup trên VPS, thử DELETE và PUT ghi đè một object vừa upload: cả hai phải bị từ chối (bucket lock). Ghi kết quả vào DEPLOYMENT.md §4
