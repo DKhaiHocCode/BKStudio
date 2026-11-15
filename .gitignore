@@ -29,6 +29,10 @@ Thumbs.db
 .claude/worktrees/
 .claude/settings.local.json
 
-# Owner photos for the UI experiment (large, not for git)
+# Owner photos (large, not for git)
 figureImage/
-frontend/public/frontend-test/real/
+
+# Playwright local state (holds admin session cookies)
+e2e/.auth/
+e2e/test-results/
+e2e/node_modules/

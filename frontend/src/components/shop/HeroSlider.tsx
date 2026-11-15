@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useEffect,
   useRef,
@@ -8,10 +9,53 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { ProductImage } from "@/components/shop/ProductImage";
 import { focusRing } from "@/components/ui";
-import { photoStyle } from "../../_components/data";
-import { SLIDES } from "./slides";
+import { ProductImage } from "./ProductImage";
+
+// Static slides: committed 1600x700 artwork (flat colour on the left, drawing on the right) with
+// the HTML text laid over the left half. No product names or dates, so nothing goes stale.
+const SLIDES = [
+  {
+    art: "/shop/slides/slide-1-new.svg",
+    kicker: "New",
+    title: "New on the shelf",
+    cta: "See the figures",
+    href: "/#shop",
+    tone: "bg-tint-pink",
+  },
+  {
+    art: "/shop/slides/slide-2-mto.svg",
+    kicker: "Made to order",
+    title: "Reserve a slot, we paint yours",
+    cta: "How it works",
+    href: "/#how",
+    tone: "bg-tint-mto",
+  },
+  {
+    art: "/shop/slides/slide-3-commission.svg",
+    kicker: "Commission",
+    title: "Your character, on your desk",
+    cta: "Start a commission",
+    href: "/commission",
+    tone: "bg-tint-commission",
+  },
+  {
+    art: "/shop/slides/slide-4-process.svg",
+    kicker: "How we paint",
+    title: "From raw print to final coat",
+    cta: "See the three stages",
+    href: "/#process",
+    tone: "bg-tint-neutral",
+  },
+  {
+    art: "/shop/slides/slide-5-restock.svg",
+    kicker: "Restock",
+    title: "Ready to ship figures",
+    cta: "Shop the shelf",
+    href: "/#shop",
+    tone: "bg-tint-stock",
+  },
+];
 
 const AUTOPLAY_MS = 5000;
 const SWIPE_PX = 40;
@@ -53,13 +97,18 @@ export function HeroSlider() {
   const [userPlaying, setUserPlaying] = useState<boolean | null>(null);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+  // Server snapshot "reduced": the first paint never autoplays, so hydration always matches.
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
     () => window.matchMedia(REDUCED_MOTION).matches,
     () => true,
   );
   const playing = userPlaying ?? !reducedMotion;
-  const running = playing && !hovered && !focused;
+  // An explicit Play/Pause choice wins over the hover and focus pauses.
+  const running = userPlaying ?? (!reducedMotion && !hovered && !focused);
+  const slides = useRef<HTMLDivElement>(null);
+  // Set when an arrow key moves away from a focused slide link: focus must follow to the new slide.
+  const refocus = useRef(false);
   const dragStart = useRef<number | null>(null);
   const dragged = useRef(false);
 
@@ -71,7 +120,18 @@ export function HeroSlider() {
     return () => clearTimeout(timer);
   }, [running, index]);
 
+  useEffect(() => {
+    if (!refocus.current) return;
+    refocus.current = false;
+    slides.current
+      ?.querySelector<HTMLElement>("[aria-roledescription=slide]:not([inert]) a")
+      ?.focus();
+  }, [index]);
+
   function onKeyDown(e: KeyboardEvent<HTMLElement>) {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    // The old slide turns inert, which would drop focus to <body>.
+    refocus.current = (e.target as HTMLElement).closest("[aria-roledescription=slide]") !== null;
     if (e.key === "ArrowLeft") go(-1);
     else if (e.key === "ArrowRight") go(1);
     else return;
@@ -80,7 +140,6 @@ export function HeroSlider() {
 
   return (
     <section
-      role="region"
       aria-roledescription="carousel"
       aria-label="Featured"
       className="mx-auto w-full max-w-[1600px]"
@@ -95,6 +154,7 @@ export function HeroSlider() {
       {/* Every slide sits in the same grid cell, so the row keeps one fixed height (no layout shift). */}
       <div
         id="hero-slides"
+        ref={slides}
         aria-live={playing ? "off" : "polite"}
         className="grid touch-pan-y justify-items-center overflow-hidden pt-4 pb-3 *:col-start-1 *:row-start-1 md:pt-6"
         onPointerDown={(e) => {
@@ -124,7 +184,7 @@ export function HeroSlider() {
           const active = offset === 0;
           return (
             <div
-              key={slide.photo.src}
+              key={slide.art}
               role="group"
               aria-roledescription="slide"
               aria-label={`${i + 1} of ${COUNT}`}
@@ -135,34 +195,30 @@ export function HeroSlider() {
                 opacity: active ? 1 : Math.abs(offset) === 1 ? 0.45 : 0,
               }}
             >
-              <div className="absolute inset-y-0 right-0 w-[46%] overflow-hidden border-l-[3px] border-border sm:w-1/2">
-                <ProductImage
-                  src={slide.photo.src}
-                  srcSet={slide.photo.srcSet}
-                  sizes="(min-width: 640px) 410px, 40vw"
-                  alt={slide.photo.alt}
-                  width={700}
-                  height={613}
-                  draggable={false}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  fetchPriority={i === 0 ? "high" : undefined}
-                  style={photoStyle(slide.photo)}
-                  className="size-full object-cover"
-                />
-              </div>
+              {/* Decorative: the slide text carries the meaning. Only the first slide is the LCP image. */}
+              <ProductImage
+                src={slide.art}
+                alt=""
+                width={1600}
+                height={700}
+                draggable={false}
+                loading={i === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : undefined}
+                className="absolute inset-0 size-full object-cover"
+              />
               {/* Sizes in cqw: the text scales with the slide like art baked into the banner. */}
-              <div className="absolute inset-y-0 left-0 flex w-[54%] flex-col sm:w-1/2 items-start justify-center gap-[max(4px,1.6cqw)] pr-[2cqw] pl-[max(32px,5cqw)] text-ink">
-                <p className="m-0 rounded-full border-2 border-ink bg-cream px-[1.6cqw] py-[0.3cqw] text-[length:max(10px,1.9cqw)] font-bold">
+              <div className="absolute inset-y-0 left-0 flex w-[52%] flex-col items-start justify-center gap-[max(4px,1.6cqw)] pr-[2cqw] pl-[max(32px,5cqw)] text-ink sm:w-1/2">
+                <p className="m-0 rounded-full border-2 border-ink bg-cream px-[max(6px,1.6cqw)] py-[0.3cqw] text-[length:max(10px,1.9cqw)] font-bold">
                   {slide.kicker}
                 </p>
                 <p className="m-0 text-[length:max(17px,5.2cqw)] leading-[1.05] font-extrabold tracking-tight">
-                  <a
+                  <Link
                     href={slide.href}
                     draggable={false}
-                    className={`text-ink no-underline after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:outline-[3px] focus-visible:after:-outline-offset-[6px] focus-visible:after:outline-focus`}
+                    className="text-ink no-underline after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:outline-[3px] focus-visible:after:-outline-offset-[6px] focus-visible:after:outline-focus"
                   >
                     {slide.title}
-                  </a>
+                  </Link>
                 </p>
                 <span
                   aria-hidden="true"
@@ -205,7 +261,7 @@ export function HeroSlider() {
         <div role="group" aria-label="Choose slide" className="flex items-center">
           {SLIDES.map((slide, i) => (
             <button
-              key={slide.photo.src}
+              key={slide.art}
               type="button"
               aria-label={`Slide ${i + 1} of ${COUNT}: ${slide.title}`}
               aria-current={i === index ? "true" : undefined}

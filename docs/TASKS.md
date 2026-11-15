@@ -10,11 +10,11 @@
 | M0 — Setup | 20 | T-001, T-002, T-003, T-004, T-005, T-007 |
 | M1 — Catalog & đăng nhập admin | 52 | T-006, T-010, T-011, T-012, T-013, T-014, T-015, T-016, T-017 |
 | M2 — Đơn hàng, thanh toán, hàng đợi | 50 | T-020, T-021, T-022, T-023, T-024, T-025, T-026, T-027, T-028, T-029 |
-| M3 — Giao diện khách & admin | 31 | T-030, T-031, T-032, T-033, T-034, T-035 |
+| M3 — Giao diện khách & admin | 39 | T-030, T-031, T-032, T-033, T-034, T-035, T-036 |
 | M4 — Bảo mật, deploy, launch | 30 | T-040, T-041, T-042, T-043, T-044, T-045, T-046 |
 | M5 — Làm ngay sau launch | 3 | T-050, T-051 |
 | P1 — Chỉ làm nếu còn thời gian | 13 | T-060, T-061, T-062, T-063 |
-| **Cần để launch** | **178** | M0–M4 |
+| **Cần để launch** | **186** | M0–M4 |
 
 **Critical path** (chuỗi phụ thuộc dài nhất, 74 giờ): T-001 → T-002 → T-003 → T-010 → T-022 → T-023 → T-025 → T-026 → T-029 → T-033 → T-034 → T-035 → T-041 → T-046
 
@@ -51,6 +51,7 @@ flowchart LR
   T033["T-033<br/>Admin UI đơn hàng<br/>8h"]
   T034["T-034<br/>Admin UI dashboard, hàng đợi, cài đặt<br/>5h"]
   T035["T-035<br/>Responsive + accessibility cơ bản<br/>4h"]
+  T036["T-036<br/>Storefront kiểu Fellow (trang chủ, shelf, chi tiết, hero slider)<br/>8h"]
   T040["T-040<br/>Rà soát bảo mật<br/>4h"]
   T041["T-041<br/>E2E test các luồng chính (Playwright)<br/>6h"]
   T042["T-042<br/>Dockerfile + compose production + Caddy<br/>4h"]
@@ -108,6 +109,7 @@ flowchart LR
   T031 --> T035
   T032 --> T035
   T034 --> T035
+  T035 --> T036
   T035 --> T040
   T035 --> T041
   T002 --> T042
@@ -382,6 +384,14 @@ flowchart LR
 - **Nghiệm thu:** Không có cuộn ngang ở 375px; Lighthouse Accessibility ≥ 90 trang chủ + sản phẩm.
 - **Test:** Lighthouse.
 - **Rủi ro / câu hỏi:** Đo bằng Chrome thật (puppeteer-core + Lighthouse 13, frontend-dev chạy): KHÔNG cuộn ngang ở 375/768/1280px trên mọi trang shop + `/admin/login`; Lighthouse Accessibility 100 (trang chủ, sản phẩm, policy, cart, checkout, lookup, commission, faq, privacy, admin login), đạt ≥ 90 ngay cả trước khi sửa. Sửa: link 'Skip to content', `id="main"` trên mọi `<main>`, `:focus-visible` toàn cục (`@layer base`), link chết `href="#"` ở trang sản phẩm. HẠN CHẾ: trang chủ/sản phẩm đo bằng DỮ LIỆU GIẢ (mock server 3 sản phẩm) vì backend không chạy được trong shell của agent (thiếu mật khẩu DB); CHƯA đo thật: `/orders/[token]`, admin sau đăng nhập (TOTP), các hộp thoại, dark mode, 404 (Lighthouse không chấm 404; chỉ kiểm tràn ngang/main/h1); tên sản phẩm dài / ảnh thật có thể khác. Link ngắn trong menu (FAQ 32x44, Shop 38x44) hẹp hơn 44px ngang, link trong đoạn văn 18px (WCAG 2.5.8 miễn). Nợ: vài trạng thái tải của admin (`Checking your session...` và Suspense fallback) là `<p>` không có `#main` nên skip link không làm gì ở đó; checkout rỗng không có `<h1>`; `<h2 tabIndex=-1>` ở ImagesSection chưa `outline-none`; `<main>` chưa `tabIndex=-1`. Reviewer: security 0 lỗi; code 1 Must fix (skip link mất padding khi focus) đã sửa. Cần Lighthouse lại với dữ liệu thật trước launch (T-041/T-046).
+
+#### T-036 · Storefront kiểu Fellow (trang chủ, shelf, chi tiết, hero slider)
+- **Ưu tiên:** P0 · **Ước lượng:** 8 giờ · **Phụ thuộc:** T-035 · **Status:** done
+- **Phạm vi:** Đưa bản thử giao diện Fellow-style vào storefront thật: hero slider tĩnh 5 slide, shelf (ảnh hover, badge, lọc series), trang chi tiết ảnh-trước + panel mua, gallery dialog, mục 'How we paint'. Dữ liệu từ catalog API; xoá route `/frontend-test` và script ảnh demo.
+- **File / module:** frontend/src/app/(shop)/page.tsx, products/[slug]/page.tsx, frontend/src/components/shop/*, frontend/public/shop/*, frontend/src/lib/catalog.ts
+- **Nghiệm thu:** Trang chủ + chi tiết chạy bằng API thật; catalog rỗng / sản phẩm không ảnh hiển thị đúng; không cuộn ngang 375/768/1280, dark mode ổn; slider tôn trọng reduced-motion và bàn phím; lint/typecheck/format/build qua; không còn tham chiếu `frontend-test`.
+- **Test:** Kiểm tra tương tác bằng Chrome (puppeteer) + mock server; E2E ở T-041.
+- **Rủi ro / câu hỏi:** Chưa thử ảnh R2 thật nhiều tỉ lệ; ảnh phụ trên shelf cache `use cache` vài phút (có thể hiện ảnh cũ); N+1 đã giảm nhờ cache, cách dứt điểm là backend thêm ảnh thứ hai + srcset vào list DTO; panel mua chỉ sticky khi viewport cao ≥ 1040px; bỏ thanh thông báo slot và ô search của prototype (không có dữ liệu/API); slug sai trả HTTP 200 (streaming); Caddy log chữ thường slug UNLISTED (không do task này); chữ mới (Sold out, Material/Finish, mô tả quy trình trả tiền) Khai duyệt.
 
 ### M4 — Bảo mật, deploy, launch
 
