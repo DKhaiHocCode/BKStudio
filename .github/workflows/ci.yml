@@ -92,3 +92,128 @@ jobs:
           tar -xzf "$RUNNER_TEMP/$f" -C "$RUNNER_TEMP" gitleaks
       - name: Scan git history
         run: '"$RUNNER_TEMP/gitleaks" git --redact --no-banner -v --exit-code 1 .'
+
+  # Full system in a real browser (docs/TESTING.md section 7). No Dockerfiles yet (T-042), so Postgres + MinIO come
+  # from the dev compose file and the backend jar and Next.js server run directly on the runner.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      POSTGRES_DB: bkstudio
+      POSTGRES_USER: bkstudio
+      POSTGRES_PORT: "5432"
+      MINIO_ROOT_USER: bkstudio
+      MINIO_API_PORT: "9000"
+      MINIO_CONSOLE_PORT: "9001"
+      R2_BUCKET: bkstudio-dev
+      E2E_ADMIN_EMAIL: e2e-admin@example.test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+      # Throwaway secrets, masked before they are written anywhere. They live only in this job.
+      - name: Generate throwaway secrets
+        run: |
+          for name in POSTGRES_PASSWORD MINIO_ROOT_PASSWORD E2E_ADMIN_PASSWORD; do
+            v="$(openssl rand -hex 24)"
+            echo "::add-mask::$v"
+            echo "$name=$v" >> "$GITHUB_ENV"
+          done
+          k="$(openssl rand -base64 32)"
+          echo "::add-mask::$k"
+          echo "TOTP_ENCRYPTION_KEY=$k" >> "$GITHUB_ENV"
+      - name: Start Postgres and MinIO
+        run: |
+          docker compose -f infra/docker-compose.dev.yml up -d
+          for i in $(seq 1 30); do
+            docker compose -f infra/docker-compose.dev.yml exec -T postgres pg_isready -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" && exit 0
+            sleep 2
+          done
+          echo "Postgres did not become ready" >&2
+          exit 1
+      - name: Build backend
+        working-directory: backend
+        run: sh ./mvnw --batch-mode --no-transfer-progress -DskipTests package
+      # The CLI prints the TOTP secret once. Capture it without echoing it, mask it, keep it out of the log.
+      - name: Create E2E admin
+        working-directory: backend
+        env:
+          ADMIN_INITIAL_PASSWORD: ${{ env.E2E_ADMIN_PASSWORD }}
+        run: |
+          java -jar target/bkstudio-backend-*-SNAPSHOT.jar --spring.profiles.active=dev \
+            "--create-admin=$E2E_ADMIN_EMAIL" > "$RUNNER_TEMP/admin.out" 2> "$RUNNER_TEMP/admin.err" \
+            || { echo "create-admin failed (details withheld: output holds secrets)" >&2; rm -f "$RUNNER_TEMP/admin.out"; exit 1; }
+          secret="$(sed -n 's/^TOTP secret (Base32): //p' "$RUNNER_TEMP/admin.out")"
+          rm -f "$RUNNER_TEMP/admin.out"
+          test -n "$secret"
+          echo "::add-mask::$secret"
+          echo "E2E_TOTP_SECRET=$secret" >> "$GITHUB_ENV"
+      # Raised so reruns (mainly local ones, same IP) never hit the 5 orders/IP/hour limit; CI itself places only
+      # 3 orders per run. Spring relaxed binding maps this env var to app.checkout.rate-limit-max. Production keeps 5.
+      - name: Start backend
+        working-directory: backend
+        env:
+          APP_CHECKOUT_RATE_LIMIT_MAX: "1000"
+        run: |
+          nohup java -jar target/bkstudio-backend-*-SNAPSHOT.jar --spring.profiles.active=dev \
+            > "$RUNNER_TEMP/backend.log" 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fsS -o /dev/null http://localhost:8080/api/health && exit 0
+            sleep 2
+          done
+          echo "Backend did not become healthy" >&2
+          exit 1
+      - name: Build and start frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          BACKEND_URL: http://localhost:8080
+        run: |
+          npm ci
+          npm run build
+          nohup npm start > "$RUNNER_TEMP/frontend.log" 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null http://localhost:3000/ && exit 0
+            sleep 2
+          done
+          echo "Frontend did not come up" >&2
+          exit 1
+      - name: Install E2E dependencies
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - run: npm run typecheck
+        working-directory: e2e
+      - run: npm run format:check
+        working-directory: e2e
+      - name: Run Playwright
+        working-directory: e2e
+        run: npm run e2e
+      # The artifact holds order tokens and PII of the throwaway CI database only (the repo is public). Never point
+      # this job at real data.
+      - name: Upload E2E report and logs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: e2e-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            ${{ runner.temp }}/backend.log
+            ${{ runner.temp }}/frontend.log
+          if-no-files-found: ignore
+          retention-days: 7

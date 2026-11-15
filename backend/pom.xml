@@ -15,9 +15,9 @@
 	<description>BKStudio backend (modular monolith)</description>
 	<properties>
 		<java.version>25</java.version>
-		<awssdk.version>2.57.9</awssdk.version>
+		<awssdk.version>2.57.13</awssdk.version>
 		<!-- Required by Spring Security's Argon2PasswordEncoder (not pulled in transitively). 1.86 = Maven Central 2026-09-11. -->
-		<bouncycastle.version>1.86</bouncycastle.version>
+		<bouncycastle.version>1.87</bouncycastle.version>
 		<!-- Java 25 warns about native access (libwebp via JNI) unless allowed; used by run, surefire and failsafe. -->
 		<native.access.arg>--enable-native-access=ALL-UNNAMED</native.access.arg>
 	</properties>

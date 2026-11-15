@@ -32,7 +32,7 @@ Thumbs.db
 # Owner photos (large, not for git)
 figureImage/
 
-# Playwright local state (holds admin session cookies)
+# E2E (Playwright) artifacts and the saved admin session
 e2e/.auth/
 e2e/test-results/
-e2e/node_modules/
+e2e/playwright-report/
