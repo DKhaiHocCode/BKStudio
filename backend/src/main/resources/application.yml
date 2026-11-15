@@ -1,7 +1,8 @@
 server:
   # Client IP behind a reverse proxy (rate limits key on request.getRemoteAddr()). Default none = every forwarded
-  # header is ignored. Prod sets FORWARD_HEADERS_STRATEGY=native and TRUSTED_PROXIES=<regex of the proxy's IP>, so
-  # Tomcat honours X-Forwarded-For only when the direct peer matches (a client cannot spoof its IP).
+  # header is ignored. Prod sets FORWARD_HEADERS_STRATEGY=native and TRUSTED_PROXIES=<the proxy's IP or CIDR>, so
+  # Tomcat honours X-Forwarded-For only when the direct peer matches (a client cannot spoof its IP). Prod refuses
+  # regex patterns and CIDRs broader than /24 (IPv4) or /64 (IPv6): see ProxyConfigValidator.
   forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
   tomcat:
     remoteip:
@@ -39,6 +40,8 @@ app:
     site-base-url: ${APP_BASE_URL:http://localhost:3000}
     rate-limit-max: 5 # orders per IP per window
     rate-limit-window: 1h
+    email-limit-max: 3 # orders per customer email per window (counted in the DB)
+    email-limit-window: 1h
   notification:
     # Sender address (MAIL_FROM) and Resend key (RESEND_API_KEY, secret). Blank key = emails only logged (dev/test).
     # Prod fails startup unless both are set.
@@ -46,6 +49,8 @@ app:
     resend-api-key: ${RESEND_API_KEY:}
     outbox:
       enabled: true # scheduled sender; tests set false and call OutboxSender.runOnce()
+      # daily-cap: emails per rolling 24 h, default 80 in NotificationProperties (Resend free plan: 100/day);
+      # the rest stays PENDING
   jobs:
     enabled: true # expiry/reminder/forfeit schedulers; tests set false and call OrderJobs methods
   admin:

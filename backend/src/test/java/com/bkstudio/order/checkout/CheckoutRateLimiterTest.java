@@ -26,7 +26,7 @@ class CheckoutRateLimiterTest {
         Constructor<CheckoutRateLimiter> c =
                 CheckoutRateLimiter.class.getDeclaredConstructor(java.time.Clock.class, CheckoutProperties.class);
         c.setAccessible(true);
-        return c.newInstance(clock, new CheckoutProperties("http://x", max, window));
+        return c.newInstance(clock, new CheckoutProperties("http://x", max, window, 3, window));
     }
 
     @Test

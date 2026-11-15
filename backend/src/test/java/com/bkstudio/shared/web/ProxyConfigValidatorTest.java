@@ -7,6 +7,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.env.MapPropertySource;
 
@@ -38,6 +39,53 @@ class ProxyConfigValidatorTest {
     void prod_badCombination_failsStartup(String strategy, String proxies) {
         try (var c = ctx("prod", strategy, proxies)) {
             assertThatThrownBy(c::refresh).hasRootCauseInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "172.30.0.10/32",
+                "172.30.0.0/24",
+                "172\\.30\\.0\\.10",
+                "172.30.0.10/32, 172.30.0.11/32",
+                "fd00::10/128",
+                "fd00::/64",
+                "::1/128"
+            })
+    void prod_narrowProxies_ok(String proxies) {
+        try (var c = ctx("prod", "native", proxies)) {
+            assertThatCode(c::refresh).doesNotThrowAnyException();
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                ".*",
+                ".+",
+                "::1",
+                "fd00::10",
+                "10\\..*",
+                "\\d+\\.\\d+\\.\\d+\\.\\d+",
+                "10.0.0.1|10.0.0.2",
+                "0.0.0.0/0",
+                "::/0",
+                "10.0.0.0/8",
+                "172.30.0.0/23",
+                "fd00::/63",
+                "172.30.0.10/32,10.0.0.0/8",
+                "172.30.0.10/33",
+                "172.30.0.10/x",
+                "proxy.internal/32"
+            })
+    void prod_wideOrInvalidProxies_failStartupWithClearMessage(String proxies) {
+        try (var c = ctx("prod", "native", proxies)) {
+            assertThatThrownBy(c::refresh)
+                    .rootCause()
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("TRUSTED_PROXIES")
+                    .hasMessageContaining("too wide");
         }
     }
 

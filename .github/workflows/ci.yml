@@ -93,6 +93,70 @@ jobs:
       - name: Scan git history
         run: '"$RUNNER_TEMP/gitleaks" git --redact --no-banner -v --exit-code 1 .'
 
+  # Cheap static checks of the infra files (always runs, no build). Same tool versions run locally with:
+  #   docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:v0.10.0 infra/backup/*.sh
+  #   docker run --rm -i hadolint/hadolint:v2.12.0 hadolint --ignore DL3008 - < backend/Dockerfile
+  #   docker run --rm -e SITE_ADDRESS=x.test -e CDN_ORIGIN=https://cdn.x.test -v "$PWD/infra/Caddyfile:/etc/caddy/Caddyfile:ro" \
+  #     <caddy image from infra/docker-compose.yml> caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+  infra-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: shellcheck
+        run: |
+          mapfile -t files < <(find infra -name '*.sh' -type f)
+          docker run --rm -v "$PWD:/mnt:ro" -w /mnt \
+            koalaman/shellcheck:v0.10.0@sha256:2097951f02e735b613f4a34de20c40f937a6c8f18ecb170612c88c34517221fb \
+            "${files[@]}"
+      # DL3008 (pin apt package versions) ignored: bases are digest-pinned, and exact apt pins break the build as
+      # soon as Ubuntu/Debian drop the old package version.
+      - name: hadolint
+        run: |
+          rc=0
+          while IFS= read -r f; do
+            echo "== $f"
+            docker run --rm -i \
+              hadolint/hadolint:v2.12.0@sha256:30a8fd2e785ab6176eed53f74769e04f125afb2f74a6c52aef7d463583b6d45e \
+              hadolint --ignore DL3008 - < "$f" || rc=1
+          done < <(find . -name 'Dockerfile*' -type f -not -path '*/node_modules/*')
+          exit "$rc"
+      # Fake, non-secret values only: this checks the file's syntax and that every required variable is listed.
+      - name: docker compose config (production file)
+        run: |
+          cat > "$RUNNER_TEMP/ci.env" <<'EOF'
+          SITE_ADDRESS=shop.example.test
+          CDN_ORIGIN=https://cdn.example.test
+          NEXT_PUBLIC_SITE_URL=https://shop.example.test
+          APP_BASE_URL=https://shop.example.test
+          POSTGRES_DB=bkstudio
+          POSTGRES_USER=bkstudio
+          POSTGRES_PASSWORD=ci-fake
+          R2_ENDPOINT=https://r2.example.test
+          R2_BUCKET=ci-fake
+          R2_ACCESS_KEY_ID=ci-fake
+          R2_SECRET_ACCESS_KEY=ci-fake
+          R2_PUBLIC_BASE_URL=https://cdn.example.test
+          R2_BACKUP_BUCKET=ci-fake
+          R2_BACKUP_ACCESS_KEY_ID=ci-fake
+          R2_BACKUP_SECRET_ACCESS_KEY=ci-fake
+          BACKUP_ENCRYPTION_PASSPHRASE=ci-fake
+          RESEND_API_KEY=ci-fake
+          MAIL_FROM=shop@example.test
+          TOTP_ENCRYPTION_KEY=ci-fake
+          EOF
+          docker compose --env-file "$RUNNER_TEMP/ci.env" -f infra/docker-compose.yml config -q
+      # Same digest-pinned image as production: read from the compose file so there is only one pin to bump.
+      - name: caddy validate
+        run: |
+          img="$(sed -n 's/^ *image: *\(caddy:[^ ]*\).*$/\1/p' infra/docker-compose.yml)"
+          test -n "$img"
+          docker run --rm -e SITE_ADDRESS=shop.example.test -e CDN_ORIGIN=https://cdn.example.test \
+            -v "$PWD/infra/Caddyfile:/etc/caddy/Caddyfile:ro" "$img" \
+            caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
   # Full system in a real browser (docs/TESTING.md section 7). Postgres + MinIO come from the dev compose file; the
   # backend jar and the Next.js standalone server run directly on the runner (no Caddy, so Next proxies /api).
   e2e:
@@ -138,7 +202,7 @@ jobs:
       - name: Start Postgres and MinIO
         run: |
           docker compose -f infra/docker-compose.dev.yml up -d
-          for i in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             docker compose -f infra/docker-compose.dev.yml exec -T postgres pg_isready -h 127.0.0.1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" && exit 0
             sleep 2
           done
@@ -170,7 +234,7 @@ jobs:
         run: |
           nohup java -jar target/bkstudio-backend-*-SNAPSHOT.jar --spring.profiles.active=dev \
             > "$RUNNER_TEMP/backend.log" 2>&1 &
-          for i in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             curl -fsS -o /dev/null http://localhost:8080/api/health && exit 0
             sleep 2
           done
@@ -189,7 +253,7 @@ jobs:
           # Same standalone server as the Docker image; it serves static assets only when copied next to it.
           cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
           PORT=3000 HOSTNAME=127.0.0.1 nohup node .next/standalone/server.js > "$RUNNER_TEMP/frontend.log" 2>&1 &
-          for i in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             curl -fsS -o /dev/null http://localhost:3000/ && exit 0
             sleep 2
           done

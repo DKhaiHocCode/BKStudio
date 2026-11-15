@@ -414,7 +414,8 @@ class OutboxSenderIT extends AbstractPostgresTest {
                 new EmailTemplates(new org.springframework.mock.env.MockEnvironment()),
                 new tools.jackson.databind.json.JsonMapper(),
                 clock,
-                new NotificationProperties("f", "", new NotificationProperties.Outbox(false)));
+                new NotificationProperties("f", "", new NotificationProperties.Outbox(false, 80)),
+                tm);
         off.scheduled();
         assertThat(fake.calls).isEmpty();
 
@@ -424,14 +425,15 @@ class OutboxSenderIT extends AbstractPostgresTest {
                 new EmailTemplates(new org.springframework.mock.env.MockEnvironment()),
                 new tools.jackson.databind.json.JsonMapper(),
                 clock,
-                new NotificationProperties("f", "", new NotificationProperties.Outbox(true)));
+                new NotificationProperties("f", "", new NotificationProperties.Outbox(true, 80)),
+                tm);
         on.scheduled();
         assertThat(fake.calls).hasSize(1);
     }
 
     @Test
     void properties_toString_masksApiKey() {
-        String s = new NotificationProperties("from", "re_supersecret", new NotificationProperties.Outbox(true))
+        String s = new NotificationProperties("from", "re_supersecret", new NotificationProperties.Outbox(true, 80))
                 .toString();
         assertThat(s).doesNotContain("re_supersecret").contains("from");
     }
@@ -449,5 +451,125 @@ class OutboxSenderIT extends AbstractPostgresTest {
         assertThat(str(id, "status")).isEqualTo("FAILED");
         assertThat(str(id, "last_error")).isEqualTo("Render failed: IllegalArgumentException");
         assertThat(fake.calls).isEmpty();
+    }
+
+    // ---- T-047: row claiming and daily cap ----
+
+    @Test
+    void runOnce_rowLockedByAnotherSender_isSkippedThenSentOnceAfterRelease() {
+        long locked = row("k1");
+        long free = row("k2");
+
+        // This transaction plays a second instance that claimed k1 and is still sending it.
+        new TransactionTemplate(tm).executeWithoutResult(s -> {
+            jdbc.queryForList("SELECT id FROM email_outbox WHERE id = ? FOR UPDATE", locked);
+            int attempted = java.util.concurrent.CompletableFuture.supplyAsync(outbox::runOnce)
+                    .join(); // other thread = other connection
+            assertThat(attempted).isEqualTo(1);
+        });
+
+        assertThat(fake.calls).extracting(Call::key).containsExactly("k2");
+        assertThat(str(free, "status")).isEqualTo("SENT");
+        assertThat(str(locked, "status")).isEqualTo("PENDING");
+        assertThat(attempts(locked)).isZero();
+
+        assertThat(outbox.runOnce()).isEqualTo(1);
+        assertThat(fake.calls).extracting(Call::key).containsExactly("k2", "k1");
+    }
+
+    @Test
+    void runOnce_rowHandledByAnotherSenderAfterBatchRead_isNotSentAgain() {
+        long id = row("k1");
+        // Another instance finishes k1 while this one is sending k0 (same batch, due earlier).
+        row("k0", "a@example.com", "ORDER_RECEIVED", JSON, clock.instant().minusSeconds(5));
+        fake.behaviour = (m, k) -> jdbc.update("UPDATE email_outbox SET status = 'SENT' WHERE id = ?", id);
+
+        assertThat(outbox.runOnce()).isEqualTo(1);
+
+        assertThat(fake.calls).extracting(Call::key).containsExactly("k0");
+    }
+
+    private OutboxSender capped(int cap) {
+        return new OutboxSender(
+                jdbc,
+                fake,
+                new EmailTemplates(new org.springframework.mock.env.MockEnvironment()),
+                new tools.jackson.databind.json.JsonMapper(),
+                clock,
+                new NotificationProperties("f", "", new NotificationProperties.Outbox(true, cap)),
+                tm);
+    }
+
+    @Test
+    void runOnce_nearDailyCap_paymentLinkGoesBeforeOlderOrderReceived() {
+        OutboxSender capped = capped(3);
+        row("sent1");
+        row("sent2");
+        assertThat(capped.runOnce()).isEqualTo(2); // one send left in the window
+        Instant t = clock.instant();
+        long old1 = row("old1", "a@example.com", "ORDER_RECEIVED", JSON, t.minusSeconds(600));
+        long old2 = row("old2", "a@example.com", "ORDER_RECEIVED", JSON, t.minusSeconds(300));
+        long link = paymentLinkRow(paymentRequest("PENDING")); // due now: the newest row
+        fake.calls.clear();
+
+        assertThat(capped.runOnce()).isEqualTo(1);
+
+        assertThat(fake.calls).extracting(Call::key).containsExactly(str(link, "dedupe_key"));
+        assertThat(str(link, "status")).isEqualTo("SENT");
+        assertThat(str(old1, "status")).isEqualTo("PENDING");
+        assertThat(str(old2, "status")).isEqualTo("PENDING");
+    }
+
+    @Test
+    void runOnce_transientFailure_backoffUsesAttemptsOfLockedRow_notOfBatchRead() {
+        long first = row(
+                "k0", "a@example.com", "ORDER_RECEIVED", JSON, clock.instant().minusSeconds(5));
+        long id = row("k1");
+        // While k0 is being sent, another sender's retry bumps k1 (still due): the batch read of k1 is now stale.
+        fake.behaviour = (m, k) -> {
+            if (k.equals("k0")) {
+                jdbc.update("UPDATE email_outbox SET attempts = 3 WHERE id = ?", id);
+            } else {
+                throw new EmailSendException("boom", true);
+            }
+        };
+
+        assertThat(outbox.runOnce()).isEqualTo(2);
+
+        assertThat(str(first, "status")).isEqualTo("SENT");
+        assertThat(attempts(id)).isEqualTo(4);
+        assertThat(instant(id, "next_attempt_at")).isEqualTo(clock.instant().plus(Duration.ofMinutes(8)));
+    }
+
+    @Test
+    @org.junit.jupiter.api.extension.ExtendWith(org.springframework.boot.test.system.OutputCaptureExtension.class)
+    void runOnce_dailyCap_sendsOnlyUpToCapAndLeavesRestPendingUntilWindowFrees(
+            org.springframework.boot.test.system.CapturedOutput output) {
+        OutboxSender capped = capped(3);
+        for (int i = 0; i < 5; i++) {
+            row("k" + i);
+        }
+
+        assertThat(capped.runOnce()).isEqualTo(3);
+        assertThat(capped.runOnce()).isZero();
+        assertThat(capped.runOnce()).isZero();
+        clock.advance(Duration.ofMinutes(59));
+        assertThat(capped.runOnce()).isZero();
+        // three capped runs within the hour: one WARN, not one per run
+        assertThat(output.getOut().split("Outbox daily cap reached", -1)).hasSize(2);
+        clock.advance(Duration.ofHours(22).plusMinutes(1));
+        assertThat(capped.runOnce()).isZero();
+        assertThat(output.getOut().split("Outbox daily cap reached", -1)).hasSize(3);
+
+        assertThat(fake.calls).hasSize(3);
+        assertThat(jdbc.queryForObject(
+                        "SELECT count(*) FROM email_outbox WHERE status = 'PENDING' AND attempts = 0", Integer.class))
+                .isEqualTo(2);
+
+        clock.advance(Duration.ofHours(1).plusSeconds(1));
+        assertThat(capped.runOnce()).isEqualTo(2);
+        assertThat(fake.calls).hasSize(5);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM email_outbox WHERE status = 'SENT'", Integer.class))
+                .isEqualTo(5);
     }
 }

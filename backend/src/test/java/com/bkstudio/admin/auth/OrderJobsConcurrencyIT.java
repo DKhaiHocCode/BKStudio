@@ -2,6 +2,7 @@ package com.bkstudio.admin.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.bkstudio.queue.QueueFixtures;
 import java.util.List;
 import java.util.concurrent.Callable;
 import org.junit.jupiter.api.Test;
@@ -91,6 +92,50 @@ class OrderJobsConcurrencyIT extends OrderJobsTestBase {
             }
             assertQueueConsistent();
         }
+    }
+
+    /**
+     * T-047: two orders whose items (same two variants) hold slots in opposite month order, cancelled by the shop at
+     * the same time with restore. Released item by item the two cancels deadlock on production_month. Entries on an
+     * AWAITING_DEPOSIT order are forced by the fixture: it is the only way to reach "slots held AND restore=true".
+     */
+    @Test
+    @Timeout(300)
+    void twoCancelByShopOfOrdersWithSlotsInOppositeMonthOrder_bothSucceed_slotsAndQuotaBack() throws Exception {
+        for (int round = 0; round < ROUNDS; round++) {
+            long v1 = newVariant(0, 0);
+            long v2 = newVariant(0, 0);
+            long[] orders = new long[2];
+            for (int o = 0; o < 2; o++) {
+                orders[o] = orderOn("MADE_TO_ORDER", "AWAITING_DEPOSIT", v1, 1);
+                long first = count("SELECT id FROM order_item WHERE order_id = ?", orders[o]);
+                long second = addItem(orders[o], v2, 1);
+                queueEntry(first, o == 0 ? 1 : 0); // order A: month 1 then 0; order B: month 0 then 1
+                queueEntry(second, o == 0 ? 0 : 1);
+            }
+            QueueFixtures.setMonth(jdbc, 0, 10, 2);
+            QueueFixtures.setMonth(jdbc, 1, 10, 2);
+
+            List<Res> r = concurrently(List.<Callable<Res>>of(
+                    () -> res(act(orders[0], "cancel-by-shop", "version", 0, "reason", "race")),
+                    () -> res(act(orders[1], "cancel-by-shop", "version", 0, "reason", "race"))));
+
+            assertThat(r).as("round %d: %s", round, r).allMatch(x -> x.status() == 200);
+            assertThat(orderStatus(orders[0])).isEqualTo("CANCELLED");
+            assertThat(orderStatus(orders[1])).isEqualTo("CANCELLED");
+            assertThat(openEntries()).isZero();
+            assertThat(allocatedTotal()).isZero();
+            assertThat(quota(v1)).isEqualTo(2);
+            assertThat(quota(v2)).isEqualTo(2);
+        }
+    }
+
+    private void queueEntry(long orderItemId, int monthOffset) {
+        jdbc.update(
+                "INSERT INTO queue_entry (order_item_id, unit_index, production_month, queued_at, status)"
+                        + " VALUES (?, 1, ?, now(), 'QUEUED')",
+                orderItemId,
+                java.sql.Date.valueOf(QueueFixtures.month(monthOffset)));
     }
 
     @Test

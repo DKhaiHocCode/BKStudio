@@ -11,7 +11,7 @@
 | M1 — Catalog & đăng nhập admin | 52 | T-006, T-010, T-011, T-012, T-013, T-014, T-015, T-016, T-017 |
 | M2 — Đơn hàng, thanh toán, hàng đợi | 50 | T-020, T-021, T-022, T-023, T-024, T-025, T-026, T-027, T-028, T-029 |
 | M3 — Giao diện khách & admin | 39 | T-030, T-031, T-032, T-033, T-034, T-035, T-036 |
-| M4 — Bảo mật, deploy, launch | 30 | T-040, T-041, T-042, T-043, T-044, T-045, T-046 |
+| M4 — Bảo mật, deploy, launch | 36 | T-040, T-041, T-042, T-043, T-044, T-045, T-046, T-047 |
 | M5 — Làm ngay sau launch | 3 | T-050, T-051 |
 | P1 — Chỉ làm nếu còn thời gian | 13 | T-060, T-061, T-062, T-063 |
 | **Cần để launch** | **186** | M0–M4 |
@@ -450,6 +450,14 @@ flowchart LR
 - **Nghiệm thu:** Mọi tiêu chí launch ✅.
 - **Test:** Đơn thật thử nghiệm.
 - **Rủi ro / câu hỏi:** —
+
+#### T-047 · Gói sửa nợ bảo mật nhanh (không cần VPS)
+- **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 6 giờ · **Phụ thuộc:** T-040, T-042, T-044 · **Status:** done
+- **Phạm vi:** (1) `ProxyConfigValidator` từ chối TRUSTED_PROXIES quá rộng (`.*`, dải rộng hơn /24). (2) Caddyfile: xoá header thừa khỏi log phản hồi, không log path `/products/*`, HSTS trên lỗi do Caddy sinh. (3) ESLint cấm `dangerouslySetInnerHTML`. (4) CI: job shellcheck + hadolint + `docker compose config`; Dependabot ecosystem `docker`. (5) Giới hạn đơn theo từng email + trần mail/ngày. (6) Sửa deadlock huỷ đồng thời 2 đơn nhiều món (khoá các tháng của cả đơn theo thứ tự tăng). (7) `OutboxSender` dùng `FOR UPDATE SKIP LOCKED`.
+- **File / module:** backend/.../order/**, backend/.../notification/**, backend/.../queue/**, infra/Caddyfile, .github/workflows/*, .github/dependabot.yml, frontend/eslint.config.*
+- **Nghiệm thu:** Mỗi mục có test hoặc lệnh kiểm chạy thật; backend verify xanh; Caddy chạy thật trong Docker và grep log không thấy slug sản phẩm.
+- **Test:** Unit + integration + chạy Caddy thật.
+- **Rủi ro / câu hỏi:** ĐÃ LÀM (Khai duyệt 2026-11-16): `ProxyConfigValidator` từ chối TRUSTED_PROXIES quá rộng (IPv4 literal hoặc CIDR ≥ /24 IPv4, ≥ /64 IPv6; regex và IPv6 dạng chữ bị từ chối); giới hạn 3 đơn/email/giờ (email chuẩn hoá bỏ `+tag`, `Retry-After` cố định) và trần outbox 80 mail/24 giờ (mail nghiệp vụ gửi trước `ORDER_RECEIVED`, `@Min(1)`); `OutboxSender` dùng `FOR UPDATE SKIP LOCKED` theo từng dòng; `QueueService.release(Collection)` khoá các tháng theo thứ tự tăng; Caddyfile (log bỏ mọi header, che slug `/products/*` và token đơn, HSTS trên lỗi do Caddy sinh); ESLint cấm `dangerouslySetInnerHTML` (kể cả createElement/spread); CI job `infra-lint` (shellcheck, hadolint, compose config, caddy validate); Dependabot `docker` + `docker-compose`; compose truyền 5 biến giới hạn. Bằng chứng (agent chạy; điều phối viên chạy lại 40 unit test: ProxyConfigValidatorTest 29 + NotificationConfigValidatorTest 11, 0 lỗi): test deadlock ĐỎ 15/15 với thứ tự khoá cũ (`deadlock detected`) và xanh với code mới; test huỷ đơn thật hai luồng đỏ khi dùng thứ tự cũ; IT chạy nhắm đúng lớp: Surefire 57 + Failsafe 72 xanh; Caddy chạy thật log không còn slug/token/header; ESLint bắt 4 dạng. Reviewer: security OK TO MERGE (2 Medium + 5 Low), code 0 Must fix + 7 Should fix; đã sửa hết; không review lại sau vòng sửa. CHƯA KIỂM: `mvnw verify` đầy đủ (máy thiếu RAM, CI chạy), job `infra-lint` và Dependabot `docker-compose` chưa chạy trên GitHub (chưa rõ có bump digest `@sha256` không), logger lỗi mặc định của Caddy chưa bắn thật. CHẤP NHẬN (Khai): giới hạn theo email cho phép chặn một email biết trước trong 1 giờ (SECURITY T9, gốc rễ = Turnstile P1); secret trong env, soft 404, CSP unsafe-inline. NỢ: index cho biểu thức email chuẩn hoá (đang quét tuần tự); trần mail tính theo cửa sổ trượt, hai instance có thể vượt một lô; một kết nối DB giữ trong lúc gửi mail (~15 giây/dòng); Gmail dấu chấm chưa chuẩn hoá; cảnh báo chạm trần mới chỉ ghi log; Task B (role Postgres riêng + mã hoá backup bằng khoá công khai, cần ADR). Khai duyệt 2026-11-16. Không sửa: secret trong env, soft 404 slug, CSP unsafe-inline (chấp nhận). Task B (role Postgres riêng + mã hoá backup bằng khoá công khai, cần ADR) làm sau.
 
 ### M5 — Làm ngay sau launch
 

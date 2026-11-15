@@ -39,14 +39,17 @@ public class OrderReservations {
                 "SELECT id, variant_id, quantity FROM order_item WHERE order_id = ? ORDER BY variant_id, id",
                 (rs, i) -> new Line(rs.getLong(1), rs.getLong(2), rs.getInt(3)),
                 orderId);
-        for (Line item : items) {
-            if (type == FulfillmentType.IN_STOCK) {
-                if (restore) {
+        if (type != FulfillmentType.IN_STOCK) {
+            // One call for the whole order, before any variant row is touched: months are locked in ascending order,
+            // then variants in id order, so concurrent cancels cannot deadlock. No entries before the deposit is
+            // confirmed: a no-op then.
+            queue.release(items.stream().map(Line::id).toList());
+        }
+        if (restore) {
+            for (Line item : items) {
+                if (type == FulfillmentType.IN_STOCK) {
                     checkoutRepo.restoreStock(item.variantId(), item.quantity(), now);
-                }
-            } else {
-                queue.release(item.id()); // no entries before the deposit is confirmed: a no-op then
-                if (restore) {
+                } else {
                     checkoutRepo.restoreQuota(item.variantId(), item.quantity(), now);
                 }
             }

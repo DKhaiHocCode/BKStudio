@@ -65,7 +65,7 @@ class ResendEmailSenderTest {
     private ResendEmailSender sender(String baseUrl) {
         return new ResendEmailSender(
                 new NotificationProperties(
-                        "BKStudio <orders@bk.example>", KEY, new NotificationProperties.Outbox(false)),
+                        "BKStudio <orders@bk.example>", KEY, new NotificationProperties.Outbox(false, 80)),
                 json,
                 baseUrl);
     }

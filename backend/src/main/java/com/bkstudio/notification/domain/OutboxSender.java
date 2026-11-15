@@ -3,6 +3,7 @@ package com.bkstudio.notification.domain;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -20,8 +23,10 @@ import tools.jackson.databind.json.JsonMapper;
  * row never blocks the batch. A crash between send and the SENT update re-sends with the same Idempotency-Key, which
  * the provider ignores.
  *
- * <p>shortcut: no row claiming (FOR UPDATE SKIP LOCKED); correct for the single backend instance, add it before
- * running two instances.
+ * <p>Each row is claimed with FOR UPDATE SKIP LOCKED in its own transaction that spans the send, so two instances
+ * (or two overlapping runs) never send the same row. At most {@code dailyCap} emails go out per rolling 24 hours;
+ * rows over the cap stay PENDING and are sent when the window frees up.
+ * shortcut: the cap is read once per run without a lock, so two instances can overshoot it by one batch (20).
  */
 @Component
 public class OutboxSender {
@@ -29,6 +34,7 @@ public class OutboxSender {
     static final int BATCH = 20;
     static final int MAX_ATTEMPTS = 8;
     static final int RETENTION_DAYS = 7;
+    static final Duration CAP_WARN_INTERVAL = Duration.ofHours(1);
 
     private static final Pattern PAYMENT_LINK_KEY = Pattern.compile("payment:(\\d+):link");
 
@@ -42,6 +48,8 @@ public class OutboxSender {
     private final JsonMapper json;
     private final Clock clock;
     private final NotificationProperties props;
+    private final TransactionTemplate tx;
+    private volatile Instant capWarnedAt; // last "cap reached" WARN, so it is logged once an hour, not every run
 
     OutboxSender(
             JdbcTemplate jdbc,
@@ -49,7 +57,9 @@ public class OutboxSender {
             EmailTemplates templates,
             JsonMapper json,
             Clock clock,
-            NotificationProperties props) {
+            NotificationProperties props,
+            PlatformTransactionManager transactionManager) {
+        this.tx = new TransactionTemplate(transactionManager);
         this.jdbc = jdbc;
         this.sender = sender;
         this.templates = templates;
@@ -60,21 +70,41 @@ public class OutboxSender {
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 60_000)
     void scheduled() {
-        if (props.outbox() == null || props.outbox().enabled()) {
+        if (props.outbox().enabled()) {
             runOnce();
         }
     }
 
-    /** Processes up to 20 due rows; returns how many were attempted. */
+    /** Processes up to 20 due rows (fewer near the daily cap); returns how many were attempted. */
     public int runOnce() {
         // Links in payloads are secrets: whatever was never sent (FAILED, stuck PENDING) loses them after 7 days.
         jdbc.update(
                 "UPDATE email_outbox SET payload = payload - 'orderUrl' - 'paymentUrl' WHERE created_at < ?"
                         + " AND (jsonb_exists(payload, 'orderUrl') OR jsonb_exists(payload, 'paymentUrl'))",
                 Timestamp.from(clock.instant().minus(Duration.ofDays(RETENTION_DAYS))));
+        int cap = props.outbox().dailyCap();
+        Integer sentToday = jdbc.queryForObject(
+                "SELECT count(*) FROM email_outbox WHERE sent_at > ?",
+                Integer.class,
+                Timestamp.from(clock.instant().minus(Duration.ofDays(1))));
+        int room = Math.min(BATCH, cap - sentToday);
+        if (room <= 0) {
+            Integer waiting = jdbc.queryForObject(
+                    "SELECT count(*) FROM email_outbox WHERE status = 'PENDING' AND next_attempt_at <= ?",
+                    Integer.class,
+                    Timestamp.from(clock.instant()));
+            Instant now = clock.instant();
+            if (waiting > 0 && (capWarnedAt == null || !now.isBefore(capWarnedAt.plus(CAP_WARN_INTERVAL)))) {
+                capWarnedAt = now;
+                log.warn("Outbox daily cap reached (cap={}): {} due emails stay PENDING", cap, waiting);
+            }
+            return 0;
+        }
+        // Near the cap the room goes to business-critical mail (payment links, status changes) first; ORDER_RECEIVED
+        // repeats a link the customer already saw on the confirmation page, so it waits.
         List<Row> rows = jdbc.query(
                 "SELECT id, dedupe_key, to_email, template, payload::text, attempts FROM email_outbox"
-                        + " WHERE status = 'PENDING' AND next_attempt_at <= ? ORDER BY next_attempt_at LIMIT ?",
+                        + " WHERE status = 'PENDING' AND next_attempt_at <= ? ORDER BY (template = 'ORDER_RECEIVED'), next_attempt_at LIMIT ?",
                 (rs, i) -> new Row(
                         rs.getLong(1),
                         rs.getString(2),
@@ -83,11 +113,25 @@ public class OutboxSender {
                         rs.getString(5),
                         rs.getInt(6)),
                 Timestamp.from(clock.instant()),
-                BATCH);
+                room);
+        int attempted = 0;
         for (Row r : rows) {
             try {
-                process(r);
+                // One transaction per row: the row lock is held until the send and its status update commit.
+                boolean handled = tx.execute(status -> {
+                    Integer attempts = claim(r);
+                    if (attempts == null) {
+                        return false;
+                    }
+                    // attempts of the locked row, not of the batch read: another sender may have retried it since
+                    process(new Row(r.id(), r.dedupeKey(), r.to(), r.template(), r.payload(), attempts));
+                    return true;
+                });
+                if (handled) {
+                    attempted++;
+                }
             } catch (RuntimeException e) {
+                attempted++;
                 log.error(
                         "Outbox row {} could not be processed: {}",
                         r.id(),
@@ -100,7 +144,21 @@ public class OutboxSender {
                 }
             }
         }
-        return rows.size();
+        return attempted;
+    }
+
+    /**
+     * Locks the row and returns its current attempts; null when another sender holds the row or already handled it
+     * since the batch was read.
+     */
+    private Integer claim(Row r) {
+        List<Integer> attempts = jdbc.queryForList(
+                "SELECT attempts FROM email_outbox WHERE id = ? AND status = 'PENDING' AND next_attempt_at <= ?"
+                        + " FOR UPDATE SKIP LOCKED",
+                Integer.class,
+                r.id(),
+                Timestamp.from(clock.instant()));
+        return attempts.isEmpty() ? null : attempts.get(0);
     }
 
     /** Payment link of a request that is no longer PENDING (cancelled, expired, paid) is dead: do not mail it. */
