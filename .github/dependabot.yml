@@ -47,3 +47,28 @@ updates:
     groups:
       npm-minor-patch:
         update-types: [minor, patch]
+  # Base images are pinned by tag + digest: Dependabot bumps the digest (and minor/patch tags). Majors (JDK, Node 22
+  # LTS, Postgres 16) stay a manual decision.
+  - package-ecosystem: docker
+    directories: [/backend, /frontend, /infra/backup]
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      docker-minor-patch:
+        update-types: [minor, patch]
+  # Images referenced directly in the compose files (caddy, postgres, MinIO, ...). Same majors policy as above.
+  - package-ecosystem: docker-compose
+    directory: /infra
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      compose-minor-patch:
+        update-types: [minor, patch]

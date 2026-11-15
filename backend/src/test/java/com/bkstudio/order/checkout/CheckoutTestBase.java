@@ -31,6 +31,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -39,6 +40,8 @@ import tools.jackson.databind.ObjectMapper;
 /** T-022 setup: real Postgres, MockMvc, fake clock, empty catalog / order / terms tables before and after each test. */
 @AutoConfigureMockMvc
 @Import(TestClockConfig.class)
+// Every fixture order uses one email; the per-email cap has its own test in CheckoutRateLimitIT.
+@TestPropertySource(properties = "app.checkout.email-limit-max=1000")
 abstract class CheckoutTestBase extends AbstractPostgresTest {
 
     static final String ORDERS = "/api/orders";

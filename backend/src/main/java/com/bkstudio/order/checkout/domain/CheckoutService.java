@@ -97,10 +97,20 @@ public class CheckoutService {
                     ErrorCode.RATE_LIMITED, "Too many orders from this address. Try again later.", wait.get());
         }
 
+        // Per-email cap (T-047): one address cannot be flooded with order emails from many IPs. Same generic answer
+        // as the IP limit, so the response does not tell which limit was hit. Retry-After is the whole window, not
+        // the real remaining time: that would tell a stranger when this mailbox last ordered.
+        Instant now = clock.instant();
+        if (repo.lockAndCountByEmail(email, now.minus(props.emailLimitWindow())) >= props.emailLimitMax()) {
+            throw new ApiException(
+                    ErrorCode.RATE_LIMITED,
+                    "Too many orders from this address. Try again later.",
+                    props.emailLimitWindow());
+        }
+
         requireCurrentTerms(req.acceptedTermsVersion());
 
         boolean mto = req.fulfillmentType() == FulfillmentType.MADE_TO_ORDER;
-        Instant now = clock.instant();
         List<Item> lines = req.items().stream()
                 .sorted(Comparator.comparingLong(Item::variantId))
                 .toList();

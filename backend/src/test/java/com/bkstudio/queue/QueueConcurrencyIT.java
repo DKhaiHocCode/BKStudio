@@ -126,4 +126,51 @@ class QueueConcurrencyIT extends QueueTestBase {
         }
         assertConsistent();
     }
+
+    /**
+     * T-047: two orders whose items hold slots in opposite month order (A: Feb then Jan, B: Jan then Feb). Released
+     * item by item they would lock the months in opposite order and could deadlock; released per order the months
+     * are locked ascending.
+     */
+    @RepeatedTest(15)
+    void concurrentReleaseOfOrdersWithItemsInOppositeMonthOrder_bothFinishAndSlotsAreFreed() throws Exception {
+        setMonth(jdbc, 0, 4, 4);
+        setMonth(jdbc, 1, 4, 4);
+        long[] items = orderItems(jdbc, 4);
+        int[] monthOf = {1, 0, 0, 1}; // order A = items 0,1; order B = items 2,3
+        for (int i = 0; i < 4; i++) {
+            for (int unit = 1; unit <= 2; unit++) {
+                jdbc.update(
+                        "INSERT INTO queue_entry (order_item_id, unit_index, production_month, queued_at, status)"
+                                + " VALUES (?, ?, ?, now(), 'QUEUED')",
+                        items[i],
+                        unit,
+                        java.sql.Date.valueOf(month(monthOf[i])));
+            }
+        }
+        List<List<Long>> orders = List.of(List.of(items[0], items[1]), List.of(items[2], items[3]));
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        CountDownLatch go = new CountDownLatch(1);
+        try {
+            List<Future<?>> futures = new ArrayList<>();
+            for (List<Long> order : orders) {
+                futures.add(pool.submit(() -> {
+                    go.await();
+                    queue.release(order);
+                    return null;
+                }));
+            }
+            go.countDown();
+            for (Future<?> f : futures) {
+                f.get(30, TimeUnit.SECONDS); // a deadlock victim would fail here with an ExecutionException
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+
+        assertThat(openEntries()).isZero();
+        assertThat(allocated(0)).isZero();
+        assertThat(allocated(1)).isZero();
+        assertConsistent();
+    }
 }

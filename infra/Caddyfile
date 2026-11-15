@@ -3,21 +3,29 @@
 #      CDN_ORIGIN (origin of R2_PUBLIC_BASE_URL; MUST be set in prod, empty means CSP blocks all R2 images),
 #      BACKEND_UPSTREAM / FRONTEND_UPSTREAM (override only for local tests).
 
-# Order tokens are secrets that live in URLs (/orders/<token>, /api/orders/<token>). Both the default logger
-# (errors, e.g. 502 lines carry the raw URI) and the access logger must redact them and log no request headers
-# (Next sends Next-Url / Next-Router-State-Tree / Referer containing the token).
+# Order tokens (/orders/<token>, /api/orders/<token>) and UNLISTED product slugs (/products/<slug>, private
+# commission links) are secrets that live in URLs. Both the default logger (errors, e.g. 502 lines carry the raw URI)
+# and the access logger must redact them: order URIs keep the rest of the path, product URIs lose everything after
+# the prefix (query too); status, size and duration stay. No request headers (Next sends Next-Url /
+# Next-Router-State-Tree / Referer containing the token) and no response headers (Set-Cookie, Location may carry
+# secrets): the allow-list of response headers is empty.
 (redacted_log) {
 	format filter {
 		wrap json
 		fields {
-			request>uri regexp ^(/(?:api/)?orders/)[^/?"\s]+ ${1}redacted
+			request>uri regexp ^(/(?:api/)?orders/)[^/?"\s]+|^(/(?:api/)?products/).* ${1}${2}redacted
 			request>headers delete
-			resp_headers>Set-Cookie delete
+			resp_headers delete
 		}
 	}
 }
 
+# Usage: import security_headers <name>. The name keeps the HSTS matcher unique per block (site vs handle_errors).
 (security_headers) {
+	# HSTS only over TLS. No "preload" until the domain is stable.
+	@https_{args[0]} protocol https
+	header @https_{args[0]} Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
 	# script-src needs 'unsafe-inline': Next emits inline hydration scripts and the layout has an inline theme
 	# script. A nonce would force dynamic rendering (breaks cacheComponents/PPR); Next's SRI does not allow inline
 	# scripts. Mitigation: no unsafe-eval, no remote script origins, React escapes output, object-src/base-uri closed.
@@ -45,11 +53,7 @@
 		import redacted_log
 	}
 
-	# HSTS only over TLS. No "preload" until the domain is stable.
-	@https protocol https
-	header @https Strict-Transport-Security "max-age=31536000; includeSubDomains"
-
-	import security_headers
+	import security_headers site
 
 	# Order pages/API carry the secret token: never cache, never leak via Referer, never index. ">" = set after upstream.
 	@orders path /orders/* /api/orders/*
@@ -83,9 +87,9 @@
 		reverse_proxy {$FRONTEND_UPSTREAM:frontend:3000}
 	}
 
-	# Caddy-generated errors (413, 502) skip the headers above; re-apply them.
+	# Caddy-generated errors (413, 502) skip the headers above; re-apply them (HSTS included, HTTPS only).
 	handle_errors {
-		import security_headers
+		import security_headers errors
 		respond "{err.status_code} {err.status_text}"
 	}
 }

@@ -7,12 +7,13 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class NotificationConfigValidatorTest {
 
     private static NotificationProperties props(String from, String key) {
-        return new NotificationProperties(from, key, new NotificationProperties.Outbox(false));
+        return new NotificationProperties(from, key, new NotificationProperties.Outbox(false, 80));
     }
 
     @ParameterizedTest
@@ -45,6 +46,21 @@ class NotificationConfigValidatorTest {
                 .withBean(NotificationProperties.class, () -> props("", ""))
                 .withUserConfiguration(NotificationConfigValidator.class)
                 .withPropertyValues("spring.profiles.active=prod")
+                .run(ctx -> assertThat(ctx).hasFailed());
+    }
+
+    @EnableConfigurationProperties(NotificationProperties.class)
+    static class BindConfig {}
+
+    @Test
+    void dailyCap_defaultsTo80_andBelowOneFailsStartup() {
+        var runner = new ApplicationContextRunner()
+                .withUserConfiguration(BindConfig.class)
+                .withPropertyValues("app.notification.outbox.enabled=false");
+        runner.run(ctx -> assertThat(
+                        ctx.getBean(NotificationProperties.class).outbox().dailyCap())
+                .isEqualTo(80));
+        runner.withPropertyValues("app.notification.outbox.daily-cap=0")
                 .run(ctx -> assertThat(ctx).hasFailed());
     }
 }

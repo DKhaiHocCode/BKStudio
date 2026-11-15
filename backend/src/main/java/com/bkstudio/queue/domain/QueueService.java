@@ -17,6 +17,7 @@ import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -121,9 +122,20 @@ public class QueueService {
 
     /** Cancels the open entries of an item and frees their slots (allocated never goes below 0). */
     public void release(long orderItemId) {
+        release(List.of(orderItemId));
+    }
+
+    /**
+     * Same for all items of one order. The months of every item are collected first and then locked once each, in
+     * ascending order: releasing item by item would lock months in item order, and two orders cancelled at the same
+     * time could then wait on each other (deadlock).
+     */
+    public void release(Collection<Long> orderItemIds) {
         Map<LocalDate, Integer> perMonth = new TreeMap<>(); // ascending: stable lock order
-        for (LocalDate m : repo.cancelOpenEntries(orderItemId)) {
-            perMonth.merge(m, 1, Integer::sum);
+        for (long orderItemId : orderItemIds) {
+            for (LocalDate m : repo.cancelOpenEntries(orderItemId)) {
+                perMonth.merge(m, 1, Integer::sum);
+            }
         }
         perMonth.forEach((month, by) -> repo.decrementAllocated(month, by)
                 .filter(before -> before < by)

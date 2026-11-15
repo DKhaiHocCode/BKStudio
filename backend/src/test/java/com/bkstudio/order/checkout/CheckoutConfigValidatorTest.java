@@ -18,7 +18,7 @@ class CheckoutConfigValidatorTest {
         Class<?> c = Class.forName("com.bkstudio.order.checkout.domain.CheckoutConfigValidator");
         Constructor<?> ctor = c.getDeclaredConstructor(CheckoutProperties.class);
         ctor.setAccessible(true);
-        Object v = ctor.newInstance(new CheckoutProperties(baseUrl, 5, Duration.ofHours(1)));
+        Object v = ctor.newInstance(new CheckoutProperties(baseUrl, 5, Duration.ofHours(1), 3, Duration.ofHours(1)));
         Method init = c.getDeclaredMethod("init");
         init.setAccessible(true);
         try {

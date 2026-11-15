@@ -46,6 +46,12 @@ public class CheckoutRepository {
             Instant now,
             String termsAcceptedIp) {}
 
+    /**
+     * One mailbox, one key: lower case and without a "+tag" in the local part (jane+1@x and Jane@x are the same
+     * inbox). Gmail dots are deliberately left alone: other providers treat them as different mailboxes.
+     */
+    private static final String CANONICAL_EMAIL = "regexp_replace(lower(%s), '\\+[^@]*@', '@')";
+
     private final JdbcTemplate jdbc;
 
     CheckoutRepository(JdbcTemplate jdbc) {
@@ -56,6 +62,25 @@ public class CheckoutRepository {
     public void lockIdempotencyKey(UUID key) {
         jdbc.query(
                 "SELECT pg_advisory_xact_lock(hashtextextended(?, 0))", (RowCallbackHandler) rs -> {}, key.toString());
+    }
+
+    /**
+     * Orders placed for this mailbox (see CANONICAL_EMAIL) after {@code since}. Takes a transaction-scoped lock per
+     * mailbox first, so parallel checkouts with one email are counted one after another and cannot overshoot the cap.
+     * shortcut: no index on the canonical email expression (sequential scan), add one when the order table grows large.
+     */
+    public int lockAndCountByEmail(String email, Instant since) {
+        String param = CANONICAL_EMAIL.formatted("?");
+        jdbc.query(
+                "SELECT pg_advisory_xact_lock(hashtextextended(" + param + ", 1))",
+                (RowCallbackHandler) rs -> {},
+                email);
+        return jdbc.queryForObject(
+                "SELECT count(*) FROM customer_order WHERE " + CANONICAL_EMAIL.formatted("customer_email") + " = "
+                        + param + " AND created_at > ?",
+                Integer.class,
+                email,
+                utc(since));
     }
 
     public Optional<ExistingOrder> findByIdempotencyKey(UUID key) {

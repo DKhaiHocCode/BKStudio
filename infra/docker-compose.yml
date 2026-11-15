@@ -115,6 +115,12 @@ services:
       FORWARD_HEADERS_STRATEGY: native
       TRUSTED_PROXIES: 172.30.0.10/32
       SPRING_SERVLET_MULTIPART_LOCATION: /uploads
+      # Abuse limits (T-047); defaults mirror application.yml. Relaxed binding: app.checkout.email-limit-max etc.
+      APP_CHECKOUT_RATE_LIMIT_MAX: ${APP_CHECKOUT_RATE_LIMIT_MAX:-5}
+      APP_CHECKOUT_RATE_LIMIT_WINDOW: ${APP_CHECKOUT_RATE_LIMIT_WINDOW:-1h}
+      APP_CHECKOUT_EMAIL_LIMIT_MAX: ${APP_CHECKOUT_EMAIL_LIMIT_MAX:-3}
+      APP_CHECKOUT_EMAIL_LIMIT_WINDOW: ${APP_CHECKOUT_EMAIL_LIMIT_WINDOW:-1h}
+      APP_NOTIFICATION_OUTBOX_DAILY_CAP: ${APP_NOTIFICATION_OUTBOX_DAILY_CAP:-80}
     tmpfs:
       # java.io.tmpdir: the extracted libwebp .so must be loadable (exec); Tomcat work dirs. Small on purpose.
       - /tmp:exec,nosuid,nodev,size=16m
