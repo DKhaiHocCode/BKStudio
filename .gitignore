@@ -29,6 +29,9 @@ Thumbs.db
 .claude/worktrees/
 .claude/settings.local.json
 
+# Owner photos (large, not for git)
+figureImage/
+
 # E2E (Playwright) artifacts and the saved admin session
 e2e/.auth/
 e2e/test-results/

@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import { cache } from "react";
 
 /** Server-side client for the public catalog API (API_SPEC §2). Server components only. */
@@ -80,6 +81,21 @@ const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export const fetchProduct = cache((slug: string) =>
   SLUG_PATTERN.test(slug) ? getJson<ProductDetail>(`/api/products/${slug}`) : Promise.resolve(null),
 );
+
+/**
+ * First two photos of a LISTED product (cover with srcset + second view) for the shelf tiles.
+ * Cached across requests for a few minutes so the shelf does not refetch every detail on each
+ * visit. Call it only with slugs from the list API, never with a slug taken from the request:
+ * that would let visitors grow the cache and would keep UNLISTED slugs in it.
+ */
+export async function fetchShelfPhotos(slug: string): Promise<ProductImage[]> {
+  "use cache";
+  cacheLife("minutes");
+  const product = await fetchProduct(slug);
+  // Throw instead of returning []: a miss must not be cached.
+  if (!product) throw new Error("Catalog product missing");
+  return product.images.slice(0, 2);
+}
 
 /** Every ACTIVE product, paging through the list (used by the sitemap). */
 export async function fetchAllProducts(): Promise<ProductListItem[]> {
