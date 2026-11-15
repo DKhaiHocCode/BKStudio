@@ -412,12 +412,12 @@ flowchart LR
 - **Rủi ro / câu hỏi:** E2E trong CI dễ chập chờn. XONG: 3 luồng xanh 3 lần liên tiếp ở local và job CI `e2e` xanh trên GitHub (PR #56, 2 lần chạy: 2m46s, 2m9s; backend/frontend/gitleaks cũng xanh). Luồng số dư chỉ test kênh ARTISTREE (kênh số dư chưa chốt). Bước admin gọi qua API, chưa có test UI admin. Reviewer: security OK (2 Low đã sửa: chặn chạy ngoài localhost, cảnh báo artifact); code: cần CI xanh + commit package-lock, Should fix đã sửa.
 
 #### T-042 · Dockerfile + compose production + Caddy
-- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-002, T-004 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-002, T-004 · **Status:** done
 - **Phạm vi:** Dockerfile nhiều tầng cho backend & frontend (Next.js standalone); `infra/docker-compose.yml` (caddy, frontend, backend, postgres, mạng nội bộ, giới hạn log); Caddyfile.
 - **File / module:** backend/Dockerfile, frontend/Dockerfile, infra/*
 - **Nghiệm thu:** `docker compose up` trên máy local chạy được toàn bộ hệ thống như production.
 - **Test:** Chạy thử local.
-- **Rủi ro / câu hỏi:** —
+- **Rủi ro / câu hỏi:** Bằng chứng (devops chạy, điều phối viên chạy lại `compose config`): build 2 image (backend 585MB, frontend 428MB), local-test mọi service healthy, `/api/health` qua Caddy UP, E2E 3/3 qua Caddy, upload ảnh 201 trong container root read-only (ImageIO/libwebp chạy với fat jar), XFF giả bị bỏ qua, cổng backend/frontend/postgres không publish, mạng `db` cô lập postgres. Reviewer: security OK TO MERGE (M1 project name local-test trùng prod đã sửa + guard `LOCAL_TEST_ONLY`; L1,L3-L7 đã sửa), code 0 Must fix (5 Should fix đã sửa); chưa review lại sau vòng sửa. CI `e2e` đổi sang chạy `node .next/standalone/server.js` (mới mô phỏng trong container, cần CI thật). NỢ: L2 backend dùng Postgres superuser (cần role ứng dụng riêng); CHƯA kiểm HTTPS/HSTS/cookie Secure qua TLS và `client_ip` thật từ máy ngoài (T-043); image build trên VPS tới khi có T-045 (GHCR); chưa AAAA (chỉ IPv4); subnet 172.30.0.0/24 có thể trùng mạng VPS (đổi thì đổi cả TRUSTED_PROXIES); không bao giờ `down -v` trên VPS; chưa thử upload 52MB đồng thời với tmpfs `/uploads` 128MB; image `latest` của MinIO chỉ ở local-test.
 
 #### T-043 · Dựng server & tên miền ⚠️ tốn tiền
 - **Ưu tiên:** P0 · **Ước lượng:** 5 giờ · **Phụ thuộc:** T-042 · **Status:** todo
