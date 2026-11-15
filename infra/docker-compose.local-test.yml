@@ -1,0 +1,97 @@
+# Production-like run on a dev machine (T-042): the real prod images, profile and Caddy, but MinIO instead of R2
+# and no emails sent. Fake values only, from an env file outside the repo. Usage (from repo root):
+#   docker compose --env-file <path>/local-test.env -f infra/docker-compose.yml -f infra/docker-compose.local-test.yml up -d --build
+# Tear down with the same files plus: down -v (removes only the bkstudio-localtest project and its volumes).
+# Never use this file on the VPS: the env file must set LOCAL_TEST_ONLY=1, and its own project name keeps it away
+# from the production project's volumes.
+name: bkstudio-localtest
+
+services:
+  # Profile prod refuses a non-https storage endpoint, so MinIO is reached through a Caddy TLS front with an internal
+  # CA; the backend trusts that CA through the truststore built below.
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    command: ["server", "/data"]
+    environment:
+      MINIO_ROOT_USER: ${R2_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${R2_SECRET_ACCESS_KEY}
+    # Browser loads product images from here (R2_PUBLIC_BASE_URL / CDN_ORIGIN = http://localhost:<port>).
+    ports:
+      - "127.0.0.1:${LOCALTEST_MINIO_PORT:-9100}:9000"
+    volumes:
+      - miniodata:/data
+    networks: [internal]
+
+  minio-init:
+    image: cgr.dev/chainguard/minio-client:latest
+    depends_on: [minio]
+    environment:
+      MC_HOST_local: http://${R2_ACCESS_KEY_ID}:${R2_SECRET_ACCESS_KEY}@minio:9000
+    command: ["mb", "--ignore-existing", "local/${R2_BUCKET}"]
+    restart: on-failure
+    networks: [internal]
+
+  minio-public:
+    image: cgr.dev/chainguard/minio-client:latest
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      MC_HOST_local: http://${R2_ACCESS_KEY_ID}:${R2_SECRET_ACCESS_KEY}@minio:9000
+    command: ["anonymous", "set", "download", "local/${R2_BUCKET}"]
+    restart: on-failure
+    networks: [internal]
+
+  # R2_ENDPOINT=https://s3.bkstudio.test in the local-test env file. The name needs a dot: Java sends no SNI for
+  # single-label hosts, and Caddy then aborts the handshake.
+  s3:
+    image: caddy:2.11.9@sha256:4e2425f6009577e7c651010f16679c28f7d12df3e7b1914f941a7a3370746b3c
+    command: ["caddy", "reverse-proxy", "--from", "https://s3.bkstudio.test", "--to", "minio:9000", "--internal-certs"]
+    volumes:
+      - s3_caddy_data:/data
+    networks:
+      internal:
+        aliases: [s3.bkstudio.test]
+    healthcheck:
+      test: ["CMD", "test", "-f", "/data/caddy/pki/authorities/local/root.crt"]
+      interval: 2s
+      retries: 30
+
+  # JDK default CAs + Caddy's local root, written to a volume the backend mounts read-only.
+  truststore:
+    image: bkstudio-backend:${IMAGE_TAG:-local}
+    user: "0"
+    depends_on:
+      s3:
+        condition: service_healthy
+    entrypoint: ["bash", "-c"]
+    command:
+      - >-
+        cp "$$JAVA_HOME/lib/security/cacerts" /trust/cacerts &&
+        keytool -importcert -noprompt -alias local-test-s3 -file /s3data/caddy/pki/authorities/local/root.crt
+        -keystore /trust/cacerts -storepass changeit &&
+        chmod 644 /trust/cacerts
+    volumes:
+      - s3_caddy_data:/s3data:ro
+      - truststore:/trust
+    networks: [internal]
+
+  backend:
+    environment:
+      # Fail closed: without this flag in the env file (never in the VPS .env) compose refuses to start.
+      LOCAL_TEST_ONLY: ${LOCAL_TEST_ONLY:?local-test only, never on the VPS}
+      JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/trust/cacerts -Djavax.net.ssl.trustStorePassword=changeit
+      # The RESEND_API_KEY is fake: never let the outbox call Resend.
+      APP_NOTIFICATION_OUTBOX_ENABLED: "false"
+    volumes:
+      - truststore:/trust:ro
+    depends_on:
+      truststore:
+        condition: service_completed_successfully
+      minio-public:
+        condition: service_completed_successfully
+
+volumes:
+  miniodata:
+  s3_caddy_data:
+  truststore:

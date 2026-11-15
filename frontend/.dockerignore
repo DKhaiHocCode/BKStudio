@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+coverage/
+test-results/
+playwright-report/
+tsconfig.tsbuildinfo
+*.log
+.env
+.env.*
+*.pem
+*.key
+Dockerfile
+.dockerignore

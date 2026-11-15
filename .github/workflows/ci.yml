@@ -93,8 +93,8 @@ jobs:
       - name: Scan git history
         run: '"$RUNNER_TEMP/gitleaks" git --redact --no-banner -v --exit-code 1 .'
 
-  # Full system in a real browser (docs/TESTING.md section 7). No Dockerfiles yet (T-042), so Postgres + MinIO come
-  # from the dev compose file and the backend jar and Next.js server run directly on the runner.
+  # Full system in a real browser (docs/TESTING.md section 7). Postgres + MinIO come from the dev compose file; the
+  # backend jar and the Next.js standalone server run directly on the runner (no Caddy, so Next proxies /api).
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -181,10 +181,14 @@ jobs:
         env:
           NEXT_PUBLIC_SITE_URL: http://localhost:3000
           BACKEND_URL: http://localhost:8080
+          # No Caddy in this job: build the /api -> backend rewrite into the app (next.config.ts).
+          API_PROXY: "1"
         run: |
           npm ci
           npm run build
-          nohup npm start > "$RUNNER_TEMP/frontend.log" 2>&1 &
+          # Same standalone server as the Docker image; it serves static assets only when copied next to it.
+          cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
+          PORT=3000 HOSTNAME=127.0.0.1 nohup node .next/standalone/server.js > "$RUNNER_TEMP/frontend.log" 2>&1 &
           for i in $(seq 1 30); do
             curl -fsS -o /dev/null http://localhost:3000/ && exit 0
             sleep 2
