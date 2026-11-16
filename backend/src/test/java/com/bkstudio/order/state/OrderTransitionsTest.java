@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bkstudio.order.checkout.api.CheckoutDtos.FulfillmentType;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 class OrderTransitionsTest {
@@ -60,6 +62,17 @@ class OrderTransitionsTest {
                             .isEmpty();
                 }
             }
+        }
+    }
+
+    /** The retention job anonymises by isTerminal(): it must be exactly "no way out of this status". */
+    @Test
+    void isTerminal_equalsStatusesWithNoOutgoingTransition() {
+        Set<OrderStatus> withExit = OrderTransitions.all().keySet().stream()
+                .map(OrderTransitions.Key::status)
+                .collect(Collectors.toSet());
+        for (OrderStatus s : OrderStatus.values()) {
+            assertThat(s.isTerminal()).as(s.name()).isEqualTo(!withExit.contains(s));
         }
     }
 

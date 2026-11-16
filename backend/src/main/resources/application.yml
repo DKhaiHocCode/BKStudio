@@ -52,7 +52,9 @@ app:
       # daily-cap: emails per rolling 24 h, default 80 in NotificationProperties (Resend free plan: 100/day);
       # the rest stays PENDING
   jobs:
-    enabled: true # expiry/reminder/forfeit schedulers; tests set false and call OrderJobs methods
+    enabled: true # expiry/reminder/forfeit/complete/anonymise schedulers; tests set false and call OrderJobs methods
+    complete-after-days: 30 # SHIPPED longer than this -> COMPLETED
+    retention-days: 730 # personal data of an order is cleared this long after it ended (2 years)
   admin:
     # base64 of 32 random bytes, env only, no default. Required in prod (fails startup); elsewhere only when used.
     totp-encryption-key: ${TOTP_ENCRYPTION_KEY:}
