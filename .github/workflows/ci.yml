@@ -94,7 +94,8 @@ jobs:
         run: '"$RUNNER_TEMP/gitleaks" git --redact --no-banner -v --exit-code 1 .'
 
   # Cheap static checks of the infra files (always runs, no build). Same tool versions run locally with:
-  #   docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:v0.10.0 infra/backup/*.sh
+  #   docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:v0.10.0 infra/*.sh infra/backup/*.sh
+  #   docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -no-color
   #   docker run --rm -i hadolint/hadolint:v2.12.0 hadolint --ignore DL3008 - < backend/Dockerfile
   #   docker run --rm -e SITE_ADDRESS=x.test -e CDN_ORIGIN=https://cdn.x.test -v "$PWD/infra/Caddyfile:/etc/caddy/Caddyfile:ro" \
   #     <caddy image from infra/docker-compose.yml> caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
@@ -150,6 +151,13 @@ jobs:
           NEXT_PUBLIC_TURNSTILE_SITE_KEY=ci-fake-turnstile-site-key
           EOF
           docker compose --env-file "$RUNNER_TEMP/ci.env" -f infra/docker-compose.yml config -q
+          IMAGE_TAG=v0.0.0 docker compose --env-file "$RUNNER_TEMP/ci.env" -f infra/docker-compose.yml \
+            -f infra/docker-compose.ghcr.yml config -q
+      # Workflow files, deploy.yml included (rhysd/actionlint v1.7.12; the image also runs shellcheck on run: blocks).
+      - name: actionlint
+        run: |
+          docker run --rm -v "$PWD:/repo:ro" -w /repo \
+            rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -no-color
       # Same digest-pinned image as production: read from the compose file so there is only one pin to bump.
       - name: caddy validate
         run: |
