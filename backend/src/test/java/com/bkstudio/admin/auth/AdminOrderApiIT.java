@@ -798,6 +798,17 @@ class AdminOrderApiIT extends AdminOrderTestBase {
         expectProblem(note(UNKNOWN_ID, "x"), 404, "NOT_FOUND");
     }
 
+    @Test
+    void note_anonymisedOrder_409AndNothingSaved() throws Exception {
+        long id = order("IN_STOCK", "CANCELLED", 1);
+        jdbc.update("UPDATE customer_order SET anonymised_at = now() WHERE id = ?", id);
+
+        expectProblem(note(id, "buyer phone 123"), 409, "CONFLICT");
+
+        assertThat(savedNote(id)).isNull();
+        assertThat(auditCount("ORDER_NOTE_UPDATED", id)).isZero();
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"", "   "})
     void note_blankClearsTheNote(String blank) throws Exception {

@@ -110,6 +110,7 @@ CREATE TABLE customer_order (
     cancel_reason      text,
     admin_note         text,
     restocked_at       timestamptz,                   -- set once by forfeited-to-stock (V2); guards double stock_qty + 1
+    anonymised_at      timestamptz,                   -- set once by the retention job (V4): personal data cleared
     created_at         timestamptz NOT NULL DEFAULT now(),
     updated_at         timestamptz NOT NULL DEFAULT now(),
     version            int NOT NULL DEFAULT 0,

@@ -157,7 +157,8 @@ public class CustomerOrderService {
         byte[] hash = CheckoutService.hashToken(token);
         String publicCode = code.trim().toUpperCase(Locale.ROOT);
         List<Map.Entry<Long, String>> rows = jdbc.query(
-                "SELECT id, customer_email FROM customer_order WHERE public_code = ?",
+                // anonymised orders hold a placeholder email: never rotate a token or queue mail for them
+                "SELECT id, customer_email FROM customer_order WHERE public_code = ? AND anonymised_at IS NULL",
                 (rs, i) -> Map.entry(rs.getLong(1), rs.getString(2)),
                 publicCode);
         if (rows.isEmpty() || !rows.get(0).getValue().trim().equalsIgnoreCase(email.trim())) {
@@ -168,13 +169,19 @@ public class CustomerOrderService {
             return;
         }
         // One statement: the old link dies and the version moves on (a stale admin tab gets VERSION_CONFLICT).
-        Integer version = jdbc.queryForObject(
+        // anonymised_at is re-checked here: the retention job may have run since the SELECT above, and its dead hash
+        // must not be replaced by a live token mailed to the address we read before.
+        List<Integer> rotated = jdbc.queryForList(
                 "UPDATE customer_order SET access_token_hash = ?, version = version + 1, updated_at = ?"
-                        + " WHERE id = ? RETURNING version",
+                        + " WHERE id = ? AND anonymised_at IS NULL RETURNING version",
                 Integer.class,
                 hash,
                 Timestamp.from(clock.instant()),
                 id);
+        if (rotated.isEmpty()) {
+            return;
+        }
+        int version = rotated.get(0);
         // The key holds the new version: each rotation has exactly one email, and that email holds its own token.
         outbox.enqueue(
                 "order:" + id + ":lookup:" + version,

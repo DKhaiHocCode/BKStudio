@@ -396,12 +396,14 @@ public class AdminOrderService {
         }
         String value = note.isEmpty() ? null : note;
         int updated = jdbc.update(
-                "UPDATE customer_order SET admin_note = ?, updated_at = ? WHERE id = ?",
+                "UPDATE customer_order SET admin_note = ?, updated_at = ? WHERE id = ? AND anonymised_at IS NULL",
                 value,
                 Timestamp.from(clock.instant()),
                 id);
         if (updated == 0) {
-            throw notFound();
+            head(id); // throws NOT_FOUND for an unknown order
+            // free text on an anonymised order could bring personal data back
+            throw new ApiException(ErrorCode.CONFLICT, "This order was anonymised and can no longer be edited.");
         }
         audit.admin(
                 "ORDER_NOTE_UPDATED",

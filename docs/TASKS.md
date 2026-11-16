@@ -462,12 +462,12 @@ flowchart LR
 ### M5 — Làm ngay sau launch
 
 #### T-050 · Job tự đóng đơn + ẩn danh dữ liệu cũ
-- **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 2 giờ · **Phụ thuộc:** T-027 · **Status:** todo
+- **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 2 giờ · **Phụ thuộc:** T-027 · **Status:** done
 - **Phạm vi:** SHIPPED > 30 ngày → COMPLETED; đơn kết thúc > 2 năm → ẩn danh.
 - **File / module:** backend/.../order/jobs/*
 - **Nghiệm thu:** Chạy lại an toàn.
 - **Test:** Integration test với đồng hồ giả.
-- **Rủi ro / câu hỏi:** Không gấp: dữ liệu cần ẩn danh sớm nhất sau 2 năm.
+- **Rủi ro / câu hỏi:** ĐÃ LÀM (Khai duyệt 2026-11-16): `OrderJobs.completeShipped` (SHIPPED > 30 ngày → COMPLETED qua state machine, actor SYSTEM, mail ORDER_COMPLETED có sẵn) và `anonymiseOld` (đơn terminal > 730 ngày: xoá tên, email, SĐT, địa chỉ, IP đồng ý điều khoản, ghi chú admin, mã vận đơn, lý do huỷ, ghi chú tiến trình, `to_email` + link trong outbox; hash token đổi ngẫu nhiên nên link cũ 404; giữ tiền/sản phẩm/trạng thái), migration `V4__order_anonymised_at.sql` (chỉ thêm cột), `UPDATE` có điều kiện = khoá + kiểm lại, chạy lại an toàn, mỗi lần ≤ 50 đơn, sàn khi khởi động (retention ≥ 365, complete-after ≥ 1), guard `anonymised_at IS NULL` cho tra cứu link và ghi chú admin (409). Bằng chứng (backend-dev chạy; điều phối viên chạy lại OrderTransitionsTest 4 + OrderJobsConfigTest 4 + OrderRetentionJobsIT 11 + CustomerOrderLookupRaceIT 1, 0 lỗi): agent còn chạy OrderJobsIT 32, AdminOrderApiIT 96, CustomerOrderLookupIT 7, OutboxSenderIT 24 xanh; test đua tra cứu link ĐỎ khi bỏ guard. Reviewer: security OK TO MERGE (2 Medium + 3 Low đã sửa), code 0 Must fix + 7 Should fix đã sửa; không review lại sau vòng sửa. CHƯA KIỂM: `mvnw verify` đầy đủ (CI chạy; chưa chạy DbConstraintsIT, AdminDashboardIT, CustomerOrder*IT, PaymentRequestApiIT… với V4), `@Scheduled` chưa chạy thật (job chạy 5-6 phút sau mỗi lần khởi động rồi mỗi 24h). NỢ / GIỚI HẠN (đã ghi DATABASE §6): đơn không bao giờ kết thúc (AWAITING_PAYMENT không có yêu cầu thanh toán, PAID_IN_FULL chưa giao) không bao giờ bị ẩn danh → cần job đơn treo; tên sản phẩm commission (`slug`, `order_item.product_name`) có thể chứa tên khách, job không xoá; `payment_request.payment_url/external_ref` và `audit_log.externalRef/refundRef` giữ để đối soát (giả danh, chưa ẩn danh; Khai chọn giữ); backup giữ dữ liệu cũ tối đa ~60 ngày (đúng sau khi cấu hình lifecycle R2 ở T-043); admin UI chưa xử lý 409 khi sửa ghi chú đơn đã ẩn danh và chưa hiển thị `anonymisedAt`; trang Privacy cần câu nói rõ các giới hạn trên (T-052).
 
 #### T-051 · Nút "Chuyển thành hàng sẵn" cho đơn FORFEITED
 - **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 1 giờ · **Phụ thuộc:** T-033 · **Status:** done
