@@ -92,7 +92,7 @@ Bảng phụ không vẽ: `app_setting`, `email_outbox`, `audit_log`, `admin_use
 | `product` | Sản phẩm (nhân vật) | `slug` cho URL đẹp: `/products/pneuma`. Trạng thái `UNLISTED` = sản phẩm commission ẩn, chỉ vào bằng link (slug có hậu tố ngẫu nhiên, vd `alex-custom-ganyu-7k2m9x`) |
 | `product_variant` | Mỗi tỉ lệ 1 dòng | **Một biến thể có thể vừa có hàng sẵn (`stock_qty`) vừa nhận làm theo đơn** → figure bị bỏ cọc chỉ cần `stock_qty + số lượng từng dòng hàng` để bán lại. `CHECK (stock_qty >= 0)`. `made_to_order_quota` (NULL = không giới hạn, 1 = commission 1 suất) |
 | `production_month` | Sức chứa slot mỗi tháng | `CHECK (allocated <= capacity)` → **DB không cho phép overbook** |
-| `customer_order` | Đơn hàng | Không lưu token truy cập, chỉ lưu **hash SHA-256** (lộ DB cũng không dùng được link). `idempotency_key` chống tạo trùng đơn. Lưu `terms_version` + thời điểm + IP đồng ý điều khoản (bằng chứng khi tranh chấp). `restocked_at` (V2): thời điểm đơn `FORFEITED` được đưa figure về kho |
+| `customer_order` | Đơn hàng | Không lưu token truy cập, chỉ lưu **hash SHA-256** (lộ DB cũng không dùng được link). `idempotency_key` chống tạo trùng đơn. Lưu `terms_version` + thời điểm + IP đồng ý điều khoản (bằng chứng khi tranh chấp). `restocked_at` (V2): thời điểm đơn `FORFEITED` được đưa figure về kho. `anonymised_at` (V4, T-050): thời điểm job đã ẩn danh đơn (§6) |
 | `order_item` | Dòng sản phẩm trong đơn | Bản chụp tên/tỉ lệ/giá |
 | `queue_entry` | 1 dòng = 1 slot | Thứ tự trong tháng theo `queued_at` (lúc cọc được xác nhận) |
 | `payment_request` | Mỗi lần thu tiền | Partial unique index: tối đa 1 yêu cầu `PENDING` và 1 `PAID` mỗi loại mỗi đơn; **1 mã invoice ngoài chỉ dùng được 1 lần** |
@@ -143,4 +143,16 @@ Ghi chú học được khi test: `ON CONFLICT DO NOTHING` vẫn "tiêu" 1 số 
 
 ## 6. Lưu giữ dữ liệu (privacy)
 - Chỉ thu: tên, email, địa chỉ giao hàng, SĐT (tuỳ chọn) — đủ để giao hàng.
-- ✅ Sau **2 năm** kể từ khi đơn kết thúc, xoá/ẩn danh thông tin liên hệ & địa chỉ (giữ số tiền, sản phẩm cho thống kê) — job hằng tháng.
+- ✅ Sau **2 năm** kể từ khi đơn kết thúc, xoá/ẩn danh thông tin liên hệ & địa chỉ (giữ số tiền, sản phẩm cho thống kê) — job `OrderJobs.anonymiseOld` chạy hằng ngày, tối đa 50 đơn/lần (T-050).
+  - Đơn được chọn: trạng thái cuối (`COMPLETED`, `CANCELLED`, `CANCELLED_DEPOSIT_KEPT`, `CANCELLED_REFUNDED`, `FORFEITED`), `anonymised_at IS NULL`, và "thời điểm kết thúc" cũ hơn `app.jobs.retention-days` (mặc định 730). Thời điểm kết thúc = `completed_at` với đơn `COMPLETED`, còn lại dùng `updated_at` (huỷ/mất cọc không có cột riêng; `updated_at` không bao giờ sớm hơn lần chuyển trạng thái cuối nên không ẩn danh sớm, sửa ghi chú/chuyển về kho sau đó chỉ làm lùi hạn).
+  - Xoá (`NULL`): `phone`, `ship_line2`, `ship_region`, `ship_postal_code`, `terms_accepted_ip`, `admin_note`, `cancel_reason`; `order_progress.note` → `''`. Thay bằng `'anonymised'` (cột NOT NULL/CHECK): `customer_name`, `ship_line1`, `ship_city`, `tracking_number` (nếu có); `customer_email` → `anonymised@invalid.invalid`. `access_token_hash` → 32 byte ngẫu nhiên (link cũ trả 404; "gửi lại link" bỏ qua đơn đã ẩn danh).
+  - `email_outbox` của đơn (`dedupe_key` dạng `order:{id}:%` và `payment:{id yêu cầu}:%`): `to_email` → địa chỉ giữ chỗ, xoá `orderUrl`/`paymentUrl`, hàng còn `PENDING` → `SENT` với `sent_at = NULL`, `last_error = 'Skipped: anonymised'` (quy ước "cố ý không gửi" của `OutboxSender`: không tính vào giới hạn gửi/ngày, không hiện ở nhóm `EMAIL_FAILED`).
+  - Sau khi ẩn danh: "gửi lại link" bỏ qua đơn (kể cả khi job chạy xen giữa lúc đọc email và lúc đổi token), sửa ghi chú admin trả `409 CONFLICT`.
+  - Giữ: tiền, dòng hàng, trạng thái, mốc thời gian, `ship_country`, `carrier`, `payment_request` (kể cả `external_ref`, `payment_url`), `audit_log` (không chứa dữ liệu cá nhân; thêm 1 dòng `ORDER_ANONYMISED` chỉ có số đếm).
+  - Chạy lại an toàn: `UPDATE … WHERE anonymised_at IS NULL`. Không đổi ràng buộc nào; V4 chỉ thêm cột `anonymised_at`. App từ chối khởi động nếu `app.jobs.retention-days` < 365 hoặc `app.jobs.complete-after-days` < 1.
+  - **Giới hạn đã biết (nợ):**
+    - Đơn không bao giờ tới trạng thái cuối (vd kẹt ở `PAID_IN_FULL`, `QUEUED`, `AWAITING_BALANCE` không có yêu cầu thanh toán) thì **không bao giờ** được ẩn danh; admin phải đóng/huỷ đơn.
+    - Slug/tên sản phẩm commission (`product`) và bản chụp `order_item.product_name` được giữ nguyên; nếu admin đặt tên khách vào đó thì tên vẫn còn. Nợ: đừng đặt tên khách vào tên sản phẩm, hoặc bổ sung bước dọn sau.
+    - `payment_request.payment_url` / `external_ref` và `externalRef` / `refundRef` trong `audit_log` được giữ để đối soát tiền (Khai chọn giữ). Dữ liệu vì thế là **bí danh hoá** (pseudonymous), chưa phải ẩn danh hoàn toàn: ai có quyền vào Artistree/Shopee vẫn tra ngược được người mua.
+    - Bản backup vẫn chứa dữ liệu đã xoá cho tới khi hết hạn lưu (~60 ngày, sau khi cấu hình lifecycle của R2).
+    - Lịch chạy: 5–6 phút sau mỗi lần app khởi động, rồi mỗi 24 giờ; tối đa 50 đơn mỗi lần chạy.

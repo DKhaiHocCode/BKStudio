@@ -164,8 +164,8 @@ Khách thấy 6 giai đoạn theo thứ tự. Ba giai đoạn giữa do admin du
 | Hết hạn thanh toán | 10 phút | `PENDING` quá `due_at` → `EXPIRED`; huỷ đơn chờ thanh toán/cọc; nhả kho |
 | Nhắc trả nốt | 1 giờ | Mốc 7 ngày / 1 ngày |
 | Mất cọc | 1 giờ | `AWAITING_BALANCE` quá hạn → `FORFEITED` |
-| Tự đóng đơn | 1 ngày | `SHIPPED` > 30 ngày → `COMPLETED` |
-| Ẩn danh dữ liệu cũ | 1 tháng | Đơn kết thúc > 2 năm → xoá tên, email, SĐT, địa chỉ |
+| Tự đóng đơn | 1 ngày | `SHIPPED` > 30 ngày (tính từ `shipped_at`; `app.jobs.complete-after-days`) → `COMPLETED` qua state machine (actor `SYSTEM`, email `ORDER_COMPLETED`) |
+| Ẩn danh dữ liệu cũ | 1 ngày | Đơn ở trạng thái cuối, kết thúc > 2 năm (`app.jobs.retention-days` = 730) → xoá tên, email, SĐT, địa chỉ, IP, ghi chú, mã vận đơn, người nhận trong outbox; vô hiệu link đơn; đánh dấu `anonymised_at`. Chi tiết: `DATABASE.md` §6 |
 | Backup DB | 1 ngày (03:00 SGT) | Xem `DEPLOYMENT.md` |
 
 Mỗi job xử lý theo lô nhỏ, mỗi đơn 1 transaction riêng (1 đơn lỗi không chặn đơn khác), và **chạy lại an toàn** (idempotent).
