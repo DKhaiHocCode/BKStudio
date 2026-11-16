@@ -5,6 +5,7 @@ import { Suspense, type ReactNode } from "react";
 import { BuyBox } from "@/components/shop/BuyBox";
 import { Gallery } from "@/components/shop/Gallery";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { RefundNotice } from "@/components/shop/RefundNotice";
 import { badge, focusRing, panel } from "@/components/ui";
 import { fetchProduct, fetchProducts } from "@/lib/catalog";
 import { centsToDollars, formatUsd } from "@/lib/money";
@@ -189,6 +190,8 @@ async function ProductContent({ params }: { params: PageProps<"/products/[slug]"
                 imageUrl: product.images[0]?.srcset["400"] ?? product.images[0]?.url,
               }}
             />
+
+            <RefundNotice />
 
             <p className="m-0 border-t-2 border-dashed border-line pt-4 text-[15px] leading-relaxed text-body">
               The deposit is <strong>non-refundable</strong> if you cancel after your slot is

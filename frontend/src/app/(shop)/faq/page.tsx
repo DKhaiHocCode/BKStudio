@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { RefundNotice } from "@/components/shop/RefundNotice";
 import { focusRing } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -167,6 +168,7 @@ export default function FaqPage() {
       className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 pt-8 pb-16 md:px-6 md:pt-10"
     >
       <h1 className="m-0 text-3xl font-extrabold md:text-[40px]">FAQ</h1>
+      <RefundNotice />
       {FAQ.map(({ q, a }) => (
         <section key={q} className="flex flex-col gap-1">
           <h2 className="m-0 text-xl font-extrabold">{q}</h2>

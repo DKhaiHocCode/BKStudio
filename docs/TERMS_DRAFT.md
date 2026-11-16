@@ -18,6 +18,8 @@ COPY FROM THE NEXT LINE
 
 These terms are between you and BKStudio ("we", "us"). By ticking the box at checkout you agree to them.
 
+**Refund policy notice:** we do not have a full refund policy yet. Please think carefully before you pay. Your legal rights under the consumer law where you live are not affected. [CẦN DUYỆT] Remove or replace this notice once the refund rules are decided.
+
 [CẦN DUYỆT] Trading name and city to publish here (who the customer is contracting with).
 
 ## 1. What we sell
