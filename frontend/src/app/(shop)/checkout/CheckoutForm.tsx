@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { Notice } from "@/components/shop/Notice";
+import { RefundNotice } from "@/components/shop/RefundNotice";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { focusRing, panel, primaryButton, secondaryButton } from "@/components/ui";
 import { ApiError, apiFetch } from "@/lib/api";
@@ -348,6 +349,8 @@ export function CheckoutForm({
             </p>
           </Notice>
         )}
+
+        <RefundNotice />
 
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-[3px] border-border bg-tint-mto p-3.5 text-[15px] leading-normal text-ink has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus">
           <input
