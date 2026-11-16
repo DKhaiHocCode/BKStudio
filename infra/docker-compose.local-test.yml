@@ -76,6 +76,13 @@ services:
       - truststore:/trust
     networks: [internal]
 
+  # Cloudflare's always-pass test site key (works on localhost): the widget auto-solves with a dummy token. Fixed here
+  # (overrides the env file) so it always pairs with the test secret below.
+  frontend:
+    build:
+      args:
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+
   backend:
     environment:
       # Fail closed: without this flag in the env file (never in the VPS .env) compose refuses to start.
@@ -83,6 +90,11 @@ services:
       JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/trust/cacerts -Djavax.net.ssl.trustStorePassword=changeit
       # The RESEND_API_KEY is fake: never let the outbox call Resend.
       APP_NOTIFICATION_OUTBOX_ENABLED: "false"
+      # Cloudflare's always-pass test secret; profile prod accepts it only with the allow flag (never in the prod
+      # file). Verification still calls the real siteverify, so local-test checkout needs internet access.
+      # The prod file still requires both Turnstile vars in the env file (interpolated before this override applies).
+      TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+      TURNSTILE_ALLOW_TEST_SECRET: "true"
     volumes:
       - truststore:/trust:ro
     depends_on:

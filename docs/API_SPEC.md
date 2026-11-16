@@ -40,6 +40,8 @@
 | `PAYLOAD_TOO_LARGE` | 413 | Body/file vượt giới hạn (ảnh > 10 MB) |
 | `TERMS_OUTDATED` | 409 | Khách đồng ý phiên bản điều khoản cũ |
 | `RATE_LIMITED` | 429 | Gọi quá nhiều (kèm `Retry-After`) |
+| `CAPTCHA_FAILED` | 400 | Checkout: thiếu hoặc sai token Turnstile |
+| `SERVICE_UNAVAILABLE` | 503 | Dịch vụ phụ thuộc (Turnstile) không trả lời — thử lại sau |
 | `INTERNAL_ERROR` | 500 | Lỗi không mong muốn — không lộ chi tiết, chỉ `requestId` |
 
 ## 2. API công khai (khách)
@@ -93,14 +95,15 @@
   "items": [{ "variantId": 12, "quantity": 1 }],
   "customer": { "name": "Alex Tan", "email": "alex@example.com", "phone": "+65…" },
   "shippingAddress": { "line1": "1 Orchard Rd", "line2": null, "city": "Singapore", "region": null, "postalCode": "238823", "country": "SG" },
-  "acceptedTermsVersion": "2026-11-01"
+  "acceptedTermsVersion": "2026-11-01",
+  "turnstileToken": "<token từ widget Turnstile>"
 }
 ```
 Response `201`:
 ```json
 { "code": "BK-7F3K9Q", "status": "AWAITING_DEPOSIT", "orderUrl": "https://bkstudio.xxx/orders/Qm9…", "subtotalCents": 25000, "depositCents": 12500 }
 ```
-Rate limit: 5 đơn / IP / giờ. (P1: Cloudflare Turnstile chống bot.)
+Rate limit: 5 đơn / IP / giờ. Chống bot: Cloudflare Turnstile (T-060, xem dưới).
 
 Chi tiết đã triển khai (T-022):
 - Header bắt buộc `Idempotency-Key: <uuid>` (thiếu/sai → `400 VALIDATION_FAILED`) và CSRF như mọi POST. Response thành công có `Cache-Control: no-store`.
@@ -111,6 +114,7 @@ Chi tiết đã triển khai (T-022):
 - Idempotency: gửi lại cùng key, cùng `fulfillmentType` và email (không phân biệt hoa thường) → `200` với `{code, status, subtotalCents, depositCents}` và `orderUrl = null` (token chỉ lưu dạng hash nên không khôi phục được). Cùng key nhưng khác `fulfillmentType` hoặc email → `409 CONFLICT`; ngoài hai trường đó nội dung (kể cả `items`) không được so sánh: server trả lại đơn đã lưu. Request song song cùng key được tuần tự hoá, không có 500.
 - Rate limit theo IP (`getRemoteAddr`): mặc định 5 đơn/giờ (`app.checkout.rate-limit-max`, `app.checkout.rate-limit-window`); vượt → `429 RATE_LIMITED` + `Retry-After`. Replay không tiêu hao lượt, nhưng IP đã hết lượt bị chặn ngay ở controller (trước khi mở transaction/DB), kể cả với replay. IPv6 được gom theo prefix /64.
 - Giới hạn theo email khách (T-047): mặc định 3 đơn/giờ cho cùng một email (không phân biệt hoa thường, bỏ phần `+tag` ở trước `@`), đếm trong DB (`app.checkout.email-limit-max`, `app.checkout.email-limit-window`); vượt → cũng `429 RATE_LIMITED` + `Retry-After` (cố định bằng độ dài cửa sổ, không lộ thời điểm đơn cũ nhất), cùng thông điệp như giới hạn IP nên client không biết giới hạn nào bị chạm. Kiểm sau replay và sau giới hạn IP (replay không bị chặn bởi giới hạn này).
+- Turnstile (T-060): bật khi có `TURNSTILE_SECRET_KEY` (`app.turnstile.secret`; để trống = bỏ qua, dùng cho dev/test; profile `prod` không khởi động nếu trống hoặc là secret thử của Cloudflare). Khi bật, `turnstileToken` là bắt buộc (≤ 2048 ký tự): thiếu/rỗng/quá dài hoặc Cloudflare từ chối → `400 CAPTCHA_FAILED` (thông điệp chung, không lộ chi tiết Cloudflare; mỗi lần bị từ chối tính 1 lượt vào rate limit IP). Cloudflare không trả lời, quá thời gian (kết nối 3 s, đọc 5 s), trả 5xx hoặc báo lỗi không thuộc về token (vd sai secret) → `503 SERVICE_UNAVAILABLE` (đóng an toàn, không tạo đơn, không tính lượt). Thứ tự kiểm: `Idempotency-Key` + validate body → IP đã bị chặn (`429`) → Turnstile → transaction (replay, rate limit, tạo đơn). Replay (cùng `Idempotency-Key`) cũng được xác minh Turnstile như request mới nên phải kèm một token **mới** (token chỉ dùng một lần; client reset widget sau mỗi lần lỗi), và replay thành công không tính lượt rate limit. Quá 20 lượt xác minh đang chạy cùng lúc → `503` ngay, không gọi Cloudflare; câu trả lời của Cloudflare lớn hơn 16 KiB → `503`.
 
 `GET /api/orders/{token}` → trạng thái, sản phẩm, các `paymentRequests` đang mở (`type, amountCents, paymentUrl, dueAt`), tháng sản xuất, vận đơn, lịch sử trạng thái rút gọn. **Không** trả `admin_note`, IP.
 

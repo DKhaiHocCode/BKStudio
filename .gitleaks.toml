@@ -11,3 +11,8 @@ regexes = ['''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''']
 description = "Fake Resend key literal used by ResendEmailSenderTest (not a real credential; history is scanned so the test line cannot be un-flagged by editing it)"
 regexTarget = "line"
 regexes = ['''re_SECRET_API_KEY_123''']
+
+[[allowlists]]
+description = "Fake Turnstile secret literal used by CheckoutTurnstileIT against a local fake siteverify (not a credential; history is scanned so editing the line cannot un-flag it)"
+regexTarget = "line"
+regexes = ['''0xITSECRETKEY123''']

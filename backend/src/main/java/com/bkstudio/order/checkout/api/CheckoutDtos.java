@@ -64,7 +64,10 @@ public final class CheckoutDtos {
             @NotNull @Valid Address shippingAddress,
 
             @NotBlank @Size(max = 64) @Pattern(regexp = NO_CONTROL)
-            String acceptedTermsVersion) {}
+            String acceptedTermsVersion,
+
+            // Checked by TurnstileVerifier (only when Turnstile is on), so a bad one is CAPTCHA_FAILED.
+            String turnstileToken) {}
 
     /** {@code orderUrl} is null on an idempotent replay: only the token hash is stored. */
     public record OrderCreated(String code, String status, String orderUrl, int subtotalCents, int depositCents) {}

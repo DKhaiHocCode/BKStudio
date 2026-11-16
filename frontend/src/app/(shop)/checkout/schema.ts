@@ -77,6 +77,8 @@ export function toRequest(
   lines: readonly CartLine[],
   v: CheckoutValues,
   acceptedTermsVersion: string,
+  /** Omitted from the JSON when Turnstile is off (no site key). */
+  turnstileToken?: string,
 ) {
   return {
     fulfillmentType: mode === "mto" ? "MADE_TO_ORDER" : "IN_STOCK",
@@ -91,5 +93,6 @@ export function toRequest(
       country: v.country,
     },
     acceptedTermsVersion,
+    turnstileToken,
   };
 }

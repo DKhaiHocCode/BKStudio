@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type FormEvent } from "react";
+import { useCallback, useRef, useState, type FormEvent } from "react";
 import { Notice } from "@/components/shop/Notice";
 import { RefundNotice } from "@/components/shop/RefundNotice";
 import { ProductImage } from "@/components/shop/ProductImage";
@@ -19,6 +19,7 @@ import {
   type OrderCreated,
 } from "./schema";
 import { TextField } from "./TextField";
+import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "./TurnstileWidget";
 import { useTerms } from "@/lib/useTerms";
 
 interface Problem {
@@ -42,6 +43,18 @@ function explain(e: unknown): Failure {
     return {
       problem: {
         text: "We could not reach the server. Your details are kept: press Place order again to retry. If you change nothing, retrying will not create a second order.",
+      },
+      fields: {},
+    };
+  }
+  if (e.code === "CAPTCHA_FAILED") {
+    return { problem: { text: "The check failed. Please try again." }, fields: {} };
+  }
+  if (e.status === 503) {
+    return {
+      problem: {
+        text: "We could not verify the check right now. Please try again in a minute.",
+        reference,
       },
       fields: {},
     };
@@ -102,6 +115,7 @@ function explain(e: unknown): Failure {
 }
 
 const GENERIC = "Something went wrong on our side. Please try again in a moment.";
+const CHECK_NEEDED = "Please complete the check.";
 
 function waitText(seconds?: number): string {
   if (!seconds) return "a little while";
@@ -129,6 +143,13 @@ export function CheckoutForm({
   const sendingRef = useRef(false); // blocks a second submit before React re-renders
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
+  // Stable identity: the widget re-renders itself when this callback changes.
+  const onTurnstileToken = useCallback((token: string | null) => {
+    setTurnstileToken(token);
+    if (token) setProblem((p) => (p?.text === CHECK_NEEDED ? null : p));
+  }, []);
 
   const subtotal = subtotalOf(lines);
   const isMto = mode === "mto";
@@ -159,6 +180,12 @@ export function CheckoutForm({
       focusProblem();
       return;
     }
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setErrors({});
+      setProblem({ text: CHECK_NEEDED });
+      focusProblem();
+      return;
+    }
 
     sendingRef.current = true;
     setSending(true);
@@ -169,10 +196,13 @@ export function CheckoutForm({
       const created = await apiFetch<OrderCreated>("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Idempotency-Key": key },
-        body: JSON.stringify(toRequest(mode, lines, parsed.data, terms.version)),
+        body: JSON.stringify(
+          toRequest(mode, lines, parsed.data, terms.version, turnstileToken ?? undefined),
+        ),
       });
       onPlaced(created);
     } catch (e) {
+      turnstileRef.current?.reset(); // the token is single-use: every retry needs a new one
       const result = explain(e);
       if (result.refreshTerms) {
         setAgreed(false);
@@ -373,6 +403,14 @@ export function CheckoutForm({
           <span id="terms-err" className="-mt-2 text-sm font-bold text-danger">
             {errors.terms}
           </span>
+        )}
+
+        {TURNSTILE_SITE_KEY && (
+          <TurnstileWidget
+            ref={turnstileRef}
+            siteKey={TURNSTILE_SITE_KEY}
+            onToken={onTurnstileToken}
+          />
         )}
 
         <div
