@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SocialLinks } from "@/components/shop/SocialLinks";
+import { focusRing } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -7,26 +8,50 @@ export const metadata: Metadata = {
 };
 
 // TODO(owner): have this text reviewed for SG/AU customers before launch.
+// Owner decisions still open (the public text below stays neutral until they are made):
+// [CẦN DUYỆT] Trading name and city to publish in a "Who we are" section.
+// [CẦN DUYỆT] What the servers log and for how long ("What we collect").
+// [CẦN DUYỆT] Whether to name specific vendors (Cloudflare, R2, Resend) in "Who handles your data",
+//   and whether to list a network/security (CDN/proxy) provider there at all.
+// [CẦN DUYỆT] If the Shopee channel is chosen: add the proxy-buyer service to "Who handles your data".
+// [CẦN DUYỆT] Whether tax or accounting rules need records for longer than 2 years.
+// [CẦN DUYỆT] Reply time for data requests, breach notification and regulator contacts (SG/AU).
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: "What we collect",
-    body: "When you place an order we collect your name, email address, optional phone number, shipping address and the details of your order. At checkout we also record your IP address, the time and the version of the terms you agreed to, as proof of your agreement.",
+    body: "When you place an order we collect your name, email address, shipping address, optional phone number and the details of your order. At checkout we also record your IP address, the time and the version of the terms you agreed to, so we can show what was agreed if there is ever a dispute. Our servers also keep standard technical logs for security and troubleshooting.",
   },
   {
-    title: "Why we collect it",
-    body: "We use this data only to process your order: to email you payment links and updates, to make and ship your figure, and to answer questions about it.",
+    title: "Why we use it",
+    body: "To email you payment links and updates, to make and ship your figure, to handle problems, and to keep a record of your agreement. We do not use your details for marketing and we do not sell them.",
+  },
+  {
+    title: "Your agreement",
+    body: "By placing an order you agree to us using your details for these purposes. If you want us to stop using them, tell us. We may then be unable to complete your order.",
   },
   {
     title: "No accounts, no card data",
-    body: "There are no customer accounts on this website. We never see or store your card details: payments happen on Artistree or Shopee through the links we email you.",
+    body: "There are no customer accounts on this website. We never see or store your card details: payments happen on Artistree or Shopee through the links we email you. Those platforms have their own privacy policies.",
   },
   {
     title: "Who handles your data",
-    body: "Your data is handled by the services we use to run the shop: our hosting provider (a VPS), Resend for email, the payment platforms (Artistree or Shopee), the shipping carrier, and a CDN/proxy provider such as Cloudflare.",
+    body: "We share data only with the services that help us run the shop: our hosting provider, our email delivery service, the payment platform (Artistree or Shopee), the shipping carrier (who needs your name and address to deliver), and a cloud storage provider (stores encrypted backups for a limited time). Some of these providers may store data outside your country.",
   },
   {
     title: "How long we keep it",
-    body: "Two years after your order ends, we remove your name, email address, phone number and shipping address from the order.",
+    body: "Two years after your order ends, we remove your name, email address, phone number and shipping address from the order. We keep the order amount and the product for our own records, with no personal details. Encrypted backups can keep removed data for up to about 60 days longer.",
+  },
+  {
+    title: "Your choices",
+    body: "You can ask us to show you the personal data we hold about you, to correct it, or to delete it earlier: email us and we will do it by hand. We may need to keep what the law requires or what is needed for an open dispute. This applies wherever you live.",
+  },
+  {
+    title: "Keeping it safe",
+    body: "Only the shop owner can sign in to the admin area, with a password and a one-time code. The website uses encrypted connections (HTTPS). Our database backups are encrypted.",
+  },
+  {
+    title: "Changes",
+    body: "We may update this page from time to time. Last updated: 16 November 2026.",
   },
 ];
 
@@ -47,7 +72,16 @@ export default function PrivacyPage() {
         <h2 id="contact" className="m-0 text-xl font-extrabold">
           Questions or requests
         </h2>
-        <p className="m-0">Contact us on any of these channels:</p>
+        <p className="m-0">
+          For privacy questions, or to see, correct or delete your data, email{" "}
+          <a
+            href="mailto:bk3dprinls@gmail.com"
+            className={`font-bold underline hover:text-danger ${focusRing}`}
+          >
+            bk3dprinls@gmail.com
+          </a>
+          . You can also reach us on any of these channels:
+        </p>
         <SocialLinks />
       </section>
     </main>

@@ -37,6 +37,8 @@ Lý do: hàng đã có, không có thời gian chờ để cọc phát huy tác 
 2. **Ngoại lệ: shop huỷ** (không làm được, hỏng in, ngừng nhận) → **hoàn 100% cọc**. Đây là điều bắt buộc để công bằng và tránh tranh chấp.
 3. **Hạn trả nốt: 30 ngày** sau khi báo figure hoàn thiện. Email nhắc **7 ngày** và **1 ngày** trước hạn.
 4. Quá hạn → **mất cọc**, đơn chuyển `FORFEITED`, figure có thể chuyển thành **hàng có sẵn** để bán lại.
+5. **Commission do shop làm (in + sơn từ đầu): sửa miễn phí trước khi bắt đầu sơn.** (Khai chốt 2026-11-16)
+6. **Khách im lặng khi trao đổi/chờ phản hồi: không tự huỷ, shop liên hệ lại sau**; hạn của link thanh toán (48 giờ / 30 ngày) vẫn áp dụng. (Khai chốt 2026-11-16)
 
 Lưu ý: khách trả bằng thẻ vẫn có thể mở dispute với ngân hàng. Điều khoản rõ ràng + bằng chứng đồng ý là cách phòng vệ tốt nhất bạn có.
 
@@ -57,6 +59,9 @@ AWAITING_BALANCE ──(quá hạn)──▶ FORFEITED
 ### 2.6 Vận chuyển
 - Khách tự trả phí ship. ✅ Hệ thống hỗ trợ cả hai kênh thu phần còn lại: (a) Artistree — admin nhập phí ship, cộng vào `BALANCE`/`FULL`; (b) Shopee + mua hộ — bên mua hộ thu ship, phí ship trên đơn = 0.
 - Admin nhập **mã vận đơn + hãng** khi gửi; hệ thống email cho khách.
+
+### 2.7 Dịch vụ sơn kit của khách
+- Shop nhận sơn garage kit / mẫu custom của khách: **báo giá theo từng mẫu** (tuỳ tình trạng kit), trao đổi qua mạng xã hội hoặc email, **không đặt qua website**. (Khai chốt 2026-11-16)
 
 ## 3. Yêu cầu chức năng theo ưu tiên
 

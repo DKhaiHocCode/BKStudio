@@ -11,10 +11,10 @@
 | M1 — Catalog & đăng nhập admin | 52 | T-006, T-010, T-011, T-012, T-013, T-014, T-015, T-016, T-017 |
 | M2 — Đơn hàng, thanh toán, hàng đợi | 50 | T-020, T-021, T-022, T-023, T-024, T-025, T-026, T-027, T-028, T-029 |
 | M3 — Giao diện khách & admin | 39 | T-030, T-031, T-032, T-033, T-034, T-035, T-036 |
-| M4 — Bảo mật, deploy, launch | 36 | T-040, T-041, T-042, T-043, T-044, T-045, T-046, T-047 |
+| M4 — Bảo mật, deploy, launch | 39 | T-040, T-041, T-042, T-043, T-044, T-045, T-046, T-047, T-052 |
 | M5 — Làm ngay sau launch | 3 | T-050, T-051 |
 | P1 — Chỉ làm nếu còn thời gian | 13 | T-060, T-061, T-062, T-063 |
-| **Cần để launch** | **186** | M0–M4 |
+| **Cần để launch** | **189** | M0–M4 |
 
 **Critical path** (chuỗi phụ thuộc dài nhất, 74 giờ): T-001 → T-002 → T-003 → T-010 → T-022 → T-023 → T-025 → T-026 → T-029 → T-033 → T-034 → T-035 → T-041 → T-046
 
@@ -59,6 +59,7 @@ flowchart LR
   T044["T-044<br/>Backup + diễn tập khôi phục<br/>4h"]
   T045["T-045<br/>Pipeline deploy + giám sát<br/>3h"]
   T046["T-046<br/>Launch<br/>4h"]
+  T052["T-052<br/>Nội dung FAQ / Privacy / Commission / Điều khoản (bản 2)<br/>3h"]
   T001 --> T002
   T002 --> T003
   T001 --> T004
@@ -122,6 +123,8 @@ flowchart LR
   T041 --> T046
   T044 --> T046
   T045 --> T046
+  T052 --> T046
+  T032 --> T052
   classDef crit fill:#fde68a,stroke:#b45309,color:#111
   class T001,T002,T003,T010,T022,T023,T025,T026,T029,T033,T034,T035,T041,T046 crit
 ```
@@ -444,7 +447,7 @@ flowchart LR
 - **Rủi ro / câu hỏi:** —
 
 #### T-046 · Launch
-- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-040, T-041, T-044, T-045 · **Status:** todo
+- **Ưu tiên:** P0 · **Ước lượng:** 4 giờ · **Phụ thuộc:** T-040, T-041, T-044, T-045, T-052 · **Status:** todo
 - **Phạm vi:** Nhập sản phẩm thật, đặt sức chứa, đăng điều khoản; đặt thử 1 đơn thật trọn vòng (giá nhỏ); chạy launch checklist (ROADMAP §4); mở bán.
 - **File / module:** —
 - **Nghiệm thu:** Mọi tiêu chí launch ✅.
@@ -459,15 +462,23 @@ flowchart LR
 - **Test:** Unit + integration + chạy Caddy thật.
 - **Rủi ro / câu hỏi:** ĐÃ LÀM (Khai duyệt 2026-11-16): `ProxyConfigValidator` từ chối TRUSTED_PROXIES quá rộng (IPv4 literal hoặc CIDR ≥ /24 IPv4, ≥ /64 IPv6; regex và IPv6 dạng chữ bị từ chối); giới hạn 3 đơn/email/giờ (email chuẩn hoá bỏ `+tag`, `Retry-After` cố định) và trần outbox 80 mail/24 giờ (mail nghiệp vụ gửi trước `ORDER_RECEIVED`, `@Min(1)`); `OutboxSender` dùng `FOR UPDATE SKIP LOCKED` theo từng dòng; `QueueService.release(Collection)` khoá các tháng theo thứ tự tăng; Caddyfile (log bỏ mọi header, che slug `/products/*` và token đơn, HSTS trên lỗi do Caddy sinh); ESLint cấm `dangerouslySetInnerHTML` (kể cả createElement/spread); CI job `infra-lint` (shellcheck, hadolint, compose config, caddy validate); Dependabot `docker` + `docker-compose`; compose truyền 5 biến giới hạn. Bằng chứng (agent chạy; điều phối viên chạy lại 40 unit test: ProxyConfigValidatorTest 29 + NotificationConfigValidatorTest 11, 0 lỗi): test deadlock ĐỎ 15/15 với thứ tự khoá cũ (`deadlock detected`) và xanh với code mới; test huỷ đơn thật hai luồng đỏ khi dùng thứ tự cũ; IT chạy nhắm đúng lớp: Surefire 57 + Failsafe 72 xanh; Caddy chạy thật log không còn slug/token/header; ESLint bắt 4 dạng. Reviewer: security OK TO MERGE (2 Medium + 5 Low), code 0 Must fix + 7 Should fix; đã sửa hết; không review lại sau vòng sửa. CHƯA KIỂM: `mvnw verify` đầy đủ (máy thiếu RAM, CI chạy), job `infra-lint` và Dependabot `docker-compose` chưa chạy trên GitHub (chưa rõ có bump digest `@sha256` không), logger lỗi mặc định của Caddy chưa bắn thật. CHẤP NHẬN (Khai): giới hạn theo email cho phép chặn một email biết trước trong 1 giờ (SECURITY T9, gốc rễ = Turnstile P1); secret trong env, soft 404, CSP unsafe-inline. NỢ: index cho biểu thức email chuẩn hoá (đang quét tuần tự); trần mail tính theo cửa sổ trượt, hai instance có thể vượt một lô; một kết nối DB giữ trong lúc gửi mail (~15 giây/dòng); Gmail dấu chấm chưa chuẩn hoá; cảnh báo chạm trần mới chỉ ghi log; Task B (role Postgres riêng + mã hoá backup bằng khoá công khai, cần ADR). Khai duyệt 2026-11-16. Không sửa: secret trong env, soft 404 slug, CSP unsafe-inline (chấp nhận). Task B (role Postgres riêng + mã hoá backup bằng khoá công khai, cần ADR) làm sau.
 
+#### T-052 · Nội dung FAQ / Privacy / Commission / Điều khoản (bản 2)
+- **Ưu tiên:** P0 · **Ước lượng:** 3 giờ · **Phụ thuộc:** T-032 · **Status:** doing
+- **Phạm vi:** Soạn lại nội dung 3 trang tĩnh và bản điều khoản dựa trên nghiên cứu chính sách (Artistree, Shopee, PDPA SG, Privacy Act + ACL Úc, CPFTA SG): thêm hải quan/GST, hàng hỏng/mất, bản quyền, sửa commission, liên hệ riêng tư, chuyển dữ liệu qua biên giới; mục 'Painting your kit' (garage kit, báo giá qua MXH/email, không đặt qua web). Chỗ chưa chốt đánh dấu [CẦN DUYỆT].
+- **File / module:** frontend/src/app/(shop)/{faq,privacy,commission}/page.tsx, docs/TERMS_DRAFT.md, docs/research/policy-wording-research.md
+- **Nghiệm thu:** Khai đọc và duyệt nội dung; điều khoản đăng qua /admin/settings; không còn [CẦN DUYỆT] trước launch.
+- **Test:** lint/typecheck/format/build qua; đọc lại bằng mắt.
+- **Rủi ro / câu hỏi:** BẢN NHÁP 2026-11-16 (PR content): 3 trang + `docs/TERMS_DRAFT.md` đã soạn; reviewer tìm 4 Must fix (chữ công khai sai so với hệ thống: tracking/ảnh qua email, "chỉ chủ shop xem được") đã sửa, không review lại; lint/tsc/prettier qua, chưa build/chưa xem giao diện. CHƯA XONG: Khai duyệt nội dung, trả lời các [CẦN DUYỆT] (hoàn tiền, phí nền tảng, hàng hỏng, vận chuyển, bản quyền, kit...), đăng điều khoản qua /admin/settings. Nợ: REQUIREMENTS dòng 38/59 còn nói 30 ngày tính từ lúc báo hoàn thiện/email vận đơn (code tính từ lúc tạo yêu cầu BALANCE); WORKFLOWS dòng 130 nói email hoàn thiện kèm ảnh (code không). Không phải tư vấn pháp lý. Cần Khai/luật sư: bản quyền nhân vật anime (rủi ro lớn nhất), mất cọc + bán lại có cân xứng không, Privacy Act Úc áp dụng không, thời gian giữ dữ liệu 2 năm so với hồ sơ thuế. Chưa xác minh được điều khoản chính thức của Artistree, trang PDPC/OAIC.
+
 ### M5 — Làm ngay sau launch
 
 #### T-050 · Job tự đóng đơn + ẩn danh dữ liệu cũ
 - **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 2 giờ · **Phụ thuộc:** T-027 · **Status:** todo
-- **Phạm vi:** SHIPPED > 30 ngày → COMPLETED; đơn kết thúc > 2 năm → ẩn danh.
+- **Phạm vi:** SHIPPED > 30 ngày → COMPLETED; đơn kết thúc > 2 năm → ẩn danh: xoá tên, email, SĐT, địa chỉ, `terms_accepted_ip` và `email_outbox.to_email` (trang Privacy/FAQ đã hứa công khai; backup có thể giữ bản cũ thêm tối đa ~60 ngày). Xoá sớm theo yêu cầu khách hiện chỉ làm tay bằng SQL.
 - **File / module:** backend/.../order/jobs/*
 - **Nghiệm thu:** Chạy lại an toàn.
 - **Test:** Integration test với đồng hồ giả.
-- **Rủi ro / câu hỏi:** Không gấp: dữ liệu cần ẩn danh sớm nhất sau 2 năm.
+- **Rủi ro / câu hỏi:** Lời hứa công khai (Privacy/FAQ, T-052): phải xây xong trước khi dữ liệu đầu tiên chạm mốc 2 năm; nên xong trước launch để lời hứa có code đứng sau.
 
 #### T-051 · Nút "Chuyển thành hàng sẵn" cho đơn FORFEITED
 - **Ưu tiên:** P0 (làm sau launch được) · **Ước lượng:** 1 giờ · **Phụ thuộc:** T-033 · **Status:** done
