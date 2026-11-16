@@ -36,3 +36,9 @@ figureImage/
 e2e/.auth/
 e2e/test-results/
 e2e/playwright-report/
+
+# Deploy state on the VPS (infra/deploy.sh)
+infra/.deployed-tag
+infra/.deployed-tag.tmp
+infra/.deploying
+infra/.deploy.lock

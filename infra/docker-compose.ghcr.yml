@@ -1,0 +1,16 @@
+# VPS only (T-045): run the images that .github/workflows/deploy.yml pushed to GHCR instead of building them here.
+# Used by infra/deploy.sh; manual equivalent (from repo root):
+#   IMAGE_TAG=vX.Y.Z docker compose --env-file .env -f infra/docker-compose.yml -f infra/docker-compose.ghcr.yml up -d
+# The local names (bkstudio-*:local) stay in docker-compose.yml so local-test keeps building its own images.
+# `!reset` (compose merge docs) drops the build: section; checked with Docker Compose v5.6.1. The frontend build args are still interpolated (and required) from .env;
+# they are ignored here, the values baked into the GHCR image come from the repository variables.
+services:
+  frontend:
+    image: ghcr.io/dkhaihoccode/bkstudio-frontend:${IMAGE_TAG:?set IMAGE_TAG (release tag, e.g. v1.2.3)}
+    build: !reset null
+  backend:
+    image: ghcr.io/dkhaihoccode/bkstudio-backend:${IMAGE_TAG:?set IMAGE_TAG (release tag, e.g. v1.2.3)}
+    build: !reset null
+  backup:
+    image: ghcr.io/dkhaihoccode/bkstudio-backup:${IMAGE_TAG:?set IMAGE_TAG (release tag, e.g. v1.2.3)}
+    build: !reset null
