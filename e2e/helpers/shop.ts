@@ -35,6 +35,11 @@ export async function placeOrderViaUi(
   await page.getByLabel("City").fill("Singapore");
   await page.getByLabel("Postcode").fill("238823");
   await page.getByRole("checkbox", { name: /I have read and agree/ }).check();
+  // Turnstile on (site key set): wait for its token. The heading renders with the form, so this
+  // check is instant and CI (no site key, no widget) never waits.
+  if ((await page.locator("#turnstile-title").count()) > 0) {
+    await expect(page.locator('[name="cf-turnstile-response"]')).toHaveValue(/.+/);
+  }
   await placeOrder.click();
 
   await expect(

@@ -28,12 +28,13 @@
 
 	# script-src needs 'unsafe-inline': Next emits inline hydration scripts and the layout has an inline theme
 	# script. A nonce would force dynamic rendering (breaks cacheComponents/PPR); Next's SRI does not allow inline
-	# scripts. Mitigation: no unsafe-eval, no remote script origins, React escapes output, object-src/base-uri closed.
+	# scripts. Mitigation: no unsafe-eval, React escapes output, object-src/base-uri closed. The only remote script
+	# and frame origin is Cloudflare Turnstile on /checkout (T-060; Cloudflare's CSP reference lists exactly these two).
 	header {
 		X-Content-Type-Options "nosniff"
 		?Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=()"
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: {$CDN_ORIGIN}; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: {$CDN_ORIGIN}; font-src 'self'; connect-src 'self'; frame-src https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 	}
 	header -Server
 }

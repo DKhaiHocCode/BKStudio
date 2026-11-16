@@ -146,6 +146,8 @@ jobs:
           RESEND_API_KEY=ci-fake
           MAIL_FROM=shop@example.test
           TOTP_ENCRYPTION_KEY=ci-fake
+          TURNSTILE_SECRET_KEY=ci-fake-turnstile-secret
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY=ci-fake-turnstile-site-key
           EOF
           docker compose --env-file "$RUNNER_TEMP/ci.env" -f infra/docker-compose.yml config -q
       # Same digest-pinned image as production: read from the compose file so there is only one pin to bump.

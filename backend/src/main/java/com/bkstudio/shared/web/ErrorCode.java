@@ -22,6 +22,10 @@ public enum ErrorCode {
     CONFLICT(HttpStatus.CONFLICT),
     /** Upload over the multipart limit. */
     PAYLOAD_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE),
+    /** Checkout: Turnstile token missing or rejected. */
+    CAPTCHA_FAILED(HttpStatus.BAD_REQUEST),
+    /** A service we depend on (Turnstile) gave no answer; the request was refused, the client may retry. */
+    SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR),
     /** Fallback for client errors without a dedicated code (405, 415, ...). */
     BAD_REQUEST(HttpStatus.BAD_REQUEST);

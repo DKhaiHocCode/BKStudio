@@ -13,8 +13,10 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 COPY . .
 # No /api rewrite in this image (Caddy routes /api); BACKEND_URL for src/lib/catalog.ts is a runtime env (compose).
 ARG NEXT_PUBLIC_SITE_URL
+# Public Turnstile site key (T-060), inlined like the URL. Empty = no captcha widget (the prod backend then rejects checkout).
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
 # CI=1 turns on the guard in src/lib/site.ts: the build fails without NEXT_PUBLIC_SITE_URL.
-ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL CI=1
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY CI=1
 RUN npm run build
 
 FROM base

@@ -5,6 +5,7 @@ import com.bkstudio.order.checkout.api.CheckoutDtos.OrderCreated;
 import com.bkstudio.order.checkout.domain.CheckoutRateLimiter;
 import com.bkstudio.order.checkout.domain.CheckoutService;
 import com.bkstudio.order.checkout.domain.CheckoutService.Placement;
+import com.bkstudio.order.checkout.domain.TurnstileVerifier;
 import com.bkstudio.shared.web.ApiException;
 import com.bkstudio.shared.web.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +25,12 @@ public class CheckoutController {
 
     private final CheckoutService checkout;
     private final CheckoutRateLimiter limiter;
+    private final TurnstileVerifier turnstile;
 
-    public CheckoutController(CheckoutService checkout, CheckoutRateLimiter limiter) {
+    public CheckoutController(CheckoutService checkout, CheckoutRateLimiter limiter, TurnstileVerifier turnstile) {
         this.checkout = checkout;
         this.limiter = limiter;
+        this.turnstile = turnstile;
     }
 
     @PostMapping("/api/orders")
@@ -40,6 +43,12 @@ public class CheckoutController {
         limiter.isBlocked(request.getRemoteAddr()).ifPresent(wait -> {
             throw new ApiException(ErrorCode.RATE_LIMITED, "Too many orders from this address. Try again later.", wait);
         });
+        // After the IP peek, before the transaction: a blocked IP costs no Cloudflare call, a bot no DB connection.
+        if (!turnstile.verify(req.turnstileToken(), request.getRemoteAddr())) {
+            // A rejected token costs one attempt, so one IP cannot make unlimited siteverify calls.
+            limiter.tryAcquire(request.getRemoteAddr());
+            throw new ApiException(ErrorCode.CAPTCHA_FAILED, "Captcha verification failed. Please try again.");
+        }
         Placement placement = checkout.place(key, req, request.getRemoteAddr());
         return ResponseEntity.status(placement.replayed() ? HttpStatus.OK : HttpStatus.CREATED)
                 .cacheControl(CacheControl.noStore())
