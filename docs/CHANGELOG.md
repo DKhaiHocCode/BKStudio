@@ -5,6 +5,7 @@ Ghi các thay đổi quan trọng. Mới nhất ở trên. Định dạng: ngày
 ## [Chưa phát hành]
 
 ### Tính năng
+- 2026-11-17 · T-064 đóng: widget Turnstile ở form tra cứu đơn chạy thật qua Caddy (1280px và 375px, không lỗi CSP, POST lookup 202); ADR-0012 có ghi chú 400/503.
 - 2026-11-17 · T-052 (đã áp quyết định D1-D17, chờ đăng terms + luật sư): chữ công khai theo quyết định của Khai (cọc Artistree, số dư và hàng sẵn qua Shopee + dịch vụ mua hộ, hoàn tiền 10 ngày làm việc, đổi ý trước khi gửi, báo lỗi 7 ngày, bảo hiểm mọi kiện nước ngoài, phí huỷ theo người huỷ, log, 30 ngày cho yêu cầu dữ liệu); gỡ thông báo "chưa có chính sách hoàn tiền" (`RefundNotice`); thêm `docs/REVIEW_CHECKLIST_T052.md`; `.claude/agents` đổi sang `opus`.
 - 2026-11-17 · T-064 (code xong, chờ bằng chứng trình duyệt + duyệt ADR-0012): Turnstile cho `POST /api/orders/lookup` (bulkhead riêng 5 chỗ, captcha quyết định trước mọi lần đọc DB), widget ở form lookup, Privacy có mục Bot protection. Test nhắm đúng lớp xanh; reviewer security 1 Medium + 4 Low đã sửa. Chưa kiểm: widget ở trình duyệt, `verify` đầy đủ.
 - 2026-11-17 · T-060 đóng: widget Turnstile chạy thật ở dev (1280px và 375px, key thử), đặt đơn qua siteverify thật thành công, CI xanh (PR #73). CSP qua Caddy dời sang T-043/T-046. T-045 đã merge (PR #74), còn `doing` chờ VPS; Khai đã bật branch protection `main` + ruleset tag `v*` và đặt 2 biến repo.
