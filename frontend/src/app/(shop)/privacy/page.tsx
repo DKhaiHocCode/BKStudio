@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SocialLinks } from "@/components/shop/SocialLinks";
 import { focusRing } from "@/components/ui";
+import { CONTACT_EMAIL } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "Privacy",
@@ -8,24 +9,22 @@ export const metadata: Metadata = {
 };
 
 // TODO(owner): have this text reviewed for SG/AU customers before launch.
-// Owner decisions still open (the public text below stays neutral until they are made):
-// [CẦN DUYỆT] Trading name and city to publish in a "Who we are" section.
-// [CẦN DUYỆT] What the servers log and for how long ("What we collect").
-// [CẦN DUYỆT] Whether to name specific vendors (Cloudflare, R2, Resend) in "Who handles your data",
-//   and whether to list a network/security (CDN/proxy) provider there at all.
-// [CẦN DUYỆT] If the Shopee channel is chosen: add the proxy-buyer service to "Who handles your data".
-// [CẦN DUYỆT] Whether tax or accounting rules need records for longer than 2 years.
-// [CẦN DUYỆT] Reply time for data requests, breach notification and regulator contacts (SG/AU).
-// [CẦN DUYỆT] "Bot protection" wording: how long Cloudflare keeps Turnstile data, on what legal
+// Server logs ("What we collect") match infra/Caddyfile (redacted_log) and the json-file rotation in
+// infra/docker-compose.yml (max-size 10m, max-file 5): no fixed number of days.
+// Owner decision still open (the public text below stays neutral until it is made):
+// TODO(owner): "Bot protection" wording: how long Cloudflare keeps Turnstile data, on what legal
 //   basis, and whether its cookies/storage need consent for SG/AU visitors. Read 2026-11-17: the
 //   Turnstile Privacy Addendum (cloudflare.com/turnstile-privacy-policy, updated 2025-06-18) lists
 //   client IP, TLS fingerprint, User-Agent, sitekey and origin, gives no retention period and does
 //   not say which cookies or storage the widget uses; so the text says "may use", not "sets".
-// [CẦN DUYỆT] Cloudflare (bot protection) is now named in "Who handles your data": confirm wording.
 const SECTIONS: { title: string; body: string }[] = [
   {
+    title: "Who we are",
+    body: "BKStudio is a small studio based in Hanoi, Vietnam. We are responsible for the personal data you give us on this website. You can reach us using the contact details at the bottom of this page.",
+  },
+  {
     title: "What we collect",
-    body: "When you place an order we collect your name, email address, shipping address, optional phone number and the details of your order. At checkout we also record your IP address, the time and the version of the terms you agreed to, so we can show what was agreed if there is ever a dispute. Our servers also keep standard technical logs for security and troubleshooting.",
+    body: "When you place an order we collect your name, email address, shipping address, optional phone number and the details of your order. At checkout we also record your IP address, the time and the version of the terms you agreed to, so we can show what was agreed if there is ever a dispute. Our web server and our app also keep technical logs of requests to the site (for example the time, your IP address and the page asked for) for security and troubleshooting. Private order links and private product links are removed from these logs. The logs are kept for a short time and then overwritten automatically.",
   },
   {
     title: "Bot protection",
@@ -41,11 +40,11 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "No accounts, no card data",
-    body: "There are no customer accounts on this website. We never see or store your card details: payments happen on Artistree or Shopee through the links we email you. Those platforms have their own privacy policies.",
+    body: "There are no customer accounts on this website. We never see or store your card details: payments happen on the payment platform in the links we email you. The deposit on a made-to-order figure is paid on Artistree. In-stock figures and the balance on a made-to-order figure are paid on Shopee through a proxy buyer service. Those platforms and services have their own privacy policies.",
   },
   {
     title: "Who handles your data",
-    body: "We share data only with the services that help us run the shop: our hosting provider, our email delivery service, the payment platform (Artistree or Shopee), the shipping carrier (who needs your name and address to deliver), Cloudflare (bot protection on the checkout and order lookup pages), and a cloud storage provider (stores encrypted backups for a limited time). Some of these providers may store data outside your country.",
+    body: "We share data only with the services that help us run the shop: our hosting provider, our email delivery service, the payment platform in your payment link (Artistree for a made-to-order deposit; Shopee for an in-stock figure or a balance), the proxy buyer service that helps you pay on Shopee, the shipping carrier (who needs your name and address to deliver), Cloudflare (bot protection on the checkout and order lookup pages), and a cloud storage provider (stores encrypted backups for a limited time). Some of these providers may store data outside your country.",
   },
   {
     title: "How long we keep it",
@@ -53,7 +52,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "Your choices",
-    body: "You can ask us to show you the personal data we hold about you, to correct it, or to delete it earlier: email us and we will do it by hand. We may need to keep what the law requires or what is needed for an open dispute. This applies wherever you live.",
+    body: "You can ask us to show you the personal data we hold about you, to correct it, or to delete it earlier: email us and we will do it by hand within 30 days. We may need to keep what the law requires or what is needed for an open dispute. This applies wherever you live.",
   },
   {
     title: "Keeping it safe",
@@ -85,10 +84,10 @@ export default function PrivacyPage() {
         <p className="m-0">
           For privacy questions, or to see, correct or delete your data, email{" "}
           <a
-            href="mailto:bk3dprinls@gmail.com"
+            href={`mailto:${CONTACT_EMAIL}`}
             className={`font-bold underline hover:text-danger ${focusRing}`}
           >
-            bk3dprinls@gmail.com
+            {CONTACT_EMAIL}
           </a>
           . You can also reach us on any of these channels:
         </p>

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { RefundNotice } from "@/components/shop/RefundNotice";
 import { focusRing } from "@/components/ui";
+import { CONTACT_EMAIL } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -15,20 +15,11 @@ const linkClass = `font-bold underline hover:text-danger ${focusRing}`;
 const paraClass = "mt-2 block";
 
 const supportEmail = (
-  <a href="mailto:bk3dprinls@gmail.com" className={linkClass}>
-    bk3dprinls@gmail.com
+  <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>
+    {CONTACT_EMAIL}
   </a>
 );
 
-// Owner decisions still open (the public text below stays neutral until they are made):
-// [CẦN DUYỆT] Balance payment platform: Artistree vs Shopee + proxy service ("How do I pay?").
-// [CẦN DUYỆT] Shipping carrier, typical delivery times and insurance ("What does shipping cost?").
-// [CẦN DUYỆT] Refund timing and who pays non-refundable platform fees ("Can I cancel my order?").
-// [CẦN DUYỆT] Change of mind on an in-stock figure after full payment: the FAQ says nothing yet.
-// [CẦN DUYỆT] Damage report window and remedy: repair, replacement or refund ("...arrives damaged...").
-// [CẦN DUYỆT] Who bears the risk of a lost parcel: refund or reship ("What if my parcel is lost?").
-// [CẦN DUYỆT] "Are these figures official or licensed?" is not published until the IP position is decided.
-// [CẦN DUYỆT] Kit painting: transit risk and shipping/customs both ways, legitimate kits only.
 const FAQ: { q: string; a: ReactNode }[] = [
   {
     q: "What is the difference between in-stock and made-to-order?",
@@ -44,7 +35,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: "How do I pay?",
-    a: "After you order, we email you a payment link (Artistree or Shopee). This website never takes card details. Deposit and in-stock payment links expire 48 hours after we send them; the balance link gives you 30 days.",
+    a: "After you order, we email you a secure payment link. The deposit on a made-to-order figure is paid on Artistree. In-stock figures, and the balance on a made-to-order figure, are paid on Shopee through a proxy buyer service we arrange with you, because Shopee has no direct way for overseas buyers to pay. This website never takes card details. Deposit and in-stock payment links expire 48 hours after we send them; the balance link gives you 30 days.",
   },
   {
     q: "How long do I have to pay the balance?",
@@ -52,7 +43,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: "What does shipping cost?",
-    a: "Shipping is paid by you. We tell you the exact amount before you pay. We email you when your figure ships. The carrier and tracking number are on your order page.",
+    a: "Shipping is paid by you. We tell you the exact amount before you pay. We email you when your figure ships. The carrier and tracking number are on your order page. Please check your address carefully: if a parcel comes back to us because the address was wrong, you pay to ship it again.",
   },
   {
     q: "Do I pay customs, GST or import duty?",
@@ -73,7 +64,18 @@ const FAQ: { q: string; a: ReactNode }[] = [
           get your deposit back in full.
         </span>
         <span className={paraClass}>
+          In-stock figure: if you change your mind, tell us before the parcel ships and we refund
+          you. Preparing an in-stock order takes about 3 days, and we accept refund requests made in
+          that time. Once the parcel has shipped, we do not take it back for a change of mind.
+        </span>
+        <span className={paraClass}>
           If the balance is not paid within 30 days, the order is forfeited and the deposit is kept.
+        </span>
+        <span className={paraClass}>
+          Refunds are sent within 10 business days after we confirm the cancellation, back through
+          the same channel you paid with. If the payment platform (Artistree for a deposit, Shopee
+          for an in-stock payment or a balance) or the proxy buyer service does not return its fees,
+          whoever cancelled pays them; if it is not clear who cancelled, we do.
         </span>
         <span className={paraClass}>
           These rules are about changing your mind. They do not take away any rights you have under
@@ -86,10 +88,11 @@ const FAQ: { q: string; a: ReactNode }[] = [
     q: "What if my figure arrives damaged or not as described?",
     a: (
       <>
-        Email us at {supportEmail} as soon as you can after delivery, with your order code and
-        photos of the figure and the packaging. We will look at it and work out a fix with you.
-        Hand-painted figures can have tiny differences in colour and finish from the photos; that is
-        part of being hand-painted and is not a fault.
+        Email us at {supportEmail} within 7 days of delivery, with your order code and photos of the
+        figure and the packaging. We will work out a fix with you: a repair, a replacement or a
+        refund. This does not limit your rights under consumer law where you live. Hand-painted
+        figures can have tiny differences in colour and finish from the photos; that is part of
+        being hand-painted and is not a fault.
       </>
     ),
   },
@@ -98,8 +101,11 @@ const FAQ: { q: string; a: ReactNode }[] = [
     a: (
       <>
         We email you when your figure ships. The carrier and tracking number are on your order page.
-        If the parcel seems lost or badly delayed, contact us at {supportEmail} and we will follow
-        it up with the carrier.
+        We insure every parcel we ship overseas, so if yours is lost or damaged in transit you do
+        not bear the loss: contact us at {supportEmail} and choose a reship or a refund. For a
+        made-to-order figure, a reship means we make you a new one. For an in-stock figure, we send
+        a replacement from stock if we have one; if we do not, we refund you. This does not limit
+        your rights under consumer law where you live.
       </>
     ),
   },
@@ -149,9 +155,10 @@ const FAQ: { q: string; a: ReactNode }[] = [
     q: "Can you paint a kit I already own?",
     a: (
       <>
-        Yes. We also paint your own garage kits and custom pieces. This is not ordered through the
-        website: message us on social media or email {supportEmail}, and we give you a quote for
-        each piece. The quote depends on the state of the kit. See{" "}
+        Sometimes, by prior agreement. We decide case by case, so we cannot always take a kit on.
+        This is not ordered through the website: message us on social media or email {supportEmail}.
+        If we can paint it, we give you a quote for each piece. You pay shipping and customs both
+        ways. The kit is at your risk on the way to us, and at ours on the way back. See{" "}
         <Link href="/commission#kit-painting" className={linkClass}>
           Painting your kit
         </Link>
@@ -168,7 +175,6 @@ export default function FaqPage() {
       className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 pt-8 pb-16 md:px-6 md:pt-10"
     >
       <h1 className="m-0 text-3xl font-extrabold md:text-[40px]">FAQ</h1>
-      <RefundNotice />
       {FAQ.map(({ q, a }) => (
         <section key={q} className="flex flex-col gap-1">
           <h2 className="m-0 text-xl font-extrabold">{q}</h2>

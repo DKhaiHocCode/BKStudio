@@ -112,8 +112,9 @@ export function OrderSuccess({ order }: { order: OrderCreated }) {
       )}
 
       <p className="m-0">
-        Nothing has been charged. The shop will email you a secure payment link (Artistree or
-        Shopee) to pay by hand: there are no card details on this site.
+        Nothing has been charged. The shop will email you a secure payment link to pay by hand
+        (Artistree for a made-to-order deposit, Shopee through a proxy buyer service for an in-stock
+        figure): there are no card details on this site.
       </p>
 
       <Link href="/" className={`self-start font-bold ${focusRing}`}>

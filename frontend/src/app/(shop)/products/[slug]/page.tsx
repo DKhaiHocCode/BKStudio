@@ -5,7 +5,6 @@ import { Suspense, type ReactNode } from "react";
 import { BuyBox } from "@/components/shop/BuyBox";
 import { Gallery } from "@/components/shop/Gallery";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { RefundNotice } from "@/components/shop/RefundNotice";
 import { badge, focusRing, panel } from "@/components/ui";
 import { fetchProduct, fetchProducts } from "@/lib/catalog";
 import { centsToDollars, formatUsd } from "@/lib/money";
@@ -191,8 +190,6 @@ async function ProductContent({ params }: { params: PageProps<"/products/[slug]"
               }}
             />
 
-            <RefundNotice />
-
             <p className="m-0 border-t-2 border-dashed border-line pt-4 text-[15px] leading-relaxed text-body">
               The deposit is <strong>non-refundable</strong> if you cancel after your slot is
               confirmed. The balance + shipping is due within 30 days after we send you the balance
@@ -226,10 +223,11 @@ async function ProductContent({ params }: { params: PageProps<"/products/[slug]"
             <Fold title="Shipping & payment">
               <p className="m-0">
                 Prices are in USD. This site takes no card details: after you order we email a
-                secure payment link. Made-to-order figures need a 50% deposit, the rest is due
-                before shipping. Shipping is paid by the customer: we tell you the amount before you
-                pay, and we email you when your order ships (the tracking number is on your order
-                page).{" "}
+                secure payment link. In-stock figures are paid in full on Shopee through a proxy
+                buyer service. Made-to-order figures need a 50% deposit on Artistree, and the rest
+                is paid on Shopee through the same proxy service before shipping. Shipping is paid
+                by the customer: we tell you the amount before you pay, and we email you when your
+                order ships (the tracking number is on your order page).{" "}
                 <Link href="/faq" className={`text-fg underline ${focusRing}`}>
                   Read the FAQ
                 </Link>

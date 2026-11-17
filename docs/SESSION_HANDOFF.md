@@ -1,8 +1,9 @@
 # Session Handoff
 
-> Cập nhật: 2026-11-16 (T-047 đã merge; T-052 nháp chờ Khai duyệt)
+> Cập nhật: 2026-11-17 (T-064 đã merge; T-052 đã áp D1-D17, PR docs chờ merge)
 
 ## Đang ở đâu
+**T-052 (2026-11-17, nhánh `docs/T-052-policy-decisions`):** Khai đã trả lời D1-D17; chữ đã áp vào Terms/FAQ/Commission/Privacy/checkout/trang sản phẩm, gỡ `RefundNotice`, hết marker. Còn: Khai đọc lần cuối rồi đăng terms qua `/admin/settings`; luật sư xem IP, hoàn tiền, mất cọc, Privacy; tên dịch vụ mua hộ; kiểm listing Shopee 2 loại (pay full/half). Nợ nhỏ: Terms §7 và §8 hơi trùng; dev `node_modules` cũ (next 16.4.2, lockfile 16.4.6) nên cần `npm ci` ở máy local.
 **T-064 code xong (2026-11-17, nhánh `feat/T-064-lookup-turnstile`), task `doing`:** cần Khai (1) xem widget ở `http://localhost:8081/orders/lookup` (Caddy dev đã chạy, container `t060-caddy`; dừng bằng `docker rm -f t060-caddy`), (2) duyệt ghi chú ADR-0012, (3) duyệt chữ Privacy. `docs/REVIEW_CHECKLIST_T052.md` (17 quyết định T-052) viết xong, chưa commit — đưa vào PR docs riêng.
 **2026-11-17:** T-060 đóng (done). T-045 phần file đã merge (PR #74), task `doing` chờ VPS (T-043). Đã bật branch protection `main` (5 check bắt buộc, enforce_admins tắt) + ruleset tag `v*`; biến repo `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY` đã đặt. Còn Khai: GHCR package Public sau lần push image đầu, chọn monitor uptime, tạo secret Turnstile vào `.env` VPS. Nợ: CSP qua Caddy chưa kiểm bằng trình duyệt; trang Privacy cần câu nhắc Turnstile; `POST /api/orders/lookup` chưa có Turnstile. Còn 7 task: T-043, T-045(doing), T-046, T-052(doing), T-061, T-062, T-063.
 **T-045 phần file xong (2026-11-16, nhánh `feat/T-045-deploy-pipeline`), task `doing`:** thử thật cần VPS (T-043). T-060 đã merge (PR #73) nhưng vẫn `doing`: thiếu ảnh widget 375px + CSP qua Caddy. Khai cần: bật branch protection `main` và ruleset tag `v*`, biến repo cho workflow, chọn monitor uptime, đặt GHCR package Public sau lần push đầu.

@@ -16,11 +16,7 @@ This draft is not legal advice. It was written from `docs/research/policy-wordin
 
 COPY FROM THE NEXT LINE
 
-These terms are between you and BKStudio ("we", "us"). By ticking the box at checkout you agree to them.
-
-**Refund policy notice:** we do not have a full refund policy yet. Please think carefully before you pay. Your legal rights under the consumer law where you live are not affected. [CẦN DUYỆT] Remove or replace this notice once the refund rules are decided.
-
-[CẦN DUYỆT] Trading name and city to publish here (who the customer is contracting with).
+These terms are between you and BKStudio ("we", "us"), a small studio based in Hanoi, Vietnam. By ticking the box at checkout you agree to them.
 
 ## 1. What we sell
 
@@ -34,11 +30,11 @@ Painting a kit that you own is arranged with us directly, piece by piece. It is 
 ## 2. Prices and payment
 
 - Prices are in USD. They do not include shipping, import taxes, GST or duties.
-- We do not take card details on this website. We email you a payment link for Artistree or Shopee. The platform's own terms apply to that payment.
-- In-stock figures: you pay 100% in one payment. We hold the figure for 48 hours from when we send the link.
-- Made-to-order figures: you pay a 50% deposit. The link expires 48 hours after we send it. You pay the remaining 50% plus shipping when your figure is finished.
-
-[CẦN DUYỆT] Which platform takes the balance payment (Artistree, or Shopee with a proxy buyer service). If Shopee, its own cancellation and return rules may apply to that payment.
+- We do not take card details on this website. We email you a payment link. The payment platform's own terms apply to that payment.
+- In-stock figures: you pay 100% in one payment on Shopee, through a proxy buyer service we arrange with you. We hold the figure for 48 hours from when we send the link.
+- Made-to-order figures: you pay a 50% deposit on Artistree. The link expires 48 hours after we send it. You pay the remaining 50% plus shipping when your figure is finished.
+- The balance (the remaining 50% plus shipping) is paid on Shopee, through the same kind of proxy buyer service.
+- Shopee has no direct way for overseas buyers to pay, which is why we use a proxy buyer service. Shopee's own cancellation and return rules may apply to Shopee payments.
 
 ## 3. Production queue and timing
 
@@ -61,41 +57,34 @@ When your figure is finished, we email you a balance payment link. You have 30 d
 - You cancel a made-to-order figure after your deposit is confirmed: the 50% deposit is not refunded, because we have reserved your slot and planned work for you.
 - We cancel (for example we cannot make the figure, a print fails, or we stop taking orders): we refund your deposit in full.
 - Commissions follow the same rules.
+- You change your mind about an in-stock figure: tell us before the parcel ships and we refund you. Preparing an in-stock order takes about 3 days, and we accept refund requests made in that time. Once the parcel has shipped, we do not take it back for a change of mind.
 
-These rules are about changing your mind. See section 9 for your legal rights.
+Refunds are sent within 10 business days after we confirm the cancellation, back through the same channel you paid with.
 
-[CẦN DUYỆT] Refund timing: how many business days, and through which payment method.
+Platform fees: the payment platform (Artistree for a deposit, Shopee for an in-stock payment or a balance) and the proxy buyer service may not return all of their fees when a payment is refunded. Whoever cancels pays those fees, so if you cancel they come out of your refund. If it is not clear who cancelled, we pay them. If we cancel, you still get your deposit back in full.
 
-[CẦN DUYỆT] Who pays platform fees that Artistree or Shopee do not return when we refund.
-
-[CẦN DUYỆT] Change of mind on an in-stock figure after full payment: what we offer, if anything. Do not write "no refunds" or "all sales final".
+These rules are about changing your mind. They do not affect your legal rights: see section 9.
 
 ## 7. Shipping, customs and delivery
 
 - You pay shipping. We tell you the amount before you pay.
-- We ship to the address you give us. Please check it carefully.
+- We ship to the address you give us. Please check it carefully. If a parcel comes back to us because the address was wrong, you pay to ship it again.
 - Import taxes, GST and duties in your country are paid by you. They are not included in our prices or in the shipping fee.
 - We email you when your figure ships. The carrier and tracking number are on your order page.
 
-[CẦN DUYỆT] Carrier, and whether parcels are insured.
-
-[CẦN DUYỆT] Who bears the risk if a parcel is lost or damaged in transit, and whether we refund or reship.
-
-[CẦN DUYỆT] Who pays to reship a parcel that comes back because the address was wrong.
+We insure every parcel we ship overseas. If your parcel is lost or damaged in transit, you do not bear the loss: you choose a reship or a refund. For a made-to-order figure, a reship means we make you a new one. For an in-stock figure, we send a replacement from stock if we have one; if we do not, we refund you. This does not limit your legal rights in section 9.
 
 ## 8. Damaged, faulty or not as described
 
-If your figure arrives damaged, faulty or not as described, email us at [bk3dprinls@gmail.com](mailto:bk3dprinls@gmail.com) with your order code and clear photos of the figure and the packaging.
-
-[CẦN DUYỆT] Time window to report a problem (for example 7 days after delivery), and the remedy we offer: repair, replacement or refund.
+If your figure arrives damaged, faulty or not as described, email us at [bk3dprinls@gmail.com](mailto:bk3dprinls@gmail.com) within 7 days of delivery, with your order code and clear photos of the figure and the packaging. We will work out a fix with you: a repair, a replacement or a refund. This does not limit your legal rights in section 9.
 
 ## 9. Your legal rights
 
 Nothing in these terms limits any right you have under law that cannot be excluded. This includes consumer guarantees under the Australian Consumer Law for customers in Australia, and rights under Singapore consumer protection law for customers in Singapore. Where these terms and those rights conflict, your legal rights win.
 
-## 10. Intellectual property
+## 10. Custom figures
 
-[CẦN DUYỆT] IP position (licensed, original or fan-made) is not decided; see research file section 4.1. Delete this section or rewrite it after the decision. Possible text if it fits: buying a figure gives you the physical item for personal use. It does not give you the right to copy it, mould it or sell copies, or any rights in the original characters, which belong to their owners.
+If we make a custom figure for you, you must not copy it, or make a mould or cast of it.
 
 ## 11. Privacy
 

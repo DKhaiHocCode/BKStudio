@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCallback, useRef, useState, type FormEvent } from "react";
 import { Notice } from "@/components/shop/Notice";
-import { RefundNotice } from "@/components/shop/RefundNotice";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { focusRing, panel, primaryButton, secondaryButton } from "@/components/ui";
 import { ApiError, apiFetch } from "@/lib/api";
@@ -322,10 +321,10 @@ export function CheckoutForm({
           <h2 className="m-0 text-xl font-extrabold">4 · How payment works</h2>
           <p className="m-0">
             Nothing is charged on this page and there are no card details here. After you place the
-            order, the shop emails you a secure payment link (Artistree or Shopee).
+            order, the shop emails you a secure payment link.
             {isMto
-              ? " Once the 50% deposit is in, we confirm your production month by email."
-              : " Your figure is held for you while you pay."}
+              ? " The 50% deposit is paid on Artistree. Once it is in, we confirm your production month by email."
+              : " You pay in full on Shopee, through a proxy buyer service we arrange with you. Your figure is held for you while you pay."}
           </p>
         </div>
       </div>
@@ -379,8 +378,6 @@ export function CheckoutForm({
             </p>
           </Notice>
         )}
-
-        <RefundNotice />
 
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-[3px] border-border bg-tint-mto p-3.5 text-[15px] leading-normal text-ink has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus">
           <input
