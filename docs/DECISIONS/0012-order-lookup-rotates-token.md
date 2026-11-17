@@ -25,3 +25,5 @@
 - ⚠️ Rủi ro chấp nhận: lookup khớp ghi thêm UPDATE + outbox + audit nên thời gian phản hồi chênh nhẹ so với lookup trượt (CPU băm token như nhau); kẻ tấn công cần cả mã đơn lẫn email, bị giới hạn 10 lần/giờ/IP, và mỗi lần trúng đều gây email ồn cho khách.
 - ⚠️ Email cũ chứa link hết hiệu lực; trang 404 của `/orders/{token}` nên gợi ý dùng form tra cứu (T-031).
 - Giới hạn tần suất giữ trong bộ nhớ (1 instance), mất khi khởi động lại.
+
+- Cập nhật 2026-11-17: khi Turnstile bật, lookup có thể trả 400 `CAPTCHA_FAILED` hoặc 503 trước mọi lần đọc DB; phản hồi không phụ thuộc đơn có tồn tại.
