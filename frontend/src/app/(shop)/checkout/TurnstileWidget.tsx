@@ -2,14 +2,15 @@
 
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { secondaryButton } from "@/components/ui";
+import { CONTACT_EMAIL } from "@/lib/contact";
 
 /**
  * Cloudflare Turnstile (bot check), explicit rendering.
  * https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/
  *
  * The site key is public (NEXT_PUBLIC_TURNSTILE_SITE_KEY); the secret key lives only in the backend.
- * A token is valid for 300 seconds and can be verified once, so the form resets the widget after
- * every failed submit. Never log the token.
+ * A token is valid for 300 seconds and can be verified once, so checkout resets the widget after
+ * every failed submit and the order lookup form after every submit. Never log the token.
  *
  * Cloudflare's dummy site keys for dev/tests (work on any host, never use in production):
  *   1x00000000000000000000AA  always passes (visible)
@@ -63,7 +64,8 @@ function loadScript(): Promise<void> {
 }
 
 const MESSAGE = {
-  error: "The check could not run. Check your connection, then try again.",
+  // Also shown when the visitor's browser or network blocks challenges.cloudflare.com.
+  error: `The check could not run. Check your connection, then try again. If it keeps failing, email ${CONTACT_EMAIL}.`,
   expired: "The check expired. Please complete it again.",
 } as const;
 
@@ -139,9 +141,10 @@ export function TurnstileWidget({
 
   return (
     <section aria-labelledby="turnstile-title" className="flex min-w-0 flex-col gap-2">
-      <h3 id="turnstile-title" className="m-0 text-[15px] font-bold">
+      {/* A paragraph, not a heading: the lookup page has no h2 above this. */}
+      <p id="turnstile-title" className="m-0 text-[15px] font-bold">
         Security check
-      </h3>
+      </p>
       <div ref={box} className="min-h-[65px]" />
       <div role="alert">
         {issue && (

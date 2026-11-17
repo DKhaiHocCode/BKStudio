@@ -13,7 +13,7 @@
 | M3 — Giao diện khách & admin | 39 | T-030, T-031, T-032, T-033, T-034, T-035, T-036 |
 | M4 — Bảo mật, deploy, launch | 39 | T-040, T-041, T-042, T-043, T-044, T-045, T-046, T-047, T-052 |
 | M5 — Làm ngay sau launch | 3 | T-050, T-051 |
-| P1 — Chỉ làm nếu còn thời gian | 13 | T-060, T-061, T-062, T-063 |
+| P1 — Chỉ làm nếu còn thời gian | 15 | T-060, T-061, T-062, T-063, T-064 |
 | **Cần để launch** | **189** | M0–M4 |
 
 **Critical path** (chuỗi phụ thuộc dài nhất, 74 giờ): T-001 → T-002 → T-003 → T-010 → T-022 → T-023 → T-025 → T-026 → T-029 → T-033 → T-034 → T-035 → T-041 → T-046
@@ -496,6 +496,7 @@ flowchart LR
 | T-061 | Sentry (lỗi backend + frontend) | 2 | T-045 |
 | T-062 | Mã giảm giá đơn giản | 6 | T-022, T-033 |
 | T-063 | Dời slot sang tháng khác | 3 | T-034 |
+| T-064 | Turnstile cho tra cứu đơn + câu Turnstile trên trang Privacy | 2 | T-060 |
 
 ## Việc của chủ shop (không tính giờ code)
 

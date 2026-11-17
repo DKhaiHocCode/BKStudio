@@ -1,11 +1,14 @@
 package com.bkstudio.order.customer.api;
 
+import com.bkstudio.order.checkout.domain.TurnstileVerifier;
 import com.bkstudio.order.customer.api.CustomerOrderDtos.CancelRequest;
 import com.bkstudio.order.customer.api.CustomerOrderDtos.LookupAccepted;
 import com.bkstudio.order.customer.api.CustomerOrderDtos.LookupRequest;
 import com.bkstudio.order.customer.api.CustomerOrderDtos.OrderView;
 import com.bkstudio.order.customer.domain.CustomerOrderLimiters;
 import com.bkstudio.order.customer.domain.CustomerOrderService;
+import com.bkstudio.shared.web.ApiException;
+import com.bkstudio.shared.web.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.CacheControl;
@@ -25,10 +28,13 @@ public class CustomerOrderController {
 
     private final CustomerOrderService orders;
     private final CustomerOrderLimiters limiters;
+    private final TurnstileVerifier turnstile;
 
-    public CustomerOrderController(CustomerOrderService orders, CustomerOrderLimiters limiters) {
+    public CustomerOrderController(
+            CustomerOrderService orders, CustomerOrderLimiters limiters, TurnstileVerifier turnstile) {
         this.orders = orders;
         this.limiters = limiters;
+        this.turnstile = turnstile;
     }
 
     @GetMapping("/api/orders/{token}")
@@ -47,9 +53,20 @@ public class CustomerOrderController {
 
     @PostMapping("/api/orders/lookup")
     public ResponseEntity<LookupAccepted> lookup(@Valid @RequestBody LookupRequest req, HttpServletRequest request) {
-        // A limited IP gets the same 202 and costs no DB work.
-        if (limiters.allowLookup(request.getRemoteAddr())) {
-            orders.lookup(req.code(), req.email());
+        String ip = request.getRemoteAddr();
+        // A limited IP gets the same 202 and costs no Cloudflare call and no DB work.
+        // The peek here and the acquire below are not atomic: requests racing at the cap can each reach siteverify,
+        // bounded by the verifier bulkhead (same as checkout).
+        if (!limiters.lookupBlocked(ip)) {
+            // Before any DB read, so the answer cannot depend on whether the order exists. 503 costs no attempt.
+            if (!turnstile.verifyLookup(req.turnstileToken(), ip)) {
+                // A rejected token costs one attempt, so one IP cannot make unlimited siteverify calls.
+                limiters.allowLookup(ip);
+                throw new ApiException(ErrorCode.CAPTCHA_FAILED, "Captcha verification failed. Please try again.");
+            }
+            if (limiters.allowLookup(ip)) {
+                orders.lookup(req.code(), req.email());
+            }
         }
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .cacheControl(CacheControl.noStore())

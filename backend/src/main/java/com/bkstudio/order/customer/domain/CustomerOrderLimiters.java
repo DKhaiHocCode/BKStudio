@@ -38,6 +38,11 @@ public class CustomerOrderLimiters {
         });
     }
 
+    /** Non-consuming: true when this IP is already at the lookup cap. */
+    public boolean lookupBlocked(String ip) {
+        return lookupByIp.isBlocked(ip).isPresent();
+    }
+
     /** True when this lookup may proceed; the caller still answers 202 either way. */
     public boolean allowLookup(String ip) {
         return lookupByIp.tryAcquire(ip).isEmpty();

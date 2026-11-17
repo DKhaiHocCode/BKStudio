@@ -43,7 +43,7 @@ app:
     email-limit-max: 3 # orders per customer email per window (counted in the DB)
     email-limit-window: 1h
   turnstile:
-    # Cloudflare Turnstile secret (TURNSTILE_SECRET_KEY). Blank = checkout skips the captcha (dev/test).
+    # Cloudflare Turnstile secret (TURNSTILE_SECRET_KEY). Blank = checkout and order lookup skip the captcha (dev/test).
     # Prod fails startup when it is blank or one of Cloudflare's dummy test secrets.
     secret: ${TURNSTILE_SECRET_KEY:}
     # true = prod profile accepts a Cloudflare dummy secret. Local rehearsals / E2E only, never on the real site.

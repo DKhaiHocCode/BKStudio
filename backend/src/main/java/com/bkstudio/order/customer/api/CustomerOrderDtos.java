@@ -44,7 +44,9 @@ public final class CustomerOrderDtos {
 
     public record LookupRequest(
             @NotBlank @Size(max = 20) String code,
-            @NotBlank @Size(max = 254) String email) {}
+            @NotBlank @Size(max = 254) String email,
+            // Checked by TurnstileVerifier (only when Turnstile is on, max 2048), so a bad one is CAPTCHA_FAILED.
+            String turnstileToken) {}
 
     /** Identical for every lookup, whether or not the code and email matched. */
     public record LookupAccepted(String message) {}

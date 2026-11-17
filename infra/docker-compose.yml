@@ -82,7 +82,7 @@ services:
       context: ../frontend
       args:
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?set NEXT_PUBLIC_SITE_URL (public origin, e.g. https://shop.example)}
-        # Public Turnstile site key (T-060). Required: without the widget the prod backend rejects every checkout.
+        # Public Turnstile site key (T-060). Required: without the widget the prod backend rejects every checkout and order lookup.
         NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:?set NEXT_PUBLIC_TURNSTILE_SITE_KEY (Cloudflare Turnstile site key)}
     environment:
       # Server-side catalog fetches (src/lib/catalog.ts); the browser reaches /api through Caddy.
@@ -113,7 +113,7 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:?set RESEND_API_KEY}
       MAIL_FROM: ${MAIL_FROM:?set MAIL_FROM}
       TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY:?set TOTP_ENCRYPTION_KEY}
-      # Checkout captcha (T-060). The backend calls challenges.cloudflare.com over the internal network's egress.
+      # Checkout and order-lookup captcha (T-060, T-064). The backend calls challenges.cloudflare.com over the internal network's egress.
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:?set TURNSTILE_SECRET_KEY (Cloudflare Turnstile secret key)}
       # Tied to the network above: trust X-Forwarded-For only from Caddy's fixed address.
       FORWARD_HEADERS_STRATEGY: native

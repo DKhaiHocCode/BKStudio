@@ -16,10 +16,20 @@ export const metadata: Metadata = {
 // [CẦN DUYỆT] If the Shopee channel is chosen: add the proxy-buyer service to "Who handles your data".
 // [CẦN DUYỆT] Whether tax or accounting rules need records for longer than 2 years.
 // [CẦN DUYỆT] Reply time for data requests, breach notification and regulator contacts (SG/AU).
+// [CẦN DUYỆT] "Bot protection" wording: how long Cloudflare keeps Turnstile data, on what legal
+//   basis, and whether its cookies/storage need consent for SG/AU visitors. Read 2026-11-17: the
+//   Turnstile Privacy Addendum (cloudflare.com/turnstile-privacy-policy, updated 2025-06-18) lists
+//   client IP, TLS fingerprint, User-Agent, sitekey and origin, gives no retention period and does
+//   not say which cookies or storage the widget uses; so the text says "may use", not "sets".
+// [CẦN DUYỆT] Cloudflare (bot protection) is now named in "Who handles your data": confirm wording.
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: "What we collect",
     body: "When you place an order we collect your name, email address, shipping address, optional phone number and the details of your order. At checkout we also record your IP address, the time and the version of the terms you agreed to, so we can show what was agreed if there is ever a dispute. Our servers also keep standard technical logs for security and troubleshooting.",
+  },
+  {
+    title: "Bot protection",
+    body: "On the checkout and order lookup pages we use Cloudflare Turnstile to block automated abuse. To tell people from bots, it processes your IP address and technical signals from your browser and connection. Cloudflare may use cookies or similar technologies for this check; its Turnstile Privacy Addendum and Cookie Policy describe what it does.",
   },
   {
     title: "Why we use it",
@@ -35,7 +45,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "Who handles your data",
-    body: "We share data only with the services that help us run the shop: our hosting provider, our email delivery service, the payment platform (Artistree or Shopee), the shipping carrier (who needs your name and address to deliver), and a cloud storage provider (stores encrypted backups for a limited time). Some of these providers may store data outside your country.",
+    body: "We share data only with the services that help us run the shop: our hosting provider, our email delivery service, the payment platform (Artistree or Shopee), the shipping carrier (who needs your name and address to deliver), Cloudflare (bot protection on the checkout and order lookup pages), and a cloud storage provider (stores encrypted backups for a limited time). Some of these providers may store data outside your country.",
   },
   {
     title: "How long we keep it",
@@ -51,7 +61,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "Changes",
-    body: "We may update this page from time to time. Last updated: 16 November 2026.",
+    body: "We may update this page from time to time. Last updated: 17 November 2026.",
   },
 ];
 
