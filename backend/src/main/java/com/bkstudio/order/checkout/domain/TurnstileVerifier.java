@@ -41,6 +41,9 @@ public class TurnstileVerifier {
     /** Bulkhead: outbound calls in flight. A slow Cloudflare must not tie up every request thread. */
     static final int MAX_CONCURRENT = 20;
 
+    /** Order lookup may hold at most this many of the calls above, so abusing it cannot starve checkout. */
+    public static final int MAX_CONCURRENT_LOOKUP = 5;
+
     /** siteverify answers are a few hundred bytes; anything bigger is not Cloudflare's answer. */
     static final int MAX_RESPONSE_BYTES = 16 * 1024;
 
@@ -50,6 +53,7 @@ public class TurnstileVerifier {
     private final JsonMapper json;
     private final RestClient client;
     private final Semaphore inFlight;
+    private final Semaphore lookupsInFlight = new Semaphore(MAX_CONCURRENT_LOOKUP);
 
     @Autowired
     public TurnstileVerifier(TurnstileProperties props, JsonMapper json) {
@@ -128,6 +132,24 @@ public class TurnstileVerifier {
         return false;
     }
 
+    /**
+     * {@link #verify} for the order lookup, behind its own smaller bulkhead: lookup takes at most
+     * {@link #MAX_CONCURRENT_LOOKUP} of the shared permits, the rest stay free for checkout.
+     *
+     * @throws ApiException SERVICE_UNAVAILABLE as {@link #verify}, or when too many lookups are being verified
+     */
+    public boolean verifyLookup(String token, String clientIp) {
+        if (!lookupsInFlight.tryAcquire()) {
+            log.warn("Turnstile siteverify skipped: too many lookup verifications already in flight");
+            throw unavailable();
+        }
+        try {
+            return verify(token, clientIp);
+        } finally {
+            lookupsInFlight.release();
+        }
+    }
+
     private static List<String> errorCodes(JsonNode body) {
         List<String> out = new ArrayList<>();
         JsonNode codes = body.get("error-codes");
@@ -141,7 +163,7 @@ public class TurnstileVerifier {
 
     private static ApiException unavailable() {
         return new ApiException(
-                ErrorCode.SERVICE_UNAVAILABLE, "Checkout is temporarily unavailable. Please try again shortly.");
+                ErrorCode.SERVICE_UNAVAILABLE, "Verification is temporarily unavailable. Please try again shortly.");
     }
 
     private static String enc(String s) {

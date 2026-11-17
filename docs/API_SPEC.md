@@ -40,7 +40,7 @@
 | `PAYLOAD_TOO_LARGE` | 413 | Body/file vượt giới hạn (ảnh > 10 MB) |
 | `TERMS_OUTDATED` | 409 | Khách đồng ý phiên bản điều khoản cũ |
 | `RATE_LIMITED` | 429 | Gọi quá nhiều (kèm `Retry-After`) |
-| `CAPTCHA_FAILED` | 400 | Checkout: thiếu hoặc sai token Turnstile |
+| `CAPTCHA_FAILED` | 400 | Checkout và tra cứu đơn: thiếu hoặc sai token Turnstile |
 | `SERVICE_UNAVAILABLE` | 503 | Dịch vụ phụ thuộc (Turnstile) không trả lời — thử lại sau |
 | `INTERNAL_ERROR` | 500 | Lỗi không mong muốn — không lộ chi tiết, chỉ `requestId` |
 
@@ -86,7 +86,7 @@
 | GET | `/api/orders/{token}` | Xem đơn qua link bí mật |
 | POST | `/api/orders/{token}/cancel` | Khách huỷ (theo quy tắc WORKFLOWS §7) |
 | GET | `/api/orders/{token}/progress` | Tiến độ sản xuất 6 giai đoạn (chỉ MADE_TO_ORDER, T-029) |
-| POST | `/api/orders/lookup` | `{code, email}` → luôn trả 202, gửi link qua email nếu khớp |
+| POST | `/api/orders/lookup` | `{code, email, turnstileToken}` → 202 dù khớp hay không, gửi link qua email nếu khớp |
 
 `POST /api/orders` — request:
 ```json
@@ -124,7 +124,8 @@ Chi tiết đã triển khai (T-028, API công khai, không cần đăng nhập;
   `depositCents` = 0 với đơn IN_STOCK. `paymentRequests` chỉ gồm yêu cầu `PENDING`. `estimatedProductionMonth` ("YYYY-MM", tháng sớm nhất còn slot `QUEUED`/`IN_PRODUCTION`) chỉ có với MADE_TO_ORDER đã được cấp slot, ngược lại `null`. `carrier`/`trackingNumber` chỉ có khi `SHIPPED`/`COMPLETED`. `history` lấy từ audit `ORDER_TRANSITION` (chỉ trạng thái + thời điểm; đơn mới tạo có `history` rỗng, dùng `createdAt`). `canCancel` = trạng thái `AWAITING_PAYMENT`/`AWAITING_DEPOSIT`/`QUEUED`; `cancelWarning` = `true` khi huỷ sẽ mất cọc (`QUEUED`). **Không** trả: tên/email/SĐT/địa chỉ khách, `admin_note`, `cancel_reason`, IP, hash token, id nội bộ, `refundRef`. Chưa có ảnh bìa sản phẩm (để sau).
   Token sai định dạng hoặc không tồn tại → cùng một `404 NOT_FOUND`. Đơn ở mọi trạng thái đều xem được.
 - `POST /api/orders/{token}/cancel`, body `{acknowledgeDepositLost?: boolean}` (có thể bỏ trống) → `200` cùng dạng `GET` (đơn đã huỷ). `AWAITING_PAYMENT`/`AWAITING_DEPOSIT` → `CANCELLED` (trả lại tồn kho/quota/slot, huỷ yêu cầu thanh toán đang mở). `QUEUED` → cần `acknowledgeDepositLost=true`, thiếu → `400 VALIDATION_FAILED` (`errors[].field = acknowledgeDepositLost`); đủ → `CANCELLED_DEPOSIT_KEPT`, nhả slot nhưng **không** trả quota. `IN_PRODUCTION` trở đi hoặc trạng thái khác → `409 INVALID_TRANSITION` ("liên hệ shop"). Phiên bản đơn đọc trong transaction (client không gửi), nên thao tác đồng thời của admin cho kết quả `409`, không mất cập nhật. Thứ tự khoá: `payment_request` rồi `customer_order`.
-- `POST /api/orders/lookup`, body `{code, email}` → **luôn** `202 {"message": "..."}` cùng nội dung dù khớp hay không (thiếu trường/JSON hỏng vẫn `400`). Khi khớp (email không phân biệt hoa thường): tạo token mới, thay `access_token_hash`, tăng `version`, xếp email `ORDER_LOOKUP_LINK` (ADR-0012); link cũ ngừng hoạt động. Vượt giới hạn vẫn `202` nhưng không làm gì.
+- `POST /api/orders/lookup`, body `{code, email, turnstileToken?}` → mọi request qua được validate và captcha đều nhận `202 {"message": "..."}` cùng nội dung dù khớp hay không (thiếu trường/JSON hỏng → `400 VALIDATION_FAILED`; lỗi captcha `400`/`503`: xem dòng dưới). Khi khớp (email không phân biệt hoa thường): tạo token mới, thay `access_token_hash`, tăng `version`, xếp email `ORDER_LOOKUP_LINK` (ADR-0012); link cũ ngừng hoạt động. Vượt giới hạn vẫn `202` nhưng không làm gì.
+- Turnstile cho `lookup` (T-064, cùng `TurnstileVerifier` và cấu hình với checkout; `TURNSTILE_SECRET_KEY` trống = bỏ qua, hành vi như trước): body thêm `turnstileToken` (tuỳ chọn trong DTO, **bắt buộc khi Turnstile bật**, ≤ 2048 ký tự). Thứ tự kiểm: validate body (`400 VALIDATION_FAILED`) → IP đã hết lượt lookup (`202` như thường lệ, **không** gọi Cloudflare, không đọc DB) → Turnstile → logic tra cứu. Thiếu/rỗng/quá dài hoặc Cloudflare từ chối → `400 CAPTCHA_FAILED` (thông điệp chung; tính 1 lượt vào giới hạn 10 lần/giờ/IP). Cloudflare không trả lời/5xx/lỗi không thuộc về token → `503 SERVICE_UNAVAILABLE` (đóng an toàn, không tính lượt). Lookup có ngăn riêng: tối đa 5 lượt xác minh lookup chạy cùng lúc (nằm trong 20 lượt chung của `TurnstileVerifier`, nên checkout luôn còn ít nhất 15); lượt lookup thứ 6 → `503` ngay, không gọi Cloudflare, không tính lượt. Kết quả captcha được quyết định **trước mọi truy vấn DB**, nên `400`/`503` giống hệt nhau dù mã đơn + email có khớp hay không; token hợp lệ → `202` cùng nội dung như trước. Mỗi token chỉ dùng một lần: client reset widget sau mỗi lần gửi.
 - Giới hạn (trong bộ nhớ, IPv6 gom /64): `GET` + `cancel` 60 lần/phút/IP → `429 RATE_LIMITED` + `Retry-After`; `lookup` 10 lần/giờ/IP; đổi token tối đa 3 lần/giờ/đơn và không đổi hai lần trong 2 phút (request gửi lại không làm hỏng link vừa gửi).
 - T-028: có 34+ IT (`CustomerOrder*IT`).
 

@@ -86,6 +86,18 @@ class CustomerOrderLookupIT extends CustomerOrderTestBase {
     }
 
     @Test
+    void turnstileOff_tokenFieldIsIgnored_202AndRotates() throws Exception {
+        long id = order("IN_STOCK", "AWAITING_PAYMENT", 1);
+        String token = tokenFor(id);
+        String body = j("code", codeOf(id), "email", SECRET_EMAIL, "turnstileToken", "x".repeat(3000));
+
+        assertThat(res(lookupRaw(body)).status()).isEqualTo(202);
+
+        assertThat(lookupMails(id)).isEqualTo(1);
+        assertThat(status(token)).isEqualTo(404);
+    }
+
+    @Test
     void malformedBody_400() throws Exception {
         long id = order("IN_STOCK", "AWAITING_PAYMENT", 1);
         for (String body : List.of(
