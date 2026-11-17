@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SocialLinks } from "@/components/shop/SocialLinks";
 import { focusRing } from "@/components/ui";
+import { CONTACT_EMAIL } from "@/lib/contact";
 
 export const metadata: Metadata = {
   title: "Commission a figure",
@@ -17,24 +18,20 @@ const STEPS = [
   "When your figure is finished we email you a balance payment link. You then have 30 days to pay the remaining 50% plus shipping, and we ship once it is paid.",
 ];
 
-// Owner decisions still open (the public text below stays neutral until they are made):
-// [CẦN DUYỆT] Refund timing and who pays non-refundable platform fees when the shop cancels.
-// [CẦN DUYỆT] IP / fan-made wording for characters from existing series: nothing published yet.
 const NOTES = [
-  "Commissions follow the same rules as other made-to-order figures: the 50% deposit is not refunded if you cancel after it is confirmed, and it is refunded in full if we cancel.",
+  "Commissions follow the same rules as other made-to-order figures: the 50% deposit is not refunded if you cancel after it is confirmed, and it is refunded in full if we cancel. Refunds are sent within 10 business days after we confirm the cancellation, back through the same channel you paid with.",
+  "Your figure is made just for you. Please do not copy it, or make a mould or cast of it.",
   "Please agree the details (character, pose, scale, colours) before you order. Changes are free until painting starts.",
   "Dates are estimates. Printing and hand-painting can take longer than planned; we tell you early if the start month changes.",
   "If you go quiet while we are agreeing details or waiting for your feedback, we do not cancel your commission automatically. We follow up with you later. Payment link deadlines still apply.",
   "Your private link is just for you. Please do not share it.",
 ];
 
-// [CẦN DUYỆT] Who bears the risk of loss or damage to the customer's kit in transit, both ways.
-// [CẦN DUYỆT] Who pays two-way shipping and customs for the customer's kit.
-// [CẦN DUYỆT] Accept only legitimate (not counterfeit) kits: not stated publicly until decided.
 const KIT_NOTES = [
+  "Kit painting is by prior agreement and is not a standard service. We decide case by case, so we cannot always take a kit on.",
   "We give a quote for each piece. The quote depends on the state of the kit: for example its size, how many parts it has, and how much cleaning, repair or assembly it needs.",
   "Kit painting is not ordered through this website. Talk to us on social media or by email and we agree everything with you there.",
-  "Shipping both ways, customs, and what happens if a kit is lost or damaged in the post are agreed with you before you send anything.",
+  "You pay shipping and customs both ways. While the kit is on its way to us, it is at your risk. On the way back to you, it is at ours.",
   "We do not have sample photos of this service to show yet.",
 ];
 
@@ -78,7 +75,8 @@ export default function CommissionPage() {
           Painting your kit
         </h2>
         <p className="m-0">
-          Already have a garage kit or a custom piece of your own? We paint those too.
+          Already have a garage kit or a custom piece of your own? Sometimes we can paint it for
+          you.
         </p>
         <ul className={listClass}>
           {KIT_NOTES.map((note) => (
@@ -93,10 +91,10 @@ export default function CommissionPage() {
         <p className="m-0">
           Email{" "}
           <a
-            href="mailto:bk3dprinls@gmail.com"
+            href={`mailto:${CONTACT_EMAIL}`}
             className={`font-bold underline hover:text-danger ${focusRing}`}
           >
-            bk3dprinls@gmail.com
+            {CONTACT_EMAIL}
           </a>{" "}
           or message us here:
         </p>
