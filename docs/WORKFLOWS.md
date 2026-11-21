@@ -127,7 +127,7 @@ Khách thấy 6 giai đoạn theo thứ tự. Ba giai đoạn giữa do admin du
 
 ## 5. Trả nốt, nhắc hạn, mất cọc
 1. Admin bấm "Hoàn thiện" (`IN_PRODUCTION → AWAITING_BALANCE`; **không** tự tạo yêu cầu thanh toán), rồi tạo yêu cầu `BALANCE` qua `POST /orders/{id}/payment-requests` (50% + phí ship nếu kênh Artistree), `due_at = now + 30 ngày`.
-2. Email báo hoàn thiện kèm ảnh + link trả nốt.
+2. Bấm "Hoàn thiện" gửi email `ORDER_BALANCE_REQUESTED` ("figure đã xong, số dư đến hạn"), không kèm ảnh. Link trả nốt đến sau, trong email `ORDER_PAYMENT_LINK` khi admin tạo yêu cầu `BALANCE`.
 3. Job nhắc: **7 ngày** và **1 ngày** trước hạn (`dedupe_key` đảm bảo mỗi mốc gửi đúng 1 lần).
 4. Quá hạn → `FORFEITED`, email thông báo. Admin có nút **"Chuyển thành hàng sẵn"** → `stock_qty + số lượng của từng dòng hàng` cho biến thể tương ứng.
 

@@ -74,9 +74,9 @@ These rules are about changing your mind. They do not affect your legal rights: 
 
 We insure every parcel we ship overseas. If your parcel is lost or damaged in transit, you do not bear the loss: you choose a reship or a refund. For a made-to-order figure, a reship means we make you a new one. For an in-stock figure, we send a replacement from stock if we have one; if we do not, we refund you. This does not limit your legal rights in section 9.
 
-## 8. Damaged, faulty or not as described
+## 8. Faulty or not as described
 
-If your figure arrives damaged, faulty or not as described, email us at [bk3dprinls@gmail.com](mailto:bk3dprinls@gmail.com) within 7 days of delivery, with your order code and clear photos of the figure and the packaging. We will work out a fix with you: a repair, a replacement or a refund. This does not limit your legal rights in section 9.
+If your figure arrives faulty or not as described, email us at [bk3dprinls@gmail.com](mailto:bk3dprinls@gmail.com) within 7 days of delivery, with your order code and clear photos of the figure and the packaging. We will work out a fix with you: a repair, a replacement or a refund. For a parcel that is lost or damaged in transit, see section 7. This does not limit your legal rights in section 9.
 
 ## 9. Your legal rights
 

@@ -35,7 +35,7 @@ Lý do: hàng đã có, không có thời gian chờ để cọc phát huy tác 
 ✅ Đã chốt:
 1. **Cọc không hoàn lại khi khách huỷ.** Khách phải **tick đồng ý điều khoản** ở checkout; hệ thống lưu thời điểm đồng ý và phiên bản điều khoản.
 2. **Ngoại lệ: shop huỷ** (không làm được, hỏng in, ngừng nhận) → **hoàn 100% cọc**. Đây là điều bắt buộc để công bằng và tránh tranh chấp.
-3. **Hạn trả nốt: 30 ngày** sau khi báo figure hoàn thiện. Email nhắc **7 ngày** và **1 ngày** trước hạn.
+3. **Hạn trả nốt: 30 ngày** kể từ lúc admin tạo yêu cầu thanh toán `BALANCE` (không tính từ lúc bấm "Hoàn thiện"). Email nhắc **7 ngày** và **1 ngày** trước hạn.
 4. Quá hạn → **mất cọc**, đơn chuyển `FORFEITED`, figure có thể chuyển thành **hàng có sẵn** để bán lại.
 5. **Commission do shop làm (in + sơn từ đầu): sửa miễn phí trước khi bắt đầu sơn.** (Khai chốt 2026-11-16)
 6. **Khách im lặng khi trao đổi/chờ phản hồi: không tự huỷ, shop liên hệ lại sau**; hạn của link thanh toán (48 giờ / 30 ngày) vẫn áp dụng. (Khai chốt 2026-11-16)
