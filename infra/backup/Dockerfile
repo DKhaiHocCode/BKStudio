@@ -1,7 +1,7 @@
 # Backup / restore tools (T-044). Same base image and digest as the postgres service in infra/docker-compose.yml, so
 # pg_dump/pg_restore always match the server major version (16). The image already ships gpg and tzdata; curl does the
 # S3 (SigV4) upload/download, so no AWS CLI is needed.
-FROM postgres:16@sha256:63e83b5a3dc36a917dccb76fe1bd2ac51f1ec9c1deb47ff20d4f04233bf6eae9
+FROM postgres:16@sha256:3950ad7c3148ca2175ef1b6c36c9efbf78957ae8fbe8b3a5d7c35af50500382f
 
 # Debian drops old package versions from its mirrors, so an exact pin would break rebuilds; the base digest pins the rest.
 # hadolint ignore=DL3008
