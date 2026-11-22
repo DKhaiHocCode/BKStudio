@@ -45,7 +45,7 @@ services:
   # R2_ENDPOINT=https://s3.bkstudio.test in the local-test env file. The name needs a dot: Java sends no SNI for
   # single-label hosts, and Caddy then aborts the handshake.
   s3:
-    image: caddy:2.11.9@sha256:4e2425f6009577e7c651010f16679c28f7d12df3e7b1914f941a7a3370746b3c
+    image: caddy:2.11.9@sha256:4851e54a46b206517c574821bb5cc67f170d2156041e9fbc4c9193b45e84a75b
     command: ["caddy", "reverse-proxy", "--from", "https://s3.bkstudio.test", "--to", "minio:9000", "--internal-certs"]
     volumes:
       - s3_caddy_data:/data
