@@ -10,7 +10,7 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@playwright/test": "1.65.0",
+    "@playwright/test": "1.65.1",
     "@types/node": "^22",
     "prettier": "^3.10.1",
     "typescript": "^5"
